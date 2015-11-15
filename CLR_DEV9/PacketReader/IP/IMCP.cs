@@ -7,18 +7,7 @@ namespace CLR_DEV9.PacketReader
     {
         public byte Type;
         public byte Code;
-        //Int16 NO_csum = 0; //internet checksum
-        protected UInt16 Checksum
-        //{
-        //    get
-        //    {
-        //        return (UInt16)IPAddress.NetworkToHostOrder(NO_csum);
-        //    }
-        //    set
-        //    {
-        //        NO_csum = IPAddress.HostToNetworkOrder((Int16)value);
-        //    }
-        //}
+        protected UInt16 Checksum;
         public override byte Protocol
         {
             get { return 0x01; }
