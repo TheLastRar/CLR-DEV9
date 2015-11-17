@@ -16,7 +16,7 @@ namespace CLR_DEV9.Sessions
 
             int avaData = 0;
 
-            lock (client)
+            lock (clientSentry)
             {
                 if (client == null) { return null; }
 
@@ -35,7 +35,7 @@ namespace CLR_DEV9.Sessions
 
                 byte[] recived = new byte[avaData];
                 //Console.Error.WriteLine("Received " + avaData);
-                client.GetStream().Read(recived, 0, avaData);
+                netStream.Read(recived, 0, avaData);
 
                 TCP iRet = CreateBasePacket(recived);
                 IncrementMyNumber((uint)avaData);
@@ -47,7 +47,7 @@ namespace CLR_DEV9.Sessions
                 return iRet;
             }
 
-            lock (client)
+            lock (clientSentry)
             {
                 if (client.Client.Poll(1, SelectMode.SelectRead) && client.Client.Available == 0 && state == TCPState.Connected)
                 {
@@ -63,6 +63,7 @@ namespace CLR_DEV9.Sessions
         private void PerformCloseByRemote()
         {
             client.Close();
+            netStream = null;
             Console.Error.WriteLine("Remote has closed connection");
 
             TCP ret = CreateBasePacket();

@@ -54,7 +54,9 @@ namespace CLR_DEV9.Sessions
         }
         #endregion
         //TCP LastDataPacket = null; //Only 1 outstanding data packet from the remote source can exist at a time
+        Object clientSentry = new Object();
         TcpClient client;
+        NetworkStream netStream = null;
         TCPState state = TCPState.None;
 
         UInt16 SrcPort = 0; //PS2 Port
@@ -119,7 +121,7 @@ namespace CLR_DEV9.Sessions
         public override void Dispose()
         {
             open = false;
-            lock (client)
+            lock (clientSentry)
             {
                 client.Close();
             }

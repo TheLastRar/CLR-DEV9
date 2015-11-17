@@ -86,7 +86,10 @@ namespace CLR_DEV9.Sessions
                     PD.HeaderData = icmp.HeaderData;
                     Ping nPing = new Ping();
                     nPing.PingCompleted += PingCompleate;
-                    pings.Add(nPing);
+                    lock (sentry)
+                    {
+                        pings.Add(nPing);
+                    }
                     nPing.SendAsync(new IPAddress(DestIP), PD);
                     System.Threading.Thread.Sleep(1); //Hack Fix
                     break;
@@ -100,7 +103,10 @@ namespace CLR_DEV9.Sessions
         int open = 0;
         public override bool isOpen()
         {
-            return (open != 0);
+            lock (sentry)
+            {
+                return (open != 0);
+            }
         }
         public override void Dispose()
         {

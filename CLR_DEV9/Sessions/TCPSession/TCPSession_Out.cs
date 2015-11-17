@@ -12,7 +12,7 @@ namespace CLR_DEV9.Sessions
             TCP tcp = (TCP)res.AsyncState;
             try
             {
-                lock (client)
+                lock (clientSentry)
                 {
                     client.EndConnect(res);
                 }
@@ -23,10 +23,14 @@ namespace CLR_DEV9.Sessions
                 Console.Error.WriteLine("ErrorCode: " + err.ErrorCode);
             }
             bool connected = false;
-            lock (client)
+            lock (clientSentry)
             {
                 client.NoDelay = true;
                 connected = client.Connected;
+                if (connected)
+                {
+                    netStream = client.GetStream();
+                }
             }
             if (connected)
             {
@@ -84,7 +88,7 @@ namespace CLR_DEV9.Sessions
 
             if (tcp.RST == true) //Test this
             {
-                lock (client)
+                lock (clientSentry)
                 {
                     if (client.Connected)
                     {
@@ -176,12 +180,14 @@ namespace CLR_DEV9.Sessions
                 }
             }
 
-            if (client != null)
-                lock (client)
-                {
-                    client.Close();
-                    client = null;
-                }
+            
+            lock (clientSentry)
+            {
+                if (client != null)
+                client.Close();
+                client = null;
+            }
+            netStream = null;
             client = new TcpClient();
             IPAddress address = new IPAddress(DestIP);
             client.BeginConnect(address, DestPort, new AsyncCallback(AsyncConnectComplete), tcp);
@@ -259,7 +265,7 @@ namespace CLR_DEV9.Sessions
                 //Send the Data
                 try
                 {
-                    client.GetStream().Write(tcp.GetPayload(), 0, tcp.GetPayload().Length);
+                    netStream.Write(tcp.GetPayload(), 0, tcp.GetPayload().Length);
                 }
                 catch (Exception e)
                 {
@@ -387,10 +393,11 @@ namespace CLR_DEV9.Sessions
 
         private void PerformCloseByPS2()
         {
-            lock (client)
+            lock (clientSentry)
             {
                 client.Close();
             }
+            netStream = null;
             Console.Error.WriteLine("PS2 has closed connection");
             //Connection Close Part 2, Send ACK to PS2
             ReceivedPS2SequenceNumbers.RemoveAt(0);
