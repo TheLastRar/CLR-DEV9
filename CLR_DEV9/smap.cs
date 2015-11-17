@@ -403,9 +403,10 @@ namespace CLR_DEV9
                 case DEV9Header.SMAP_R_RXFIFO_FRAME_CNT:
                     //Console.Error.WriteLine("SMAP_R_RXFIFO_FRAME_CNT read 32\n" + DEV9Header.dev9Ru32((int)addr).ToString("X"));
                     return DEV9Header.dev9Ru32((int)addr);
-                case DEV9Header.SMAP_R_EMAC3_STA_CTRL_L:
-                    DEV9.DEV9_LOG("SMAP_R_EMAC3_STA_CTRL_L 32bit read value " + DEV9Header.dev9Ru32((int)addr).ToString("X"));
-                    return DEV9Header.dev9Ru32((int)addr);
+                    //This Case is handled in above if statement relating to EMAC regs
+                //case DEV9Header.SMAP_R_EMAC3_STA_CTRL_L:
+                //    DEV9.DEV9_LOG("SMAP_R_EMAC3_STA_CTRL_L 32bit read value " + DEV9Header.dev9Ru32((int)addr).ToString("X"));
+                //    return DEV9Header.dev9Ru32((int)addr);
 
                 case DEV9Header.SMAP_R_RXFIFO_DATA:
                     {

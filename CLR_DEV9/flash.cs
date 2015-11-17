@@ -13,8 +13,13 @@ namespace CLR_DEV9
         const int CARD_SIZE = (1024 * BLOCK_SIZE);
         const int CARD_SIZE_ECC = (1024 * BLOCK_SIZE_ECC);
 
-        static volatile UInt32 ctrl, address, id, counter, addrbyte;
-        static volatile UInt32 cmd = unchecked((UInt32)(-1));
+        //Do these need to be thread safe?
+        //What other thread reads these values?
+        //static volatile UInt32 ctrl, address, id, counter, addrbyte;
+        //static volatile UInt32 cmd = unchecked((UInt32)(-1));
+        static UInt32 ctrl, address, id, counter, addrbyte;
+        static UInt32 cmd = unchecked((UInt32)(-1));
+
         static byte[] data = new byte[PAGE_SIZE_ECC], file = new byte[CARD_SIZE_ECC];
 
         static void calculateECC(byte[] page)
@@ -78,6 +83,7 @@ namespace CLR_DEV9
                 case DEV9Header.FLASH_R_DATA:
                     Utils.memcpy(ref valueByte, 0, data, (int)counter, size);
                     counter += (uint)size;
+
                     DEV9.DEV9_LOG("*FLASH DATA " + (size * 8).ToString() + "bit read 0x" + BitConverter.ToUInt32(valueByte, 0).ToString("X8") + " " + (((ctrl & DEV9Header.FLASH_PP_READ) != 0) ? "READ_ENABLE" : "READ_DISABLE").ToString());
                     if (cmd == DEV9Header.SM_CMD_READ3)
                     {
@@ -101,7 +107,6 @@ namespace CLR_DEV9
                                 refill = 1;
                             }
                     }
-
                     if (refill != 0)
                     {
                         unchecked
@@ -203,7 +208,8 @@ namespace CLR_DEV9
                             calculateECC(data);
                             Utils.memcpy(ref file, (int)((address / PAGE_SIZE) * PAGE_SIZE_ECC), data, 0, PAGE_SIZE_ECC);
                             /*write2file*/
-                            ctrl |= DEV9Header.FLASH_PP_READY; break;
+                            ctrl |= DEV9Header.FLASH_PP_READY;
+                            break;
                         case DEV9Header.SM_CMD_GETSTATUS: break;
                         case DEV9Header.SM_CMD_READID: counter = 0; address = counter; addrbyte = 0; break;
                         default:
