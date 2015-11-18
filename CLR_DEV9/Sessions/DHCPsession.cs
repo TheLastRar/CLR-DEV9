@@ -63,8 +63,8 @@ namespace CLR_DEV9.Sessions
                     //}
                     foreach (UnicastIPAddressInformation IPAddressInfo in IPInfo)
                     {
-                        if (IPAddressInfo.DuplicateAddressDetectionState == DuplicateAddressDetectionState.Preferred &
-                            IPAddressInfo.AddressPreferredLifetime != UInt32.MaxValue &
+                        if (//IPAddressInfo.DuplicateAddressDetectionState == DuplicateAddressDetectionState.Preferred &
+                            //IPAddressInfo.AddressPreferredLifetime != UInt32.MaxValue &
                             IPAddressInfo.Address.AddressFamily == AddressFamily.InterNetwork)
                         {
                             Console.Error.WriteLine("Matched Adapter");

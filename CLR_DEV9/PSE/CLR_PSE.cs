@@ -1,4 +1,6 @@
-﻿using RGiesecke.DllExport;
+﻿
+using RGiesecke.DllExport;
+using System;
 using System.Runtime.InteropServices;
 
 namespace PSE
@@ -33,7 +35,20 @@ namespace PSE
         //minor
         public const byte build = 1;
 
-        private const string libraryName = "CLR DLLExport DEV9 Test";
+#if DEBUG
+        private const string libraryName = "CLR DEV9 DEBUG Test";
+#else
+        private const string libraryName = "CLR DEV9 Test";
+#endif
+#if DEBUG
+        public static void MsgBoxError(Exception e)
+        {
+            Console.Error.WriteLine(e.StackTrace);
+            System.Windows.Forms.MessageBox.Show("Encounted Exception! : " + Environment.NewLine);
+            System.IO.File.WriteAllLines(CLR_DEV9.DEV9.LogFolderPath + "\\DEV9_ERR.txt", new string[] {e.StackTrace});
+        }
+#endif
+
         [DllExport(CallingConvention = CallingConvention.StdCall)]
         [return: MarshalAs(UnmanagedType.LPStr)]
         public static string PS2EgetLibName()

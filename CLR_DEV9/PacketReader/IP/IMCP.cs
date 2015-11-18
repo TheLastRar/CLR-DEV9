@@ -45,7 +45,7 @@ namespace CLR_DEV9.PacketReader
             NetLib.ReadUInt16(Ef.RawPacket.buffer, ref offset, out Checksum);
             NetLib.ReadByteArray(Ef.RawPacket.buffer, ref offset, 4, out HeaderData);
 
-            NetLib.ReadByteArray(Ef.RawPacket.buffer, ref offset, Length - offset, out HeaderData);
+            NetLib.ReadByteArray(Ef.RawPacket.buffer, ref offset, Length - 8, out Data);
         }
         public override void CalculateCheckSum(byte[] srcIP, byte[] dstIP)
         {
