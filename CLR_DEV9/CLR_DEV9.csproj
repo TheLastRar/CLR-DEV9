@@ -7,7 +7,7 @@
     <ProjectGuid>{DE0CAEC7-620B-408D-8860-D3245B928FB8}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CLR_DEV9</RootNamespace>
+    <RootNamespace>CLRDEV9</RootNamespace>
     <AssemblyName>CLR_DEV9</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -90,39 +90,46 @@
     <Compile Include="Config.cs" />
     <Compile Include="DEV9.cs" />
     <Compile Include="DEV9Header.cs" />
-    <Compile Include="flash.cs" />
-    <Compile Include="net.cs" />
-    <Compile Include="netHeader.cs" />
-    <Compile Include="PacketReader\ARP\ARPPacket.cs" />
-    <Compile Include="PacketReader\EtherFrameType.cs" />
-    <Compile Include="PacketReader\EthernetFrame.cs" />
-    <Compile Include="PacketReader\EthernetPayload.cs" />
-    <Compile Include="PacketReader\IP\DHCP\DHCP.cs" />
-    <Compile Include="PacketReader\IP\DHCP\DHCPOptions.cs" />
-    <Compile Include="PacketReader\IP\IMCP.cs" />
-    <Compile Include="PacketReader\IP\IPPacket.cs" />
-    <Compile Include="PacketReader\IP\IPPayload.cs" />
-    <Compile Include="PacketReader\IP\IPType.cs" />
-    <Compile Include="PacketReader\IP\TCP.cs" />
-    <Compile Include="PacketReader\IP\TCPOption.cs" />
-    <Compile Include="PacketReader\IP\UDP.cs" />
-    <Compile Include="PacketReader\NetLib.cs" />
+    <Compile Include="DEV9\DEV9_State.cs" />
+    <Compile Include="DEV9\DEV9_State_Regs.cs" />
+    <Compile Include="DEV9\FLASH\FLASH_Constants.cs" />
+    <Compile Include="DEV9\FLASH\FLASH_State.cs" />
+    <Compile Include="DEV9\FLASH\FLASH_State_regs.cs" />
+    <Compile Include="DEV9\SMAP\AdapterLoader.cs" />
+    <Compile Include="DEV9\SMAP\AdapterManager.cs" />
+    <Compile Include="DEV9\SMAP\Data\NetAdapter.cs" />
+    <Compile Include="DEV9\SMAP\Data\NetPacket.cs" />
+    <Compile Include="DEV9\SMAP\Data\SMAP_bd.cs" />
+    <Compile Include="DEV9\SMAP\SMAP_State.cs" />
+    <Compile Include="DEV9\SMAP\Tap\Tap_Native.cs" />
+    <Compile Include="DEV9\SMAP\Winsock\PacketReader\ARP\ARPPacket.cs" />
+    <Compile Include="DEV9\SMAP\Winsock\PacketReader\EtherFrameType.cs" />
+    <Compile Include="DEV9\SMAP\Winsock\PacketReader\EthernetFrame.cs" />
+    <Compile Include="DEV9\SMAP\Winsock\PacketReader\EthernetPayload.cs" />
+    <Compile Include="DEV9\SMAP\Winsock\PacketReader\IP\DHCP\DHCP.cs" />
+    <Compile Include="DEV9\SMAP\Winsock\PacketReader\IP\DHCP\DHCPOptions.cs" />
+    <Compile Include="DEV9\SMAP\Winsock\PacketReader\IP\IMCP.cs" />
+    <Compile Include="DEV9\SMAP\Winsock\PacketReader\IP\IPPacket.cs" />
+    <Compile Include="DEV9\SMAP\Winsock\PacketReader\IP\IPPayload.cs" />
+    <Compile Include="DEV9\SMAP\Winsock\PacketReader\IP\IPType.cs" />
+    <Compile Include="DEV9\SMAP\Winsock\PacketReader\IP\TCP.cs" />
+    <Compile Include="DEV9\SMAP\Winsock\PacketReader\IP\TCPOption.cs" />
+    <Compile Include="DEV9\SMAP\Winsock\PacketReader\IP\UDP.cs" />
+    <Compile Include="DEV9\SMAP\Winsock\PacketReader\NetLib.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PSE\CLR_PSE.cs" />
     <Compile Include="PSE\CLR_PSE_Callbacks.cs" />
     <Compile Include="PSE\CLR_PSE_PluginLog.cs" />
-    <Compile Include="Sessions\DHCPsession.cs" />
-    <Compile Include="Sessions\ICMPSession.cs" />
-    <Compile Include="Sessions\Session.cs" />
-    <Compile Include="Sessions\TCPSession\TCPSession.cs" />
-    <Compile Include="Sessions\TCPSession\TCPSession_In.cs" />
-    <Compile Include="Sessions\TCPSession\TCPSession_Out.cs" />
-    <Compile Include="Sessions\UDPSession.cs" />
-    <Compile Include="smap.cs" />
-    <Compile Include="tap.cs" />
+    <Compile Include="DEV9\SMAP\Winsock\Sessions\DHCPsession.cs" />
+    <Compile Include="DEV9\SMAP\Winsock\Sessions\ICMPSession.cs" />
+    <Compile Include="DEV9\SMAP\Winsock\Sessions\Session.cs" />
+    <Compile Include="DEV9\SMAP\Winsock\Sessions\TCPSession\TCPSession.cs" />
+    <Compile Include="DEV9\SMAP\Winsock\Sessions\TCPSession\TCPSession_In.cs" />
+    <Compile Include="DEV9\SMAP\Winsock\Sessions\TCPSession\TCPSession_Out.cs" />
+    <Compile Include="DEV9\SMAP\Winsock\Sessions\UDPSession.cs" />
+    <Compile Include="DEV9\SMAP\Tap\Tap.cs" />
     <Compile Include="Utils.cs" />
-    <Compile Include="Win32.cs" />
-    <Compile Include="Winsock.cs" />
+    <Compile Include="DEV9\SMAP\Winsock\Winsock.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

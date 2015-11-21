@@ -33,7 +33,7 @@ namespace PSE
         //major
         public const byte revision = 0;
         //minor
-        public const byte build = 2;
+        public const byte build = 3;
 
 #if DEBUG
         private const string libraryName = "CLR DEV9 DEBUG Test";
@@ -45,7 +45,7 @@ namespace PSE
         {
             Console.Error.WriteLine(e.StackTrace);
             System.Windows.Forms.MessageBox.Show("Encounted Exception! : " + Environment.NewLine);
-            System.IO.File.WriteAllLines(CLR_DEV9.DEV9.LogFolderPath + "\\DEV9_ERR.txt", new string[] {e.StackTrace});
+            System.IO.File.WriteAllLines(CLRDEV9.CLR_DEV9.LogFolderPath + "\\DEV9_ERR.txt", new string[] {e.StackTrace});
         }
 #endif
 

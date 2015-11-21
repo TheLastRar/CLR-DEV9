@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CLR_DEV9
+namespace CLRDEV9
 {
     static class DEV9Header
     {
@@ -19,36 +19,6 @@ namespace CLR_DEV9
 
         public static Config config;
 
-        //public struct dev9Struct
-        public class dev9DataClass
-        {
-            public byte[] dev9R = new byte[0x10000]; //changed to unsigned
-            public byte eeprom_state;
-            public byte eeprom_command;
-            public byte eeprom_address;
-            public byte eeprom_bit;
-            public byte eeprom_dir;
-            public ushort[] eeprom;//[32];
-
-            public UInt32 rxbdi;
-            public byte[] rxfifo = new byte[16 * 1024];
-            public UInt16 rxfifo_wr_ptr;
-
-            public UInt32 txbdi;
-            public byte[] txfifo = new byte[16 * 1024];
-            public UInt16 txfifo_rd_ptr;
-
-            public byte bd_swap;
-            public UInt16[] atabuf = new UInt16[1024];
-            //public UInt32 atacount;
-            //public UInt32 atasize;
-            public UInt16[] phyregs = new UInt16[32];
-            public int irqcause;
-            //public byte atacmd;
-            //public UInt32 atasector;
-            //public UInt32 atansector;
-        }
-
         //EEPROM states
         public const int EEPROM_READY = 0;
         public const int EEPROM_OPCD0 = 1;  //waiting for first bit of opcode
@@ -61,28 +31,7 @@ namespace CLR_DEV9
         public const int EEPROM_ADDR5 = 8;
         public const int EEPROM_TDATA = 9;	//ready to send/receive data
 
-        public static dev9DataClass dev9;
-
-        public static void dev9_rxfifo_write(byte x) { dev9.rxfifo[dev9.rxfifo_wr_ptr++] = x; }
-
-        //public static sbyte dev9Rs8(int mem)	{return dev9.dev9R[mem & 0xffff];}
-        //#define dev9Rs16(int mem)	{return dev9.dev9R[mem & 0xffff];}
-        //#define dev9Rs32(mem)	(*(s32*)&dev9.dev9R[(mem) & 0xffff])
-        public static byte dev9Ru8(int mem) { return dev9.dev9R[mem & 0xffff]; }
-        public static UInt16 dev9Ru16(int mem) { return BitConverter.ToUInt16(dev9.dev9R, (mem) & 0xffff); }
-        public static UInt32 dev9Ru32(int mem) { return BitConverter.ToUInt32(dev9.dev9R, (mem) & 0xffff); }
-
-        public static void dev9Wu8(int mem, byte value) { dev9.dev9R[mem & 0xffff] = value; }
-        public static void dev9Wu16(int mem, UInt16 value)
-        {
-            byte[] tmp = BitConverter.GetBytes(value);
-            Utils.memcpy(ref dev9.dev9R, (mem & 0xffff), tmp, 0, tmp.Length);
-        }
-        public static void dev9Wu32(int mem, UInt32 value)
-        {
-            byte[] tmp = BitConverter.GetBytes(value);
-            Utils.memcpy(ref dev9.dev9R, (mem & 0xffff), tmp, 0, tmp.Length);
-        }
+        //public static dev9DataClass dev9;
 
         public static PSE.CLR_PSE_Callbacks.CLR_CyclesCallback DEV9irq;
 
@@ -340,89 +289,6 @@ namespace CLR_DEV9
         public const uint SMAP_R_EMAC3_TX_OCTETS = (SMAP_EMAC3_REGBASE + 0x68);
         public const uint SMAP_R_EMAC3_RX_OCTETS = (SMAP_EMAC3_REGBASE + 0x6C);
         public const uint SMAP_EMAC3_REGEND = (SMAP_EMAC3_REGBASE + 0x6C + 4);
-
-        /* Buffer descriptors.  */
-        public class smap_bd
-        {
-            int _startoff = 0;
-            byte[] basedata;
-            public smap_bd(byte[] data, int startoffset)
-            {
-                basedata = data;
-                _startoff = startoffset;
-            }
-            public UInt16 ctrl_stat
-            {
-                get
-                {
-                    return BitConverter.ToUInt16(basedata, _startoff);
-                }
-                set
-                {
-                    byte[] var = BitConverter.GetBytes(value);
-                    Utils.memcpy(ref basedata, _startoff, var, 0, var.Length);
-                }
-            }
-            public UInt16 reserved
-            {
-                get
-                {
-                    return BitConverter.ToUInt16(basedata, _startoff + 2);
-                }
-                set
-                {
-                    byte[] var = BitConverter.GetBytes(value);
-                    Utils.memcpy(ref basedata, _startoff + 2, var, 0, var.Length);
-                }
-            }
-            public UInt16 length
-            {
-                get
-                {
-                    return BitConverter.ToUInt16(basedata, _startoff + 4);
-                }
-                set
-                {
-                    byte[] var = BitConverter.GetBytes(value);
-                    Utils.memcpy(ref basedata, _startoff + 4, var, 0, var.Length);
-                }
-            }
-            public UInt16 pointer
-            {
-                get
-                {
-                    return BitConverter.ToUInt16(basedata, _startoff + 6);
-                }
-                set
-                {
-                    byte[] var = BitConverter.GetBytes(value);
-                    Utils.memcpy(ref basedata, _startoff + 6, var, 0, var.Length);
-                }
-            }
-
-            public static int GetSize()
-            {
-                return ((16 * 4) / 8);
-            }
-        }
-
-        //public struct smap_bd_t {
-        //    public UInt16 ctrl_stat;
-        //    public UInt16 reserved;	/* must be zero */
-        //    public UInt16 length;		/* number of bytes in pkt */
-        //    public UInt16 pointer;
-        //    public void FromBytes(byte[] data, int startoffset)
-        //    {
-        //        ctrl_stat = BitConverter.ToUInt16(data,startoffset);
-        //        reserved = BitConverter.ToUInt16(data, startoffset+2);
-        //        length = BitConverter.ToUInt16(data, startoffset+4);
-        //        pointer = BitConverter.ToUInt16(data, startoffset+6);
-        //    }
-        //    public static int GetSize()
-        //    {
-        //        return ((16 * 4) / 8);
-        //    }
-        //}
 
         public const uint SMAP_BD_REGBASE = (SMAP_REGBASE + 0x2f00);
         public const uint SMAP_BD_TX_BASE = (SMAP_BD_REGBASE + 0x0000);

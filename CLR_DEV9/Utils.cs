@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CLR_DEV9
+namespace CLRDEV9
 {
     static class Utils
     {

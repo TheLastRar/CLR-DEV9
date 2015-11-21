@@ -5,7 +5,7 @@ using System.Text;
 using Microsoft.Win32;
 using PSE;
 
-namespace CLR_DEV9
+namespace CLRDEV9
 {
     static class Config
     {
