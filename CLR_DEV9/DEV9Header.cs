@@ -19,53 +19,25 @@ namespace CLRDEV9
 
         public static Config config;
 
-        //EEPROM states
-        public const int EEPROM_READY = 0;
-        public const int EEPROM_OPCD0 = 1;  //waiting for first bit of opcode
-        public const int EEPROM_OPCD1 = 2;  //waiting for second bit of opcode
-        public const int EEPROM_ADDR0 = 3;	//waiting for address bits
-        public const int EEPROM_ADDR1 = 4;
-        public const int EEPROM_ADDR2 = 5;
-        public const int EEPROM_ADDR3 = 6;
-        public const int EEPROM_ADDR4 = 7;
-        public const int EEPROM_ADDR5 = 8;
-        public const int EEPROM_TDATA = 9;	//ready to send/receive data
-
-        //public static dev9DataClass dev9;
-
         public static PSE.CLR_PSE_Callbacks.CLR_CyclesCallback DEV9irq;
+
+        //EEPROM states
+        public const byte EEPROM_READY = 0;
+        public const byte EEPROM_OPCD0 = 1;  //waiting for first bit of opcode
+        public const byte EEPROM_OPCD1 = 2;  //waiting for second bit of opcode
+        public const byte EEPROM_ADDR0 = 3;	//waiting for address bits
+        public const byte EEPROM_ADDR1 = 4;
+        public const byte EEPROM_ADDR2 = 5;
+        public const byte EEPROM_ADDR3 = 6;
+        public const byte EEPROM_ADDR4 = 7;
+        public const byte EEPROM_ADDR5 = 8;
+        public const byte EEPROM_TDATA = 9;	//ready to send/receive data
 
         public const uint DEV9_R_REV = 0x1f80146e;
 
-        public const uint SPD_R_DMA_CTRL = (SPD_REGBASE + 0x24);
-        public const uint SPD_R_INTR_STAT = (SPD_REGBASE + 0x28);
-        public const uint SPD_R_INTR_MASK = (SPD_REGBASE + 0x2a);
-        public const uint SPD_R_PIO_DIR = (SPD_REGBASE + 0x2c);
-        public const uint SPD_R_PIO_DATA = (SPD_REGBASE + 0x2e);
-        public const uint SPD_PP_DOUT = (1 << 4);	/* Data output, read port */
-        public const uint SPD_PP_DIN = (1 << 5);	/* Data input,  write port */
-        public const uint SPD_PP_SCLK = (1 << 6);	/* Clock,       write port */
-        public const uint SPD_PP_CSEL = (1 << 7);	/* Chip select, write port */
-
-
-
         /*
-            * SMAP (PS2 Network Adapter) register definitions.
-            *
-            * Copyright (c) 2003 Marcus R. Brown <mrbrown@0xd6.org>
-            *
-            * * code included from the ps2smap iop driver, modified by linuzappz  *
-            */
-
-        /* SMAP interrupt status bits (selected from the SPEED device).  */
-        public const int SMAP_INTR_EMAC3 = (1 << 6);
-        public const int SMAP_INTR_RXEND = (1 << 5);
-        public const int SMAP_INTR_TXEND = (1 << 4);
-        public const int SMAP_INTR_RXDNV = (1 << 3);	/* descriptor not valid */
-        public const int SMAP_INTR_TXDNV = (1 << 2);	/* descriptor not valid */
-        public const int SMAP_INTR_CLR_ALL = (SMAP_INTR_RXEND | SMAP_INTR_TXEND | SMAP_INTR_RXDNV);
-        public const int SMAP_INTR_ENA_ALL = (SMAP_INTR_EMAC3 | SMAP_INTR_CLR_ALL);
-        public const int SMAP_INTR_BITMSK = 0x7C;
+         * SPEED (ASIC on SMAP) register definitions.
+         */
 
         public const uint SPD_REGBASE = 0x10000000;
 
@@ -76,6 +48,44 @@ namespace CLRDEV9
         // bit 5: flash
         public const uint SPD_R_REV_3 = (SPD_REGBASE + 0x04);
         public const uint SPD_R_0e = (SPD_REGBASE + 0x0e);
+
+        public const uint SPD_R_DMA_CTRL = (SPD_REGBASE + 0x24);
+        public const uint SPD_R_INTR_STAT = (SPD_REGBASE + 0x28);
+        public const uint SPD_R_INTR_MASK = (SPD_REGBASE + 0x2a);
+        public const uint SPD_R_PIO_DIR = (SPD_REGBASE + 0x2c);
+        public const uint SPD_R_PIO_DATA = (SPD_REGBASE + 0x2e);
+        public const uint SPD_PP_DOUT = (1 << 4);	/* Data output, read port */
+        public const uint SPD_PP_DIN = (1 << 5);	/* Data input,  write port */
+        public const uint SPD_PP_SCLK = (1 << 6);	/* Clock,       write port */
+        public const uint SPD_PP_CSEL = (1 << 7);	/* Chip select, write port */
+        /* Operation codes */
+        public const uint SPD_PP_OP_READ = 2;
+        public const uint SPD_PP_OP_WRITE = 1;
+        public const uint SPD_PP_OP_EWEN = 0;
+        public const uint SPD_PP_OP_EWDS = 0;
+
+        public const uint SPD_R_XFR_CTRL = (SPD_REGBASE + 0x32);
+        public const uint SPD_R_38 = (SPD_REGBASE + 0x38);
+        public const uint SPD_R_IF_CTRL = (SPD_REGBASE + 0x64);
+        public const uint SPD_IF_ATA_RESET = 0x80;
+        public const uint SPD_IF_DMA_ENABLE = 0x04;
+        public const uint SPD_R_PIO_MODE = (SPD_REGBASE + 0x70);
+        public const uint SPD_R_MWDMA_MODE = (SPD_REGBASE + 0x72);
+        public const uint SPD_R_UDMA_MODE = (SPD_REGBASE + 0x74);
+
+        /*
+         * SMAP (PS2 Network Adapter) register definitions.
+         */
+
+        /* SMAP interrupt status bits (selected from the SPEED device).  */
+        public const int SMAP_INTR_EMAC3 = (1 << 6);
+        public const int SMAP_INTR_RXEND = (1 << 5);
+        public const int SMAP_INTR_TXEND = (1 << 4);
+        public const int SMAP_INTR_RXDNV = (1 << 3);	/* descriptor not valid */
+        public const int SMAP_INTR_TXDNV = (1 << 2);	/* descriptor not valid */
+        public const int SMAP_INTR_CLR_ALL = (SMAP_INTR_RXEND | SMAP_INTR_TXEND | SMAP_INTR_RXDNV);
+        public const int SMAP_INTR_ENA_ALL = (SMAP_INTR_EMAC3 | SMAP_INTR_CLR_ALL);
+        public const int SMAP_INTR_BITMSK = 0x7C;
 
         /* SMAP Register Definitions.  */
         public const uint SMAP_REGBASE = (SPD_REGBASE + 0x100);
@@ -116,13 +126,6 @@ namespace CLRDEV9
         public const uint SMAP_E3_WAKEUP_ENABLE = (1 << (10 + 16));
         public const uint SMAP_R_EMAC3_MODE0_H = (SMAP_EMAC3_REGBASE + 0x02);
 
-        public const uint SMAP_R_EMAC3_TxMODE0_L = (SMAP_EMAC3_REGBASE + 0x08);
-        public const uint SMAP_E3_TX_GNP_0 = unchecked((uint)(1 << (15 + 16)));/* get new packet */
-        public const uint SMAP_E3_TX_GNP_1 = (1 << (14 + 16));	    /* get new packet */
-        public const uint SMAP_E3_TX_GNP_DEPEND = (1 << (13 + 16));	/* get new packet */
-        public const uint SMAP_E3_TX_FIRST_CHANNEL = (1 << (12 + 16));
-        public const uint SMAP_R_EMAC3_TxMODE0_H = (SMAP_EMAC3_REGBASE + 0x0A);
-
         public const uint SMAP_R_EMAC3_MODE1 = (SMAP_EMAC3_REGBASE + 0x04);
         public const uint SMAP_R_EMAC3_MODE1_L = (SMAP_EMAC3_REGBASE + 0x04);
         public const uint SMAP_R_EMAC3_MODE1_H = (SMAP_EMAC3_REGBASE + 0x06);
@@ -156,6 +159,13 @@ namespace CLRDEV9
         public const uint SMAP_E3_TXREQ1_MULTI = (1 << 13);
         public const uint SMAP_E3_TXREQ1_DEPEND = (2 << 13);
         public const uint SMAP_E3_JUMBO_ENABLE = (1 << 12);
+
+        public const uint SMAP_R_EMAC3_TxMODE0_L = (SMAP_EMAC3_REGBASE + 0x08);
+        public const uint SMAP_E3_TX_GNP_0 = unchecked((uint)(1 << (15 + 16)));/* get new packet */
+        public const uint SMAP_E3_TX_GNP_1 = (1 << (14 + 16));	    /* get new packet */
+        public const uint SMAP_E3_TX_GNP_DEPEND = (1 << (13 + 16));	/* get new packet */
+        public const uint SMAP_E3_TX_FIRST_CHANNEL = (1 << (12 + 16));
+        public const uint SMAP_R_EMAC3_TxMODE0_H = (SMAP_EMAC3_REGBASE + 0x0A);
 
         public const uint SMAP_R_EMAC3_TxMODE1_L = (SMAP_EMAC3_REGBASE + 0x0C);
         public const uint SMAP_R_EMAC3_TxMODE1_H = (SMAP_EMAC3_REGBASE + 0x0E);
@@ -290,124 +300,183 @@ namespace CLRDEV9
         public const uint SMAP_R_EMAC3_RX_OCTETS = (SMAP_EMAC3_REGBASE + 0x6C);
         public const uint SMAP_EMAC3_REGEND = (SMAP_EMAC3_REGBASE + 0x6C + 4);
 
+        /* Buffer descriptors.  */
         public const uint SMAP_BD_REGBASE = (SMAP_REGBASE + 0x2f00);
         public const uint SMAP_BD_TX_BASE = (SMAP_BD_REGBASE + 0x0000);
         public const uint SMAP_BD_RX_BASE = (SMAP_BD_REGBASE + 0x0200);
         public const uint SMAP_BD_SIZE = 512;
         public const uint SMAP_BD_MAX_ENTRY = 64;
 
-        /* TX Status */
+        public const uint SMAP_TX_BASE = (SMAP_REGBASE + 0x1000);
+        public const uint SMAP_TX_BUFSIZE = 4096;
+
+        /* Tx Control */
         public const uint SMAP_BD_TX_READY = (1 << 15); /* set:driver, clear:HW */
-        public const int SMAP_BD_TX_BADFCS = (1 << 9);	/* bad FCS */
-        public const int SMAP_BD_TX_BADPKT = (1 << 8);	/* bad previous pkt in dependent mode */
-        public const int SMAP_BD_TX_LOSSCR = (1 << 7);	/* loss of carrior sense */
-        public const int SMAP_BD_TX_EDEFER = (1 << 6);	/* excessive deferal */
-        public const int SMAP_BD_TX_ECOLL = (1 << 5);	/* excessive collision */
-        public const int SMAP_BD_TX_LCOLL = (1 << 4);	/* late collision */
-        public const int SMAP_BD_TX_MCOLL = (1 << 3);	/* multiple collision */
-        public const int SMAP_BD_TX_SCOLL = (1 << 2);	/* single collision */
-        public const int SMAP_BD_TX_UNDERRUN = (1 << 1);	/* underrun */
-        public const int SMAP_BD_TX_SQE = (1 << 0);	/* SQE */
+        public const uint SMAP_BD_TX_GENFCS = (1 << 9); /* generate FCS */
+        public const uint SMAP_BD_TX_GENPAD = (1 << 8); /* generate padding */
+        public const uint SMAP_BD_TX_INSSA = (1 << 7);  /* insert source address */
+        public const uint SMAP_BD_TX_RPLSA = (1 << 6);  /* replace source address */
+        public const uint SMAP_BD_TX_INSVLAN = (1 << 5);/* insert VLAN Tag */
+        public const uint SMAP_BD_TX_RPLVLAN = (1 << 4);/* replace VLAN Tag */
+
+        /* TX Status */
+        //public const uint SMAP_BD_TX_READY = (1 << 15); /* set:driver, clear:HW */
+        public const uint SMAP_BD_TX_BADFCS = (1 << 9);	/* bad FCS */
+        public const uint SMAP_BD_TX_BADPKT = (1 << 8);	/* bad previous pkt in dependent mode */
+        public const uint SMAP_BD_TX_LOSSCR = (1 << 7);	/* loss of carrior sense */
+        public const uint SMAP_BD_TX_EDEFER = (1 << 6);	/* excessive deferal */
+        public const uint SMAP_BD_TX_ECOLL = (1 << 5);	/* excessive collision */
+        public const uint SMAP_BD_TX_LCOLL = (1 << 4);	/* late collision */
+        public const uint SMAP_BD_TX_MCOLL = (1 << 3);	/* multiple collision */
+        public const uint SMAP_BD_TX_SCOLL = (1 << 2);	/* single collision */
+        public const uint SMAP_BD_TX_UNDERRUN = (1 << 1);/* underrun */
+        public const uint SMAP_BD_TX_SQE = (1 << 0);	/* SQE */
+
+        public const uint SMAP_BD_TX_ERROR = (SMAP_BD_TX_LOSSCR | SMAP_BD_TX_EDEFER | SMAP_BD_TX_ECOLL |
+            SMAP_BD_TX_LCOLL | SMAP_BD_TX_UNDERRUN);
+
+        /* RX Control */
+        public const uint SMAP_BD_RX_EMPTY = (1 << 15);	/* set:driver, clear:HW */
 
         /* RX Status */
-        public const uint SMAP_BD_RX_EMPTY = (1 << 15);	/* set:driver, clear:HW */
-        public const int SMAP_BD_RX_OVERRUN = (1 << 9);	/* overrun */
-        public const int SMAP_BD_RX_PFRM = (1 << 8);	/* pause frame */
-        public const int SMAP_BD_RX_BADFRM = (1 << 7);	/* bad frame */
-        public const int SMAP_BD_RX_RUNTFRM = (1 << 6);	/* runt frame */
-        public const int SMAP_BD_RX_SHORTEVNT = (1 << 5);/* short event */
-        public const int SMAP_BD_RX_ALIGNERR = (1 << 4);/* alignment error */
-        public const int SMAP_BD_RX_BADFCS = (1 << 3);  /* bad FCS */
-        public const int SMAP_BD_RX_FRMTOOLONG = (1 << 2);/* frame too long */
-        public const int SMAP_BD_RX_OUTRANGE = (1 << 1);/* out of range error */
-        public const int SMAP_BD_RX_INRANGE = (1 << 0);	/* in range error */
+        //public const uint SMAP_BD_RX_EMPTY = (1 << 15);	/* set:driver, clear:HW */
+        public const uint SMAP_BD_RX_OVERRUN = (1 << 9);/* overrun */
+        public const uint SMAP_BD_RX_PFRM = (1 << 8);	/* pause frame */
+        public const uint SMAP_BD_RX_BADFRM = (1 << 7);	/* bad frame */
+        public const uint SMAP_BD_RX_RUNTFRM = (1 << 6);/* runt frame */
+        public const uint SMAP_BD_RX_SHORTEVNT = (1 << 5);/* short event */
+        public const uint SMAP_BD_RX_ALIGNERR = (1 << 4);/* alignment error */
+        public const uint SMAP_BD_RX_BADFCS = (1 << 3); /* bad FCS */
+        public const uint SMAP_BD_RX_FRMTOOLONG = (1 << 2);/* frame too long */
+        public const uint SMAP_BD_RX_OUTRANGE = (1 << 1);/* out of range error */
+        public const uint SMAP_BD_RX_INRANGE = (1 << 0);/* in range error */
 
-        public const int SMAP_DsPHYTER_BMCR = 0x00;
-        public const int SMAP_PHY_BMCR_RST = (1 << 15);	/* ReSeT */
-        public const int SMAP_PHY_BMCR_LPBK = (1 << 14);/* LooPBacK */
-        public const int SMAP_PHY_BMCR_100M = (1 << 13);/* speed select, 1:100M, 0:10M */
-        public const int SMAP_PHY_BMCR_10M = (0 << 13);	/* speed select, 1:100M, 0:10M */
-        public const int SMAP_PHY_BMCR_ANEN = (1 << 12);/* Auto-Negotiation ENable */
-        public const int SMAP_PHY_BMCR_PWDN = (1 << 11);/* PoWer DowN */
-        public const int SMAP_PHY_BMCR_ISOL = (1 << 10);/* ISOLate */
-        public const int SMAP_PHY_BMCR_RSAN = (1 << 9);	/* ReStart Auto-Negotiation */
-        public const int SMAP_PHY_BMCR_DUPM = (1 << 8);	/* DUPlex Mode, 1:FDX, 0:HDX */
-        public const int SMAP_PHY_BMCR_COLT = (1 << 7);	/* COLlision Test */
+        public const uint SMAP_BD_RX_ERROR = (SMAP_BD_RX_OVERRUN | SMAP_BD_RX_RUNTFRM | SMAP_BD_RX_SHORTEVNT |
+            SMAP_BD_RX_ALIGNERR | SMAP_BD_RX_BADFCS | SMAP_BD_RX_FRMTOOLONG |
+            SMAP_BD_RX_OUTRANGE | SMAP_BD_RX_INRANGE);
 
-        public const int SMAP_DsPHYTER_BMSR = 0x01;
-        public const int SMAP_PHY_BMSR_ANCP = (1 << 5);	/* Auto-Negotiation ComPlete */
-        public const int SMAP_PHY_BMSR_LINK = (1 << 2); /* LINK status */
+        /* PHY registers (National Semiconductor DP83846A).  */
+
+        public const uint SMAP_NS_OUI = 0x080017;
+        public const uint SMAP_DsPHYTER_ADDRESS = 0x1;
+
+        public const uint SMAP_DsPHYTER_BMCR = 0x00;
+        public const uint SMAP_PHY_BMCR_RST = (1 << 15); /* ReSeT */
+        public const uint SMAP_PHY_BMCR_LPBK = (1 << 14);/* LooPBacK */
+        public const uint SMAP_PHY_BMCR_100M = (1 << 13);/* speed select, 1:100M, 0:10M */
+        public const uint SMAP_PHY_BMCR_10M = (0 << 13); /* speed select, 1:100M, 0:10M */
+        public const uint SMAP_PHY_BMCR_ANEN = (1 << 12);/* Auto-Negotiation ENable */
+        public const uint SMAP_PHY_BMCR_PWDN = (1 << 11);/* PoWer DowN */
+        public const uint SMAP_PHY_BMCR_ISOL = (1 << 10);/* ISOLate */
+        public const uint SMAP_PHY_BMCR_RSAN = (1 << 9); /* ReStart Auto-Negotiation */
+        public const uint SMAP_PHY_BMCR_DUPM = (1 << 8); /* DUPlex Mode, 1:FDX, 0:HDX */
+        public const uint SMAP_PHY_BMCR_COLT = (1 << 7); /* COLlision Test */
+
+        public const UInt16 SMAP_DsPHYTER_BMSR = 0x01;
+        public const UInt16 SMAP_PHY_BMSR_ANCP = (1 << 5);	/* Auto-Negotiation ComPlete */
+        public const UInt16 SMAP_PHY_BMSR_LINK = (1 << 2); /* LINK status */
+
+        public const uint SMAP_DsPHYTER_PHYIDR1 = 0x02;
+        public const uint SMAP_PHY_IDR1_VAL = (((SMAP_NS_OUI << 2) >> 8) & 0xffff);
+
+        public const uint SMAP_DsPHYTER_PHYIDR2 = 0x03;
+        public const uint SMAP_PHY_IDR2_VMDL = 0x2;		/* Vendor MoDeL number */
+        public const uint SMAP_PHY_IDR2_VAL =
+            (((SMAP_NS_OUI << 10) & 0xFC00) | ((SMAP_PHY_IDR2_VMDL << 4) & 0x3F0));
+        public const uint SMAP_PHY_IDR2_MSK = 0xFFF0;
+        public const uint SMAP_PHY_IDR2_REV_MSK = 0x000F;
+
+        public const uint SMAP_DsPHYTER_ANAR = 0x04;
+        public const uint SMAP_DsPHYTER_ANLPAR = 0x05;
+        public const uint SMAP_DsPHYTER_ANLPARNP = 0x05;
+        public const uint SMAP_DsPHYTER_ANER = 0x06;
+        public const uint SMAP_DsPHYTER_ANNPTR = 0x07;
 
         /* Extended registers.  */
-        public const int SMAP_DsPHYTER_PHYSTS = 0x10;
-        public const int SMAP_PHY_STS_REL = (1 << 13);  /* Receive Error Latch */
-        public const int SMAP_PHY_STS_POST = (1 << 12); /* POlarity STatus */
-        public const int SMAP_PHY_STS_FCSL = (1 << 11); /* False Carrier Sense Latch */
-        public const int SMAP_PHY_STS_SD = (1 << 10);   /* 100BT unconditional Signal Detect */
-        public const int SMAP_PHY_STS_DSL = (1 << 9);   /* 100BT DeScrambler Lock */
-        public const int SMAP_PHY_STS_PRCV = (1 << 8);  /* Page ReCeiVed */
-        public const int SMAP_PHY_STS_RFLT = (1 << 6);  /* Remote FauLT */
-        public const int SMAP_PHY_STS_JBDT = (1 << 5);  /* JaBber DetecT */
-        public const int SMAP_PHY_STS_ANCP = (1 << 4);  /* Auto-Negotiation ComPlete */
-        public const int SMAP_PHY_STS_LPBK = (1 << 3);  /* LooPBacK status */
-        public const int SMAP_PHY_STS_DUPS = (1 << 2);  /* DUPlex Status,1:FDX,0:HDX */
-        public const int SMAP_PHY_STS_FDX = (1 << 2);   /* Full Duplex */
-        public const int SMAP_PHY_STS_HDX = (0 << 2);   /* Half Duplex */
-        public const int SMAP_PHY_STS_SPDS = (1 << 1);  /* SPeeD Status */
-        public const int SMAP_PHY_STS_10M = (1 << 1);   /* 10Mbps */
-        public const int SMAP_PHY_STS_100M = (0 << 1);  /* 100Mbps */
-        public const int SMAP_PHY_STS_LINK = (1 << 0);  /* LINK status */
-        public const int SMAP_DsPHYTER_FCSCR = 0x14;
-        public const int SMAP_DsPHYTER_RECR = 0x15;
-        public const int SMAP_DsPHYTER_PCSR = 0x16;
-        public const int SMAP_DsPHYTER_PHYCTRL = 0x19;
-        public const int SMAP_DsPHYTER_10BTSCR = 0x1A;
-        public const int SMAP_DsPHYTER_CDCTRL = 0x1B;
+        public const uint SMAP_DsPHYTER_PHYSTS = 0x10;
+        public const UInt16 SMAP_PHY_STS_REL = (1 << 13);  /* Receive Error Latch */
+        public const UInt16 SMAP_PHY_STS_POST = (1 << 12); /* POlarity STatus */
+        public const UInt16 SMAP_PHY_STS_FCSL = (1 << 11); /* False Carrier Sense Latch */
+        public const UInt16 SMAP_PHY_STS_SD = (1 << 10);   /* 100BT unconditional Signal Detect */
+        public const UInt16 SMAP_PHY_STS_DSL = (1 << 9);   /* 100BT DeScrambler Lock */
+        public const UInt16 SMAP_PHY_STS_PRCV = (1 << 8);  /* Page ReCeiVed */
+        public const UInt16 SMAP_PHY_STS_RFLT = (1 << 6);  /* Remote FauLT */
+        public const UInt16 SMAP_PHY_STS_JBDT = (1 << 5);  /* JaBber DetecT */
+        public const UInt16 SMAP_PHY_STS_ANCP = (1 << 4);  /* Auto-Negotiation ComPlete */
+        public const UInt16 SMAP_PHY_STS_LPBK = (1 << 3);  /* LooPBacK status */
+        public const UInt16 SMAP_PHY_STS_DUPS = (1 << 2);  /* DUPlex Status,1:FDX,0:HDX */
+        public const UInt16 SMAP_PHY_STS_FDX = (1 << 2);   /* Full Duplex */
+        public const UInt16 SMAP_PHY_STS_HDX = (0 << 2);   /* Half Duplex */
+        public const UInt16 SMAP_PHY_STS_SPDS = (1 << 1);  /* SPeeD Status */
+        public const UInt16 SMAP_PHY_STS_10M = (1 << 1);   /* 10Mbps */
+        public const UInt16 SMAP_PHY_STS_100M = (0 << 1);  /* 100Mbps */
+        public const UInt16 SMAP_PHY_STS_LINK = (1 << 0);  /* LINK status */
+        public const UInt16 SMAP_DsPHYTER_FCSCR = 0x14;
+        public const UInt16 SMAP_DsPHYTER_RECR = 0x15;
+        public const UInt16 SMAP_DsPHYTER_PCSR = 0x16;
+        public const UInt16 SMAP_DsPHYTER_PHYCTRL = 0x19;
+        public const UInt16 SMAP_DsPHYTER_10BTSCR = 0x1A;
+        public const UInt16 SMAP_DsPHYTER_CDCTRL = 0x1B;
 
         /*
-            * ATA hardware types and definitions.
-            *
-            * Copyright (c) 2003 Marcus R. Brown <mrbrown@0xd6.org>
-            *
-            * * code included from the ps2drv iop driver, modified by linuzappz  *
-            */
+         * ATA hardware types and definitions.
+        */
 
         public const uint ATA_DEV9_HDD_BASE = (SPD_REGBASE + 0x40);
-        //
-        public const uint ATA_R_CONTROL = (ATA_DEV9_HDD_BASE + 0x1c);
-        //
+        /* AIF on T10Ks - Not supported yet.  */
+        public const uint ATA_AIF_HDD_BASE = (SPD_REGBASE + 0x4000000 + 0x60);
+
+        public const uint ATA_R_DATA = (ATA_DEV9_HDD_BASE + 0x00);
+        public const uint ATA_R_ERROR = (ATA_DEV9_HDD_BASE + 0x02);   //On Read
+        public const uint ATA_R_FEATURE = (ATA_DEV9_HDD_BASE + 0x02); //On Write (from MegaDev9)
+        public const uint ATA_R_NSECTOR = (ATA_DEV9_HDD_BASE + 0x04);
+        public const uint ATA_R_SECTOR = (ATA_DEV9_HDD_BASE + 0x06);
+        public const uint ATA_R_LCYL = (ATA_DEV9_HDD_BASE + 0x08);
+        public const uint ATA_R_HCYL = (ATA_DEV9_HDD_BASE + 0x0a);
+        public const uint ATA_R_SELECT = (ATA_DEV9_HDD_BASE + 0x0c);
+        public const uint ATA_R_STATUS = (ATA_DEV9_HDD_BASE + 0x0e); //On Read
+        public const uint ATA_R_CMD = (ATA_DEV9_HDD_BASE + 0x0e);    //On Write (from MegaDev9)
+        public const uint ATA_R_ALT_STATUS = (ATA_DEV9_HDD_BASE + 0x1c);//On Read (from MegaDev9)
+        public const uint ATA_R_CONTROL = (ATA_DEV9_HDD_BASE + 0x1c);//On Write
+        public const uint ATA_DEV9_INT = (0x01);
+        public const uint ATA_DEV9_INT_DMA = (0x02); //not sure rly
         public const uint ATA_DEV9_HDD_END = (ATA_R_CONTROL + 4);
 
-        public const int FLASH_ID_64MBIT = 0xe6;
-        //
-        //
-        //
+        /*
+         * NAND Flash via Dev9 driver definitions
+         */
+
+        public const uint FLASH_ID_64MBIT = 0xe6;
+        public const uint FLASH_ID_128MBIT = 0x73;
+        public const uint FLASH_ID_256MBIT = 0x75;
+        public const uint FLASH_ID_512MBIT = 0x76;
+        public const uint FLASH_ID_1024MBIT = 0x79;
 
         /* SmartMedia commands.  */
-        public const int SM_CMD_READ1 = 0x00;
-        public const int SM_CMD_READ2 = 0x01;
-        public const int SM_CMD_READ3 = 0x50;
-        public const int SM_CMD_RESET = 0xff;
-        public const int SM_CMD_WRITEDATA = 0x80;
-        public const int SM_CMD_PROGRAMPAGE = 0x10;
-        public const int SM_CMD_ERASEBLOCK = 0x60;
-        public const int SM_CMD_ERASECONFIRM = 0xd0;
-        public const int SM_CMD_GETSTATUS = 0x70;
-        public const int SM_CMD_READID = 0x90;
+        public const uint SM_CMD_READ1 = 0x00;
+        public const uint SM_CMD_READ2 = 0x01;
+        public const uint SM_CMD_READ3 = 0x50;
+        public const uint SM_CMD_RESET = 0xff;
+        public const uint SM_CMD_WRITEDATA = 0x80;
+        public const uint SM_CMD_PROGRAMPAGE = 0x10;
+        public const uint SM_CMD_ERASEBLOCK = 0x60;
+        public const uint SM_CMD_ERASECONFIRM = 0xd0;
+        public const uint SM_CMD_GETSTATUS = 0x70;
+        public const uint SM_CMD_READID = 0x90;
 
-        public const int FLASH_REGBASE = 0x10004800;
+        public const uint FLASH_REGBASE = 0x10004800;
 
-        public const int FLASH_R_DATA = (FLASH_REGBASE + 0x00);
-        public const int FLASH_R_CMD = (FLASH_REGBASE + 0x04);
-        public const int FLASH_R_ADDR = (FLASH_REGBASE + 0x08);
-        public const int FLASH_R_CTRL = (FLASH_REGBASE + 0x0C);
-        public const int FLASH_PP_READY = (1 << 0);	// r/w	/BUSY
-        public const int FLASH_PP_WRITE = (1 << 7);	// -/w	WRITE data
-        public const int FLASH_PP_CSEL = (1 << 8);	// -/w	CS
-        public const int FLASH_PP_READ = (1 << 11);	// -/w	READ data
-        public const int FLASH_PP_NOECC = (1 << 12);	// -/w	ECC disabled
-        public const int FLASH_R_ID = (FLASH_REGBASE + 0x14);
+        public const uint FLASH_R_DATA = (FLASH_REGBASE + 0x00);
+        public const uint FLASH_R_CMD = (FLASH_REGBASE + 0x04);
+        public const uint FLASH_R_ADDR = (FLASH_REGBASE + 0x08);
+        public const uint FLASH_R_CTRL = (FLASH_REGBASE + 0x0C);
+        public const uint FLASH_PP_READY = (1 << 0);	// r/w	/BUSY
+        public const uint FLASH_PP_WRITE = (1 << 7);	// -/w	WRITE data
+        public const uint FLASH_PP_CSEL = (1 << 8);	// -/w	CS
+        public const uint FLASH_PP_READ = (1 << 11);	// -/w	READ data
+        public const uint FLASH_PP_NOECC = (1 << 12);// -/w	ECC disabled
+        public const uint FLASH_R_ID = (FLASH_REGBASE + 0x14);
 
-        public const int FLASH_REGSIZE = 0x20;
+        public const uint FLASH_REGSIZE = 0x20;
     }
 }

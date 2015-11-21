@@ -5,7 +5,7 @@ namespace CLRDEV9.DEV9.SMAP
 {
     class SMAP_State
     {
-        bool has_link = true; //Is Cable Connected
+        bool has_link = true; //Is Cable Connected??
         volatile bool fireIntR = false;
         Object reset_sentry = new Object();
         Object counter_sentry = new Object();
@@ -234,7 +234,7 @@ namespace CLRDEV9.DEV9.SMAP
                         if ((value & (DEV9Header.SMAP_E3_PHY_READ)) != 0)
                         {
                             value |= DEV9Header.SMAP_E3_PHY_OP_COMP;
-                            int reg = (int)(value & (DEV9Header.SMAP_E3_PHY_REG_ADDR_MSK));
+                            uint reg = (value & (DEV9Header.SMAP_E3_PHY_REG_ADDR_MSK));
                             UInt16 val = dev9.phyregs[reg];
                             switch (reg)
                             {
@@ -253,7 +253,7 @@ namespace CLRDEV9.DEV9.SMAP
                         if ((value & (DEV9Header.SMAP_E3_PHY_WRITE)) != 0)
                         {
                             value |= DEV9Header.SMAP_E3_PHY_OP_COMP;
-                            int reg = (int)(value & (DEV9Header.SMAP_E3_PHY_REG_ADDR_MSK));
+                            uint reg = (value & (DEV9Header.SMAP_E3_PHY_REG_ADDR_MSK));
                             UInt16 val = (UInt16)(value >> 16);
                             switch (reg)
                             {
