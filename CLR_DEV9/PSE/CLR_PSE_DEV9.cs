@@ -54,7 +54,7 @@ namespace PSE
         private static PSE.CLR_PSE_Callbacks.CLR_IRQHandler nat_DEV9irqHandler() { return DEV9irqHandler(); }
 
         [DllExport("DEV9freeze", CallingConvention = CallingConvention.StdCall)]
-        unsafe private static Int32 nat_DEV9freeze(CLR_PSE_FreezeMode mode, ref CLR_PSE_FreezeData data) { return DEV9freeze(mode, ref data); }
+        private static Int32 nat_DEV9freeze(CLR_PSE_FreezeMode mode, ref CLR_PSE_FreezeData data) { return DEV9freeze(mode, ref data); }
         [DllExport("DEV9configure", CallingConvention = CallingConvention.StdCall)]
         private static void nat_DEV9configure() { DEV9configure(); }
         [DllExport("DEV9about", CallingConvention = CallingConvention.StdCall)]
@@ -126,13 +126,19 @@ namespace PSE
             throw new NotImplementedException();
         }
 
-        unsafe public static void DEV9readDMA8Mem(IntPtr memPointer, int size)
+        public static void DEV9readDMA8Mem(IntPtr memPointer, int size)
         {
-            CLRDEV9.CLR_DEV9.DEV9readDMA8Mem((byte*)memPointer.ToPointer(), size);
+            unsafe
+            {
+                CLRDEV9.CLR_DEV9.DEV9readDMA8Mem((byte*)memPointer.ToPointer(), size);
+            }
         }
-        unsafe public static void DEV9writeDMA8Mem(IntPtr memPointer, int size)
+        public static void DEV9writeDMA8Mem(IntPtr memPointer, int size)
         {
-            CLRDEV9.CLR_DEV9.DEV9writeDMA8Mem((byte*)memPointer.ToPointer(), size);
+            unsafe
+            {
+                CLRDEV9.CLR_DEV9.DEV9writeDMA8Mem((byte*)memPointer.ToPointer(), size);
+            }
         }
 
         public static void DEV9async(UInt32 cycles)
