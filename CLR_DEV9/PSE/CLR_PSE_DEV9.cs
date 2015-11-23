@@ -155,7 +155,7 @@ namespace PSE
             return CLRDEV9.CLR_DEV9.DEV9irqHandler();
         }
 
-        unsafe public static Int32 DEV9freeze(CLR_PSE_FreezeMode mode, ref CLR_PSE_FreezeData data)
+        public static Int32 DEV9freeze(CLR_PSE_FreezeMode mode, ref CLR_PSE_FreezeData data)
         {
             return 0;
         }
