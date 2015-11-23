@@ -2,7 +2,7 @@
 
 namespace PSE
 {
-    public class CLR_PSE_PluginLog
+    class CLR_PSE_PluginLog
     {
         public void ErrorWrite(string str)
         {

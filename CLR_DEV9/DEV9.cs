@@ -1,5 +1,4 @@
-﻿using RGiesecke.DllExport;
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
 
 namespace CLRDEV9
@@ -37,7 +36,6 @@ namespace CLRDEV9
             }
         }
 
-        [DllExport("DEV9init", CallingConvention = CallingConvention.StdCall)]
         public static Int32 Init()
         {
             LogInit();
@@ -47,17 +45,7 @@ namespace CLRDEV9
 
             return 0;
         }
-        [DllExport("DEV9shutdown", CallingConvention = CallingConvention.StdCall)]
-        public static void Shutdown()
-        {
-            DEV9_LOG("DEV9shutdown\n");
-            //PluginLog.Close(); //fclose(dev9Log);
-            DEVLOG_shared = null;
-            irqHandle.Free();
-            //Do dispose()?
-        }
-        [DllExport("DEV9open", CallingConvention = CallingConvention.StdCall)]
-        public static Int32 DEV9open(IntPtr winHandle)
+        public static Int32 Open(IntPtr winHandle)
         {
             DEV9_LOG("DEV9open");
             Config.LoadConf();
@@ -67,135 +55,125 @@ namespace CLRDEV9
 
             return dev9.Open();
         }
-        [DllExport("DEV9close", CallingConvention = CallingConvention.StdCall)]
         public static void Close()
         {
             dev9.Close();
         }
-
-        static GCHandle irqHandle;
-        [DllExport(CallingConvention = CallingConvention.StdCall)]
-        public static PSE.CLR_PSE_Callbacks.CLR_IRQHandler DEV9irqHandler()
+        public static void Shutdown()
         {
-            // Pass our handler to pcsx2.
-            if (irqHandle.IsAllocated)
-            {
-                irqHandle.Free(); //allow garbage collection
-            }
-            DEV9_LOG("Get IRQ");
-            PSE.CLR_PSE_Callbacks.CLR_IRQHandler fp = new PSE.CLR_PSE_Callbacks.CLR_IRQHandler(_DEV9irqHandler);
-            irqHandle = GCHandle.Alloc(fp); //prevent GC
-            return fp;
+            DEV9_LOG("DEV9shutdown\n");
+            //PluginLog.Close(); //fclose(dev9Log);
+            DEVLOG_shared = null;
+            irqHandle.Free();
+            //Do dispose()?
         }
-        public static int _DEV9irqHandler()
+        public static void SetSettingsDir(string dir)
         {
-            return dev9._DEV9irqHandler();
+            //throw new NotImplementedException();
+        }
+        public static void DEV9setLogDir(string dir)
+        {
+            //throw new NotImplementedException();
         }
 
-        [DllExport(CallingConvention = CallingConvention.StdCall)]
         public static byte DEV9read8(uint addr)
         {
 #if DEBUG
             try
             {
 #endif
-            return dev9.DEV9read8(addr);
+                return dev9.DEV9read8(addr);
 #if DEBUG
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e);
+                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
                 throw e;
             }
 #endif
         }
-        [DllExport(CallingConvention = CallingConvention.StdCall)]
         public static ushort DEV9read16(uint addr)
         {
 #if DEBUG
             try
             {
 #endif
-            return dev9.DEV9read16(addr);
+                return dev9.DEV9read16(addr);
 #if DEBUG
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e);
+                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
                 throw e;
             }
 #endif
         }
-        [DllExport(CallingConvention = CallingConvention.StdCall)]
         public static uint DEV9read32(uint addr)
         {
 #if DEBUG
             try
             {
 #endif
-            return dev9.DEV9read32(addr);
+                return dev9.DEV9read32(addr);
 #if DEBUG
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e);
+                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
                 throw e;
             }
 #endif
         }
 
-        [DllExport(CallingConvention = CallingConvention.StdCall)]
         public static void DEV9write8(uint addr, byte value)
         {
 #if DEBUG
             try
             {
 #endif
-            dev9.DEV9write8(addr, value);
+                dev9.DEV9write8(addr, value);
 #if DEBUG
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e);
+                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
                 throw e;
             }
 #endif
         }
-        [DllExport(CallingConvention = CallingConvention.StdCall)]
         public static void DEV9write16(uint addr, ushort value)
         {
 #if DEBUG
             try
             {
 #endif
-            dev9.DEV9write16(addr, value);
+                dev9.DEV9write16(addr, value);
 #if DEBUG
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e);
+                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
                 throw e;
             }
 #endif
         }
-        [DllExport(CallingConvention = CallingConvention.StdCall)]
         public static void DEV9write32(uint addr, uint value)
         {
 #if DEBUG
             try
             {
 #endif
-            dev9.DEV9write32(addr, value);
+                dev9.DEV9write32(addr, value);
 #if DEBUG
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e);
+                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
                 throw e;
             }
 #endif
         }
-        [DllExport(CallingConvention = CallingConvention.StdCall)]
+
         unsafe public static void DEV9readDMA8Mem(byte* memPointer, int size)
         {
 #if DEBUG
@@ -210,12 +188,11 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e);
+                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
                 throw e;
             }
 #endif
         }
-        [DllExport(CallingConvention = CallingConvention.StdCall)]
         unsafe public static void DEV9writeDMA8Mem(byte* memPointer, int size)
         {
 #if DEBUG
@@ -230,19 +207,12 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e);
+                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
                 throw e;
             }
 #endif
         }
 
-        [DllExport(CallingConvention = CallingConvention.StdCall)]
-        public static void DEV9irqCallback(PSE.CLR_PSE_Callbacks.CLR_CyclesCallback callback)
-        {
-            DEV9Header.DEV9irq = callback;
-        }
-
-        [DllExport(CallingConvention = CallingConvention.StdCall)]
         public static void DEV9async(uint cycles)
         {
 #if DEBUG
@@ -254,38 +224,41 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e);
+                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
                 throw e;
             }
 #endif
         }
 
-        [DllExport("DEV9test", CallingConvention = CallingConvention.StdCall)]
+        public static void DEV9irqCallback(PSE.CLR_PSE_Callbacks.CLR_CyclesCallback callback)
+        {
+            DEV9Header.DEV9irq = callback;
+        }
+        static GCHandle irqHandle;
+        public static int _DEV9irqHandler()
+        {
+            return dev9._DEV9irqHandler();
+        }
+        public static PSE.CLR_PSE_Callbacks.CLR_IRQHandler DEV9irqHandler()
+        {
+            // Pass our handler to pcsx2.
+            if (irqHandle.IsAllocated)
+            {
+                irqHandle.Free(); //allow garbage collection
+            }
+            DEV9_LOG("Get IRQ");
+            PSE.CLR_PSE_Callbacks.CLR_IRQHandler fp = new PSE.CLR_PSE_Callbacks.CLR_IRQHandler(_DEV9irqHandler);
+            irqHandle = GCHandle.Alloc(fp); //prevent GC
+            return fp;
+        }
+
+        //freeze
+        //config
+        //about
+        //test
         public static int Test()
         {
             return 0;
         }
-        [DllExport("DEV9setSettingsDir", CallingConvention = CallingConvention.StdCall)]
-        public static void SetSettingsDir(string dir)
-        {
-            //throw new NotImplementedException();
-        }
-        [DllExport("DEV9setLogDir", CallingConvention = CallingConvention.StdCall)]
-        public static void SetLogDir(string dir)
-        {
-            //throw new NotImplementedException();
-        }
-        //public static byte[] FreezeSave()
-        //{
-        //    throw new NotImplementedException();
-        //}
-        //public static int FreezeLoad(byte[] data)
-        //{
-        //    throw new NotImplementedException();
-        //}
-        //public static int FreezeSize()
-        //{
-        //    return 0;
-        //}
     }
 }

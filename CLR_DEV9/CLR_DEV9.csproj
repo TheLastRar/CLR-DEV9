@@ -119,6 +119,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PSE\CLR_PSE.cs" />
     <Compile Include="PSE\CLR_PSE_Callbacks.cs" />
+    <Compile Include="PSE\CLR_PSE_DEV9.cs" />
+    <Compile Include="PSE\CLR_PSE_FreezeData.cs" />
     <Compile Include="PSE\CLR_PSE_PluginLog.cs" />
     <Compile Include="DEV9\SMAP\Winsock\Sessions\DHCPsession.cs" />
     <Compile Include="DEV9\SMAP\Winsock\Sessions\ICMPSession.cs" />

@@ -311,7 +311,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
         }
         public bool SendTCP(ConnectionKey Key, IPPacket ippkt)
         {
-            //Console.Error.WriteLine("TCP");
+#if DEBUG
+            Console.Error.WriteLine("TCP");
+#endif
             TCP tcp = (TCP)ippkt.Payload;
 
             Key.PS2Port = tcp.SourcePort; Key.SRVPort = tcp.DestinationPort;
@@ -325,8 +327,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     return false;
                 else
                 {
-                    //Console.Error.WriteLine("Creating New Connection with key " + Key);
-                    //Console.Error.WriteLine("Creating New TCP Connection with Dest Port " + tcp.DestinationPort);
+#if DEBUG
+                    Console.Error.WriteLine("Creating New Connection with key " + Key);
+#endif
+                    Console.Error.WriteLine("Creating New TCP Connection with Dest Port " + tcp.DestinationPort);
                     TCPSession s = new TCPSession();
                     s.DestIP = ippkt.DestinationIP;
                     s.SourceIP = UDP_DHCPsession.PS2_IP;
@@ -337,7 +341,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
         }
         public bool SendUDP(ConnectionKey Key, IPPacket ippkt)
         {
-            //Console.Error.WriteLine("UDP");
+#if DEBUG
+            Console.Error.WriteLine("UDP");
+#endif
             UDP udp = (UDP)ippkt.Payload;
 
             Key.PS2Port = udp.SourcePort; Key.SRVPort = udp.DestinationPort;
@@ -355,7 +361,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     return false;
                 else
                 {
-                    //Console.Error.WriteLine("Creating New Connection with key " + Key);
+#if DEBUG
+                    Console.Error.WriteLine("Creating New Connection with key " + Key);
+#endif
                     Console.Error.WriteLine("Creating New UDP Connection with Dest Port " + udp.DestinationPort);
                     UDPSession s = new UDPSession();
                     s.DestIP = ippkt.DestinationIP;
@@ -384,7 +392,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             //TODO close all open connections
             lock (sentry)
             {
-                Console.WriteLine("Closing " + Connections.Count + " Connections");
+#if DEBUG
+                Console.Error.WriteLine("Closing " + Connections.Count + " Connections");
+#endif
                 foreach (ConnectionKey key in Connections.Keys) //ToDo better multi-connection stuff
                 {
                     Connections[key].Dispose(); //replace with dispose?
