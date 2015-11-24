@@ -100,21 +100,37 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             Length = (UInt16)(pl.Length + hlen);
             Protocol = _pl.Protocol;
         }
+
+        public IPPacket(ICMP icmpkt)
+        {
+            ReadBuffer(icmpkt.Data, 0, icmpkt.Data.Length);
+        }
+
         public IPPacket(EthernetFrame Ef)
         {
-            int pktoffset = Ef.HeaderLength;
+            ReadBuffer(Ef.RawPacket.buffer, Ef.HeaderLength, Ef.RawPacket.size);
+        }
+
+        private void ReadBuffer(byte[] buffer, int offset, int bufferSize)
+        {
+            int pktoffset = offset;
 
             //Bits 0-31
             byte v_hl;
-            NetLib.ReadByte08(Ef.RawPacket.buffer, ref pktoffset, out v_hl);
+            NetLib.ReadByte08(buffer, ref pktoffset, out v_hl);
             hlen = ((v_hl & 0xF) << 2);
-            NetLib.ReadByte08(Ef.RawPacket.buffer, ref pktoffset, out typeofservice); //TODO, Implement this
-            NetLib.ReadUInt16(Ef.RawPacket.buffer, ref pktoffset, out _Length);
+            NetLib.ReadByte08(buffer, ref pktoffset, out typeofservice); //TODO, Implement this
+            NetLib.ReadUInt16(buffer, ref pktoffset, out _Length);
+            if (_Length > bufferSize - offset)
+            {
+                Console.Error.WriteLine("Unexpected Length");
+                _Length = (UInt16)(bufferSize - offset);
+            }
             //Console.Error.WriteLine("len=" + Length); //Includes hlen
 
             //Bits 32-63
-            NetLib.ReadUInt16(Ef.RawPacket.buffer, ref pktoffset, out ID); //Send packets with unique IDs
-            NetLib.ReadUInt16(Ef.RawPacket.buffer, ref pktoffset, out FragmentFlags);
+            NetLib.ReadUInt16(buffer, ref pktoffset, out ID); //Send packets with unique IDs
+            NetLib.ReadUInt16(buffer, ref pktoffset, out FragmentFlags);
 
             if (MoreFragments)
             {
@@ -122,16 +138,16 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             }
 
             //Bits 64-95
-            NetLib.ReadByte08(Ef.RawPacket.buffer, ref pktoffset, out ttl);
-            NetLib.ReadByte08(Ef.RawPacket.buffer, ref pktoffset, out Protocol);
-            NetLib.ReadUInt16(Ef.RawPacket.buffer, ref pktoffset, out Checksum);
+            NetLib.ReadByte08(buffer, ref pktoffset, out ttl);
+            NetLib.ReadByte08(buffer, ref pktoffset, out Protocol);
+            NetLib.ReadUInt16(buffer, ref pktoffset, out Checksum);
             //bool ccsum = verifyCheckSum(Ef.RawPacket.buffer, pktoffset);
             //Console.Error.WriteLine("IP Checksum Good? " + ccsum);//Should ALWAYS be true
 
             //Bits 96-127
-            NetLib.ReadByteArray(Ef.RawPacket.buffer, ref pktoffset, 4, out SourceIP);
+            NetLib.ReadByteArray(buffer, ref pktoffset, 4, out SourceIP);
             //Bits 128-159
-            NetLib.ReadByteArray(Ef.RawPacket.buffer, ref pktoffset, 4, out DestinationIP);
+            NetLib.ReadByteArray(buffer, ref pktoffset, 4, out DestinationIP);
             //Console.WriteLine("Target IP :" + DestinationIP[0] + "." + DestinationIP[1] + "." + DestinationIP[2] + "." + DestinationIP[3]);
 
             //Bits 160+
@@ -144,15 +160,15 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             switch (Protocol) //(Prase Payload)
             {
                 case (byte)IPType.ICMP:
-                    _pl = new ICMP(Ef, pktoffset, Length - hlen);
+                    _pl = new ICMP(buffer, pktoffset, Length - hlen);
                     //((ICMP)_pl).VerifyCheckSum(SourceIP, DestinationIP);
                     break;
                 case (byte)IPType.TCP:
-                    _pl = new TCP(Ef, pktoffset, Length - hlen);
+                    _pl = new TCP(buffer, pktoffset, Length - hlen);
                     //((TCP)_pl).VerifyCheckSum(SourceIP, DestinationIP);
                     break;
                 case (byte)IPType.UDP:
-                    _pl = new UDP(Ef, pktoffset);
+                    _pl = new UDP(buffer, pktoffset, Length - hlen);
                     //((UDP)_pl).VerifyCheckSum(SourceIP, DestinationIP);
                     break;
                 default:

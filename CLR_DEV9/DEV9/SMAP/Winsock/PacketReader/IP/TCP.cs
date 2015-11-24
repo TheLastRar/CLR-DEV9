@@ -150,33 +150,33 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
         {
             data = payload;
         }
-        public TCP(EthernetFrame Ef, int offset, int parLength) //Length = IP payload len
+        public TCP(byte[] buffer, int offset, int parLength) //Length = IP payload len
         {
             int initialOffset = offset;
             //Bits 0-31
-            NetLib.ReadUInt16(Ef.RawPacket.buffer, ref offset, out SourcePort);
+            NetLib.ReadUInt16(buffer, ref offset, out SourcePort);
             //Console.Error.WriteLine("src port=" + SourcePort); 
-            NetLib.ReadUInt16(Ef.RawPacket.buffer, ref offset, out DestinationPort);
+            NetLib.ReadUInt16(buffer, ref offset, out DestinationPort);
             //Console.Error.WriteLine("dts port=" + DestinationPort);
 
             //Bits 32-63
-            NetLib.ReadUInt32(Ef.RawPacket.buffer, ref offset, out SequenceNumber);
+            NetLib.ReadUInt32(buffer, ref offset, out SequenceNumber);
             //Console.Error.WriteLine("seq num=" + SequenceNumber); //Where in the stream the start of the payload is
 
             //Bits 64-95
-            NetLib.ReadUInt32(Ef.RawPacket.buffer, ref offset, out AcknowledgementNumber);
+            NetLib.ReadUInt32(buffer, ref offset, out AcknowledgementNumber);
             //Console.Error.WriteLine("ack num=" + AcknowledgmentNumber); //the next expected byte(seq) number
 
             //Bits 96-127
-            NetLib.ReadByte08(Ef.RawPacket.buffer, ref offset, out data_offset_and_NS_flag);
+            NetLib.ReadByte08(buffer, ref offset, out data_offset_and_NS_flag);
             //Console.Error.WriteLine("TCP hlen=" + HeaderLength);
-            NetLib.ReadByte08(Ef.RawPacket.buffer, ref offset, out flags);
-            NetLib.ReadUInt16(Ef.RawPacket.buffer, ref offset, out WindowSize);
+            NetLib.ReadByte08(buffer, ref offset, out flags);
+            NetLib.ReadUInt16(buffer, ref offset, out WindowSize);
             //Console.Error.WriteLine("win Size=" + WindowSize);
 
             //Bits 127-159
-            NetLib.ReadUInt16(Ef.RawPacket.buffer, ref offset, out Checksum);
-            NetLib.ReadUInt16(Ef.RawPacket.buffer, ref offset, out UrgentPointer);
+            NetLib.ReadUInt16(buffer, ref offset, out Checksum);
+            NetLib.ReadUInt16(buffer, ref offset, out UrgentPointer);
             //Console.Error.WriteLine("urg ptr=" + UrgentPointer);
 
             //Bits 160+
@@ -185,8 +185,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
                 bool opReadFin = false;
                 do
                 {
-                    byte opKind = Ef.RawPacket.buffer[offset];
-                    byte opLen = Ef.RawPacket.buffer[offset + 1];
+                    byte opKind = buffer[offset];
+                    byte opLen = buffer[offset + 1];
                     switch (opKind)
                     {
                         case 0:
@@ -200,14 +200,14 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
                             continue;
                         case 2:
                             //Console.Error.WriteLine("Got MMS");
-                            Options.Add(new TCPopMSS(Ef.RawPacket.buffer, offset));
+                            Options.Add(new TCPopMSS(buffer, offset));
                             break;
                         case 3:
-                            Options.Add(new TCPopWS(Ef.RawPacket.buffer, offset));
+                            Options.Add(new TCPopWS(buffer, offset));
                             break;
                         case 8:
                             //Console.Error.WriteLine("Got Timestamp");
-                            Options.Add(new TCPopTS(Ef.RawPacket.buffer, offset));
+                            Options.Add(new TCPopTS(buffer, offset));
                             break;
                         default:
                             Console.Error.WriteLine("Got TCP Unknown Option " + opKind + "with len" + opLen);
@@ -223,7 +223,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             }
             offset = initialOffset + HeaderLength;
 
-            NetLib.ReadByteArray(Ef.RawPacket.buffer, ref offset, parLength - HeaderLength, out data);
+            NetLib.ReadByteArray(buffer, ref offset, parLength - HeaderLength, out data);
             //AllDone
         }
 

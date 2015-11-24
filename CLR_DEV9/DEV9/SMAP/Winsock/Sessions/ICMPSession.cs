@@ -13,9 +13,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         List<ICMP> recvbuff = new List<ICMP>();
 
         List<Ping> pings = new List<Ping>();
-        public ICMPSession()
+
+        Dictionary<ConnectionKey, Session> Connections;
+
+        public ICMPSession(Dictionary<ConnectionKey, Session> parConnections)
         {
-            //ping.PingCompleted += PingCompleate;
+            Connections = parConnections;
         }
 
         struct PingData
@@ -74,7 +77,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
             switch (icmp.Type)
             {
-                case 8:
+                case 8: //Echo
                     //Code == zero
                     Console.Error.WriteLine("Send Ping");
                     lock (sentry)
@@ -92,6 +95,47 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     }
                     nPing.SendAsync(new IPAddress(DestIP), PD);
                     System.Threading.Thread.Sleep(1); //Hack Fix
+                    break;
+                case 3: //
+                    switch (icmp.Code)
+                    {
+                        case 3:
+                            Console.Error.WriteLine("Recived Packet Rejected, Port Closed");
+                            IPPacket retpkt = new IPPacket(icmp);
+                            byte[] srvIP = retpkt.SourceIP;
+                            byte prot = retpkt.Protocol;
+                            UInt16 srvPort = 0;
+                            UInt16 ps2Port = 0;
+                            switch (prot)
+                            {
+                                case (byte)IPType.TCP:
+                                    TCP tcp = (TCP)retpkt.Payload;
+                                    srvPort = tcp.SourcePort;
+                                    ps2Port = tcp.DestinationPort;
+                                    break;
+                                case (byte)IPType.UDP:
+                                    UDP udp = (UDP)retpkt.Payload;
+                                    srvPort = udp.SourcePort;
+                                    ps2Port = udp.DestinationPort;
+                                    break;
+                            }
+                            ConnectionKey Key = new ConnectionKey();
+                            Key.IP0 = srvIP[0]; Key.IP1 = srvIP[1]; Key.IP2 = srvIP[2]; Key.IP3 = srvIP[3];
+                            Key.Protocol = prot;
+                            Key.PS2Port = ps2Port;
+                            Key.SRVPort = srvPort;
+                            if (Connections.Remove(Key))
+                            {
+                                Console.Error.WriteLine("Closed Rejected Connection");
+                            }
+                            else
+                            {
+                                Console.Error.WriteLine("Failed To Close Rejected Connection");
+                            }
+                            break;
+                        default:
+                            throw new NotImplementedException("Unsupported ICMP Code For Destination Unreachable" + icmp.Code);
+                    }
                     break;
                 default:
                     throw new NotImplementedException("Unsupported ICMP Type" + icmp.Type);

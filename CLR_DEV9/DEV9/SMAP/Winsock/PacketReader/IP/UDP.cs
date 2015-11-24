@@ -41,22 +41,27 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             data = parData;
             Length = (UInt16)(data.Length + HeaderLength);
         }
-        public UDP(EthernetFrame Ef, int offset)
+        public UDP(byte[] buffer, int offset, int parLength)
         {
-
             //Bits 0-31
-            NetLib.ReadUInt16(Ef.RawPacket.buffer, ref offset, out SourcePort);
+            NetLib.ReadUInt16(buffer, ref offset, out SourcePort);
             //Console.Error.WriteLine("src port=" + SourcePort); 
-            NetLib.ReadUInt16(Ef.RawPacket.buffer, ref offset, out DestinationPort);
+            NetLib.ReadUInt16(buffer, ref offset, out DestinationPort);
             //Console.Error.WriteLine("dts port=" + DestinationPort);
             //Bits 32-63
 
-            NetLib.ReadUInt16(Ef.RawPacket.buffer, ref offset, out _Length); //includes header length
-            NetLib.ReadUInt16(Ef.RawPacket.buffer, ref offset, out Checksum);
+            NetLib.ReadUInt16(buffer, ref offset, out _Length); //includes header length
+            NetLib.ReadUInt16(buffer, ref offset, out Checksum);
+
+            if (_Length > parLength)
+            {
+                //Console.Error.WriteLine("Unexpected Length");
+                _Length = (UInt16)(parLength);
+            }
 
             //Bits 64+
             //data = new byte[Length - HeaderLength];
-            NetLib.ReadByteArray(Ef.RawPacket.buffer, ref offset, Length - HeaderLength, out data);
+            NetLib.ReadByteArray(buffer, ref offset, Length - HeaderLength, out data);
             //AllDone
         }
         public override void CalculateCheckSum(byte[] srcIP, byte[] dstIP)

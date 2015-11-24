@@ -35,16 +35,16 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             Data = data;
         }
 
-        public ICMP(EthernetFrame Ef, int offset, int Length) //Length = IP payload len
+        public ICMP(byte[] buffer, int offset, int Length) //Length = IP payload len
         {
-            NetLib.ReadByte08(Ef.RawPacket.buffer, ref offset, out Type);
+            NetLib.ReadByte08(buffer, ref offset, out Type);
             //Console.Error.WriteLine("Type = " + Type);
-            NetLib.ReadByte08(Ef.RawPacket.buffer, ref offset, out Code);
+            NetLib.ReadByte08(buffer, ref offset, out Code);
             //Console.Error.WriteLine("Code = " + Code);
-            NetLib.ReadUInt16(Ef.RawPacket.buffer, ref offset, out Checksum);
-            NetLib.ReadByteArray(Ef.RawPacket.buffer, ref offset, 4, out HeaderData);
+            NetLib.ReadUInt16(buffer, ref offset, out Checksum);
+            NetLib.ReadByteArray(buffer, ref offset, 4, out HeaderData);
 
-            NetLib.ReadByteArray(Ef.RawPacket.buffer, ref offset, Length - 8, out Data);
+            NetLib.ReadByteArray(buffer, ref offset, Length - 8, out Data);
         }
         public override void CalculateCheckSum(byte[] srcIP, byte[] dstIP)
         {

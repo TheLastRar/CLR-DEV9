@@ -301,7 +301,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 else
                 {
                     //Console.Error.WriteLine("Creating New Connection with key " + Key);
-                    ICMPSession s = new ICMPSession();
+                    ICMPSession s = new ICMPSession(Connections);
                     s.DestIP = ippkt.DestinationIP;
                     s.SourceIP = UDP_DHCPsession.PS2_IP;
                     Connections.Add(Key, s);
