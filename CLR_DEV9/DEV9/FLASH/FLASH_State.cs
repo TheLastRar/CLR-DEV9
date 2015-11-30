@@ -65,7 +65,7 @@ namespace CLRDEV9.DEV9.FLASH
             //}
         }
 
-        public UInt32 FLASHread32(UInt32 addr, int size)
+        public UInt32 FLASHread(UInt32 addr, int size)
         {
             UInt32 valueInt;
             UInt32 refill = 0;
@@ -151,7 +151,7 @@ namespace CLRDEV9.DEV9.FLASH
             }
         }
 
-        public void FLASHwrite32(UInt32 addr, UInt32 value, int size)
+        public void FLASHwrite(UInt32 addr, UInt32 value, int size)
         {
             switch (addr & 0x1FFFFFFF)
             {

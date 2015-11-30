@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using CLRDEV9.DEV9.FLASH;
 using CLRDEV9.DEV9.SMAP;
+using CLRDEV9.DEV9.ATA;
 
 namespace CLRDEV9.DEV9
 {
@@ -11,11 +9,13 @@ namespace CLRDEV9.DEV9
     {
         FLASH_State flash = null;
         SMAP_State smap = null;
+        ATA_State ata = null;
         //Init
         public DEV9_State()
         {
             flash = new FLASH_State();
             smap = new SMAP_State(this);
+            ata = new ATA_State(this);
 
             eeprom = new ushort[inital_eeprom.Length / 2];
             for (int i = 0; i < inital_eeprom.Length; i += 2)
@@ -52,7 +52,7 @@ namespace CLRDEV9.DEV9
             //flash.Close()
             smap.Close();
         }
-        
+
         public int _DEV9irqHandler()
         {
             //Console.Error.WriteLine("_DEV9irqHandler");
@@ -129,24 +129,24 @@ namespace CLRDEV9.DEV9
 
                 case DEV9Header.DEV9_R_REV:
                     hard = 0x32; // expansion bay
-                    break;
-
+                    return hard;
                 default:
                     if ((addr >= DEV9Header.FLASH_REGBASE) && (addr < (DEV9Header.FLASH_REGBASE + DEV9Header.FLASH_REGSIZE)))
                     {
-                        return (byte)flash.FLASHread32(addr, 1);
+                        return (byte)flash.FLASHread(addr, 1);
                     }
 
                     hard = dev9Ru8((int)addr);
-                    CLR_DEV9.DEV9_LOG("*Unknown 8bit read at address " + addr.ToString("X") + " value " + hard.ToString("X"));
+                    //CLR_DEV9.DEV9_LOG("*Unknown 8bit read at address " + addr.ToString("X") + " value " + hard.ToString("X"));
+                    Console.Error.WriteLine("*Unknown 8bit read at address " + addr.ToString("X") + " value " + hard.ToString("X"));
                     return hard;
             }
 
             //DEV9_LOG("DEV9read8");
-            CLR_DEV9.DEV9_LOG("*Known 8bit read at address " + addr.ToString("X") + " value " + hard.ToString("X"));
-            return hard;
+            //CLR_DEV9.DEV9_LOG("*Known 8bit read at address " + addr.ToString("X") + " value " + hard.ToString("X"));
+            //return hard;
         }
-        
+
         public ushort DEV9read16(uint addr)
         {
             //DEV9_LOG("DEV9read16");
@@ -173,10 +173,13 @@ namespace CLRDEV9.DEV9
                     CLR_DEV9.DEV9_LOG("SPD_R_INTR_STAT read " + irqcause.ToString("X"));
                     return (UInt16)irqcause;
 
+                case DEV9Header.SPD_R_INTR_MASK:
+                    return dev9Ru16((int)DEV9Header.SPD_R_INTR_MASK);
+
                 case DEV9Header.DEV9_R_REV:
                     hard = 0x0030; // expansion bay
                     //DEV9_LOG("DEV9_R_REV 16bit read " + hard.ToString("X"));
-                    break;
+                    return hard;
 
                 case DEV9Header.SPD_R_REV_1:
                     hard = 0x0011;
@@ -196,28 +199,33 @@ namespace CLRDEV9.DEV9
                         hard |= 0x1;
                     }
                     hard |= 0x20;//flash
-                    break;
+                    return hard;
 
                 case DEV9Header.SPD_R_0e:
                     hard = 0x0002;
-                    break;
+                    return hard;
+                case DEV9Header.SPD_R_38:
+                    return dev9Ru16((int)DEV9Header.SPD_R_38);
+                case DEV9Header.SPD_R_IF_CTRL:
+                    return dev9Ru16((int)DEV9Header.SPD_R_IF_CTRL);
                 default:
                     if ((addr >= DEV9Header.FLASH_REGBASE) && (addr < (DEV9Header.FLASH_REGBASE + DEV9Header.FLASH_REGSIZE)))
                     {
                         //DEV9_LOG("DEV9read16(FLASH)");
-                        return (UInt16)flash.FLASHread32(addr, 2);
+                        return (UInt16)flash.FLASHread(addr, 2);
                     }
                     // DEV9_LOG("DEV9read16");
                     hard = dev9Ru16((int)addr);
                     CLR_DEV9.DEV9_LOG("*Unknown 16bit read at address " + addr.ToString("x") + " value " + hard.ToString("x"));
+                    Console.Error.WriteLine("*Unknown 16bit read at address " + addr.ToString("x") + " value " + hard.ToString("x"));
                     return hard;
             }
 
             //DEV9_LOG("DEV9read16");
-            CLR_DEV9.DEV9_LOG("*Known 16bit read at address " + addr.ToString("x") + " value " + hard.ToString("x"));
-            return hard;
+            //CLR_DEV9.DEV9_LOG("*Known 16bit read at address " + addr.ToString("x") + " value " + hard.ToString("x"));
+            //return hard;
         }
-        
+
         public uint DEV9read32(uint addr)
         {
             //DEV9_LOG("DEV9read32");
@@ -241,18 +249,19 @@ namespace CLRDEV9.DEV9
                 default:
                     if ((addr >= DEV9Header.FLASH_REGBASE) && (addr < (DEV9Header.FLASH_REGBASE + DEV9Header.FLASH_REGSIZE)))
                     {
-                        return (UInt32)flash.FLASHread32(addr, 4);
+                        return (UInt32)flash.FLASHread(addr, 4);
                     }
 
                     hard = dev9Ru32((int)addr);
-                    CLR_DEV9.DEV9_LOG("*Unknown 32bit read at address " + addr.ToString("x") + " value " + hard.ToString("x"));
+                    CLR_DEV9.DEV9_LOG("*Unknown 32bit read at address " + addr.ToString("x") + " value " + hard.ToString("X"));
+                    Console.Error.WriteLine("*Unknown 32bit read at address " + addr.ToString("x") + " value " + hard.ToString("X"));
                     return hard;
             }
 
             //PluginLog.LogWriteLine("*Known 32bit read at address " + addr.ToString("x") + " value " + hard.ToString("x"));
             //return hard;
         }
-        
+
         public void DEV9write8(uint addr, byte value)
         {
             //Console.Error.WriteLine("DEV9write8");
@@ -271,9 +280,9 @@ namespace CLRDEV9.DEV9
             }
             switch (addr)
             {
-                case 0x10000020:
+                case 0x10000020: //irqcause?
                     irqcause = 0xff;
-                    break;
+                    return;
                 case DEV9Header.SPD_R_INTR_STAT:
                     //emu_printf("SPD_R_INTR_STAT	, WTFH ?\n");
                     irqcause = value;
@@ -344,6 +353,9 @@ namespace CLRDEV9.DEV9
                                 }
                             }
                             break;
+                        default:
+                            Console.Error.WriteLine("Unkown EEPROM COMMAND");
+                            break;
                     }
 
                     return;
@@ -351,16 +363,19 @@ namespace CLRDEV9.DEV9
                 default:
                     if ((addr >= DEV9Header.FLASH_REGBASE) && (addr < (DEV9Header.FLASH_REGBASE + DEV9Header.FLASH_REGSIZE)))
                     {
-                        flash.FLASHwrite32(addr, (UInt32)value, 1);
+                        flash.FLASHwrite(addr, (UInt32)value, 1);
                         return;
                     }
 
                     dev9Wu8((int)addr, value);
                     CLR_DEV9.DEV9_LOG("*Unknown 8bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
+                    Console.Error.WriteLine("*Unknown 8bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
                     return;
             }
+            CLR_DEV9.DEV9_LOG("*Unknown 8bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
+            Console.Error.WriteLine("*Unknown 8bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
             dev9Wu8((int)addr, value);
-            CLR_DEV9.DEV9_LOG("*Known 8bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
+            //CLR_DEV9.DEV9_LOG("*Known 8bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
         }
 
         public void DEV9write16(uint addr, ushort value)
@@ -383,28 +398,38 @@ namespace CLRDEV9.DEV9
             }
             switch (addr)
             {
+                case DEV9Header.SPD_R_DMA_CTRL: //??
+                    dev9Wu16((int)DEV9Header.SPD_R_DMA_CTRL, value);
+                    return;
                 case DEV9Header.SPD_R_INTR_MASK:
                     if ((dev9Ru16((int)DEV9Header.SPD_R_INTR_MASK) != value) && (((dev9Ru16((int)DEV9Header.SPD_R_INTR_MASK) | value) & irqcause) != 0))
                     {
                         CLR_DEV9.DEV9_LOG("SPD_R_INTR_MASK16=0x" + value.ToString("X") + " , checking for masked/unmasked interrupts");
                         DEV9Header.DEV9irq(1);
                     }
+                    dev9Wu16((int)DEV9Header.SPD_R_INTR_MASK, value);
+                    return;
+                case DEV9Header.SPD_R_38:
+                    dev9Wu16((int)DEV9Header.SPD_R_38, value);
                     break;
-
+                case DEV9Header.SPD_R_IF_CTRL:
+                    dev9Wu16((int)DEV9Header.SPD_R_IF_CTRL, value);
+                    break;
                 default:
 
                     if ((addr >= DEV9Header.FLASH_REGBASE) && (addr < (DEV9Header.FLASH_REGBASE + DEV9Header.FLASH_REGSIZE)))
                     {
                         Console.Error.WriteLine("DEV9write16 flash");
-                        flash.FLASHwrite32(addr, (UInt32)value, 2);
+                        flash.FLASHwrite(addr, (UInt32)value, 2);
                         return;
                     }
                     dev9Wu16((int)addr, value);
                     CLR_DEV9.DEV9_LOG("*Unknown 16bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
+                    Console.Error.WriteLine("*Unknown 16bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
                     return;
             }
-            dev9Wu16((int)addr, value);
-            CLR_DEV9.DEV9_LOG("*Known 16bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
+            //dev9Wu16((int)addr, value);
+            //CLR_DEV9.DEV9_LOG("*Known 16bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
         }
 
         public void DEV9write32(uint addr, uint value)
@@ -431,16 +456,18 @@ namespace CLRDEV9.DEV9
                 default:
                     if ((addr >= DEV9Header.FLASH_REGBASE) && (addr < (DEV9Header.FLASH_REGBASE + DEV9Header.FLASH_REGSIZE)))
                     {
-                        flash.FLASHwrite32(addr, (UInt32)value, 4);
+                        flash.FLASHwrite(addr, (UInt32)value, 4);
                         return;
                     }
 
                     dev9Wu32((int)addr, value);
                     CLR_DEV9.DEV9_LOG("*Unknown 32bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
+                    Console.Error.WriteLine("*Unknown 32bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
                     return;
             }
             dev9Wu32((int)addr, value);
             CLR_DEV9.DEV9_LOG("*Known 32bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
+            Console.Error.WriteLine("*Unknown 32bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
         }
 
         public void DEV9readDMA8Mem(System.IO.UnmanagedMemoryStream pMem, int size)

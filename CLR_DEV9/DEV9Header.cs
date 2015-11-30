@@ -23,8 +23,8 @@ namespace CLRDEV9
 
         //EEPROM states
         public const byte EEPROM_READY = 0;
-        public const byte EEPROM_OPCD0 = 1;  //waiting for first bit of opcode
-        public const byte EEPROM_OPCD1 = 2;  //waiting for second bit of opcode
+        public const byte EEPROM_OPCD0 = 1; //waiting for first bit of opcode
+        public const byte EEPROM_OPCD1 = 2; //waiting for second bit of opcode
         public const byte EEPROM_ADDR0 = 3;	//waiting for address bits
         public const byte EEPROM_ADDR1 = 4;
         public const byte EEPROM_ADDR2 = 5;
@@ -85,7 +85,7 @@ namespace CLRDEV9
         public const int SMAP_INTR_TXDNV = (1 << 2);	/* descriptor not valid */
         public const int SMAP_INTR_CLR_ALL = (SMAP_INTR_RXEND | SMAP_INTR_TXEND | SMAP_INTR_RXDNV);
         public const int SMAP_INTR_ENA_ALL = (SMAP_INTR_EMAC3 | SMAP_INTR_CLR_ALL);
-        public const int SMAP_INTR_BITMSK = 0x7C;
+        //public const int SMAP_INTR_BITMSK = 0x7C;
 
         /* SMAP Register Definitions.  */
         public const uint SMAP_REGBASE = (SPD_REGBASE + 0x100);
@@ -441,6 +441,28 @@ namespace CLRDEV9
         public const uint ATA_DEV9_INT = (0x01);
         public const uint ATA_DEV9_INT_DMA = (0x02); //not sure rly
         public const uint ATA_DEV9_HDD_END = (ATA_R_CONTROL + 4);
+
+        /* 
+         * From MagaDev9
+         */
+
+        public const UInt16 ATA_ERR_MARK = 0x01;
+        public const UInt16 ATA_ERR_TRACK0 = 0x02;
+        public const UInt16 ATA_ERR_ABORT = 0x04;
+        public const UInt16 ATA_ERR_MCR = 0x08;
+        public const UInt16 ATA_ERR_ID = 0x10;
+        public const UInt16 ATA_ERR_MC = 0x20;
+        public const UInt16 ATA_ERR_ECC = 0x40;
+        public const UInt16 ATA_ERR_ICRC = 0x80;
+
+        public const UInt16 ATA_STAT_ERR = 0x01;
+        public const UInt16 ATA_STAT_INDEX = 0x02;
+        public const UInt16 ATA_STAT_ECC = 0x04;
+        public const UInt16 ATA_STAT_DRQ = 0x08;
+        public const UInt16 ATA_STAT_SEEK = 0x10;
+        public const UInt16 ATA_STAT_WRERR = 0x20;
+        public const UInt16 ATA_STAT_READY = 0x40;
+        public const UInt16 ATA_STAT_BUSY = 0x80;
 
         /*
          * NAND Flash via Dev9 driver definitions
