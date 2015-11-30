@@ -28,17 +28,7 @@ namespace CLRDEV9.DEV9
                 Utils.memcpy(ref shortBytes, 1, byte2, 0, 1);
                 eeprom[i / 2] = BitConverter.ToUInt16(shortBytes, 0);
             }
-            //Init SMAP
-            int rxbi;
 
-            for (rxbi = 0; rxbi < (DEV9Header.SMAP_BD_SIZE / 8); rxbi++)
-            {
-                SMAP.Data.SMAP_bd pbd;
-                pbd = new SMAP.Data.SMAP_bd(dev9R, (int)((DEV9Header.SMAP_BD_RX_BASE & 0xffff) + (SMAP.Data.SMAP_bd.GetSize() * rxbi)));
-
-                pbd.ctrl_stat = (UInt16)DEV9Header.SMAP_BD_RX_EMPTY;
-                pbd.length = 0;
-            }
         }
         //Open
         public int Open()
