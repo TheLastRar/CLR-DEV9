@@ -64,7 +64,10 @@ namespace CLRDEV9
             DEV9_LOG("DEV9shutdown\n");
             //PluginLog.Close(); //fclose(dev9Log);
             DEVLOG_shared = null;
-            irqHandle.Free();
+            if (irqHandle.IsAllocated)
+            {
+                irqHandle.Free(); //allow garbage collection
+            }
             //Do dispose()?
         }
         public static void SetSettingsDir(string dir)
