@@ -1,6 +1,7 @@
 ﻿using CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Net.NetworkInformation;
 
@@ -29,7 +30,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         public void PingCompleate(object sender, System.Net.NetworkInformation.PingCompletedEventArgs e)
         {
-            Console.Error.WriteLine("Ping Complete");
+            Log_Verb("Ping Complete");
             PingData Seq = (PingData)e.UserState;
             PingReply rep = e.Reply;
             Ping ping = (Ping)sender;
@@ -56,7 +57,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         public override IPPayload recv()
         {
-            //Console.Error.WriteLine("UDP Recive");
+            //Error.WriteLine("UDP Recive");
             lock (sentry)
             {
                 if (recvbuff.Count != 0)
@@ -79,7 +80,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             {
                 case 8: //Echo
                     //Code == zero
-                    Console.Error.WriteLine("Send Ping");
+                    Log_Verb("Send Ping");
                     lock (sentry)
                     {
                         open += 1;
@@ -100,7 +101,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     switch (icmp.Code)
                     {
                         case 3:
-                            Console.Error.WriteLine("Recived Packet Rejected, Port Closed");
+                            Log_Error("Recived Packet Rejected, Port Closed");
                             IPPacket retpkt = new IPPacket(icmp);
                             byte[] srvIP = retpkt.SourceIP;
                             byte prot = retpkt.Protocol;
@@ -124,13 +125,14 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                             Key.Protocol = prot;
                             Key.PS2Port = ps2Port;
                             Key.SRVPort = srvPort;
-                            if (Connections.Remove(Key))
+                            if (Connections.Remove(Key)) //TODO, Prevent this from removing permanent sessions
+                                //Also correctly cleanup session
                             {
-                                Console.Error.WriteLine("Closed Rejected Connection");
+                                Log_Info("Closed Rejected Connection");
                             }
                             else
                             {
-                                Console.Error.WriteLine("Failed To Close Rejected Connection");
+                                Log_Error("Failed To Close Rejected Connection");
                             }
                             break;
                         default:
@@ -163,6 +165,19 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     ping.Dispose();
                 }
             }
+        }
+
+        private void Log_Error(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.Winsock, "IMCP", str);
+        }
+        private void Log_Info(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.Winsock, "IMCP", str);
+        }
+        private void Log_Verb(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.Winsock, "IMCP", str);
         }
     }
 }

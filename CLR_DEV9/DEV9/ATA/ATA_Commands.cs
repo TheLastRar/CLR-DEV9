@@ -6,7 +6,7 @@ namespace CLRDEV9.DEV9.ATA
     {
         void HDDunk()
         {
-            Console.Error.WriteLine("DEV9 HDD error : unknown cmd %02X\n", command);
+            Log_Error("DEV9 HDD error : unknown cmd " + command.ToString("X"));
 
             dev9.dev9Wu16((int)DEV9Header.ATA_R_ERROR, 0);
             UInt16 status = dev9.dev9Ru16((int)DEV9Header.ATA_R_STATUS);
@@ -38,7 +38,7 @@ namespace CLRDEV9.DEV9.ATA
                     break;
 
                 default:
-                    Console.Error.WriteLine("DEV9 : Unknown SMART command %02X\n", feature);
+                    Log_Error("DEV9 : Unknown SMART command " + feature.ToString("X"));
                     break;
             }
 
@@ -164,7 +164,7 @@ namespace CLRDEV9.DEV9.ATA
 
         void HDDsceSecCtrl()
         {
-            Console.Error.WriteLine("DEV9 : SONY-SPECIFIC SECURITY CONTROL COMMAND (%02X)\n", feature);
+            Log_Info("DEV9 : SONY-SPECIFIC SECURITY CONTROL COMMAND " + feature.ToString("X"));
 
             dev9.dev9Wu16((int)DEV9Header.ATA_R_ERROR, 0);
             UInt16 status = dev9.dev9Ru16((int)DEV9Header.ATA_R_STATUS);

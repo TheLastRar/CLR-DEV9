@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace CLRDEV9.DEV9.FLASH
 {
@@ -77,7 +78,7 @@ namespace CLRDEV9.DEV9.FLASH
                     Utils.memcpy(ref valueByte, 0, data, (int)counter, size);
                     counter += (uint)size;
 
-                    CLR_DEV9.DEV9_LOG("*FLASH DATA " + (size * 8).ToString() + "bit read 0x" + BitConverter.ToUInt32(valueByte, 0).ToString("X8") + " " + (((ctrl & DEV9Header.FLASH_PP_READ) != 0) ? "READ_ENABLE" : "READ_DISABLE").ToString());
+                    Log_Verb("*FLASH DATA " + (size * 8).ToString() + "bit read 0x" + BitConverter.ToUInt32(valueByte, 0).ToString("X8") + " " + (((ctrl & DEV9Header.FLASH_PP_READ) != 0) ? "READ_ENABLE" : "READ_DISABLE").ToString());
                     if (cmd == DEV9Header.SM_CMD_READ3)
                     {
                         if (counter >= FLASH_Constants.PAGE_SIZE_ECC)
@@ -118,35 +119,35 @@ namespace CLRDEV9.DEV9.FLASH
                     return BitConverter.ToUInt32(valueByte, 0);
 
                 case DEV9Header.FLASH_R_CMD:
-                    CLR_DEV9.DEV9_LOG("*FLASH CMD " + (size * 8).ToString() + "bit read " + getCmdName(cmd) + " DENIED\n");
+                    Log_Error("*FLASH CMD " + (size * 8).ToString() + "bit read " + getCmdName(cmd) + " DENIED\n");
                     return cmd;
 
                 case DEV9Header.FLASH_R_ADDR:
-                    CLR_DEV9.DEV9_LOG("*FLASH ADDR " + (size * 8).ToString() + "bit read DENIED\n");
+                    Log_Error("*FLASH ADDR " + (size * 8).ToString() + "bit read DENIED\n");
                     return 0;
 
                 case DEV9Header.FLASH_R_CTRL:
-                    CLR_DEV9.DEV9_LOG("*FLASH CTRL " + (size * 8).ToString() + "bit read " + ctrl.ToString("X8"));
+                    Log_Verb("*FLASH CTRL " + (size * 8).ToString() + "bit read " + ctrl.ToString("X8"));
                     return ctrl;
 
                 case DEV9Header.FLASH_R_ID:
                     if (cmd == DEV9Header.SM_CMD_READID)
                     {
-                        CLR_DEV9.DEV9_LOG("*FLASH ID " + (size * 8).ToString() + "bit read " + id.ToString("X8"));
+                        Log_Verb("*FLASH ID " + (size * 8).ToString() + "bit read " + id.ToString("X8"));
                         return id;//0x98=Toshiba/0xEC=Samsung maker code should be returned first
                     }
                     else
                         if (cmd == DEV9Header.SM_CMD_GETSTATUS)
                         {
                             valueInt = 0x80 | ((ctrl & 1) << 6);	// 0:0=pass, 6:ready/busy, 7:1=not protected
-                            CLR_DEV9.DEV9_LOG("*FLASH STATUS " + (size * 8).ToString() + "bit read " + valueInt.ToString("X8"));
+                            Log_Verb("*FLASH STATUS " + (size * 8).ToString() + "bit read " + valueInt.ToString("X8"));
                             return valueInt;
                         }//else fall off
                     //dosn't like falling though...
-                    CLR_DEV9.DEV9_LOG("*FLASH Unkwnown " + (size * 8).ToString() + "bit read at address " + addr.ToString("X8"));
+                    Log_Error("*FLASH Unkwnown " + (size * 8).ToString() + "bit read at address " + addr.ToString("X8"));
                     return 0;
                 default:
-                    CLR_DEV9.DEV9_LOG("*FLASH Unkwnown " + (size * 8).ToString() + "bit read at address " + addr.ToString("X8"));
+                    Log_Error("*FLASH Unkwnown " + (size * 8).ToString() + "bit read at address " + addr.ToString("X8"));
                     return 0;
             }
         }
@@ -157,7 +158,7 @@ namespace CLRDEV9.DEV9.FLASH
             {
                 case DEV9Header.FLASH_R_DATA:
 
-                    CLR_DEV9.DEV9_LOG("*FLASH DATA " + (size * 8).ToString("X8") + "bit write 0x" + value.ToString("X8") + " " + (((ctrl & DEV9Header.FLASH_PP_WRITE) != 0) ? "WRITE_ENABLE" : "WRITE_DISABLE"));
+                    Log_Verb("*FLASH DATA " + (size * 8).ToString("X8") + "bit write 0x" + value.ToString("X8") + " " + (((ctrl & DEV9Header.FLASH_PP_WRITE) != 0) ? "WRITE_ENABLE" : "WRITE_DISABLE"));
                     byte[] valueBytes = BitConverter.GetBytes(value);
                     Utils.memcpy(ref data, (int)counter, valueBytes, 0, size);
                     counter += (uint)size;
@@ -169,7 +170,7 @@ namespace CLRDEV9.DEV9.FLASH
                     {
                         if ((value != DEV9Header.SM_CMD_GETSTATUS) && (value != DEV9Header.SM_CMD_RESET))
                         {
-                            CLR_DEV9.DEV9_LOG("*FLASH CMD " + (size * 8).ToString() + "bit write " + getCmdName(value) + " ILLEGAL in busy mode - IGNORED");
+                            Log_Error("*FLASH CMD " + (size * 8).ToString() + "bit write " + getCmdName(value) + " ILLEGAL in busy mode - IGNORED");
                             break;
                         }
                     }
@@ -177,7 +178,7 @@ namespace CLRDEV9.DEV9.FLASH
                     {
                         if ((value != DEV9Header.SM_CMD_PROGRAMPAGE) && (value != DEV9Header.SM_CMD_RESET))
                         {
-                            CLR_DEV9.DEV9_LOG("*FLASH CMD " + (size * 8).ToString() + "bit write " + getCmdName(value) + " ILLEGAL after WRITEDATA cmd - IGNORED");
+                            Log_Error("*FLASH CMD " + (size * 8).ToString() + "bit write " + getCmdName(value) + " ILLEGAL after WRITEDATA cmd - IGNORED");
                             unchecked
                             {
                                 ctrl &= (uint)(~DEV9Header.FLASH_PP_READY);//go busy, reset is needed
@@ -185,7 +186,7 @@ namespace CLRDEV9.DEV9.FLASH
                             break;
                         }
                     }
-                    CLR_DEV9.DEV9_LOG("*FLASH CMD " + (size * 8).ToString() + "bit write " + getCmdName(value));
+                    Log_Info("*FLASH CMD " + (size * 8).ToString() + "bit write " + getCmdName(value));
                     switch (value)
                     {																	// A8 bit is encoded in READ cmd;)
                         case DEV9Header.SM_CMD_READ1:counter = 0;
@@ -249,10 +250,10 @@ namespace CLRDEV9.DEV9.FLASH
                     break;
 
                 case DEV9Header.FLASH_R_ADDR:
-                    CLR_DEV9.DEV9_LOG("*FLASH ADDR " + (size * 8).ToString() + "bit write 0x" + value.ToString("X8"));
+                    Log_Verb("*FLASH ADDR " + (size * 8).ToString() + "bit write 0x" + value.ToString("X8"));
                     address |= (uint)((int)(value & 0xFF) << (int)(addrbyte == 0 ? 0 : (1 + 8 * addrbyte)));
                     addrbyte++;
-                    CLR_DEV9.DEV9_LOG("*FLASH ADDR = 0x" + address + " (addrbyte=" + addrbyte.ToString() + ")\n");
+                    Log_Verb("*FLASH ADDR = 0x" + address + " (addrbyte=" + addrbyte.ToString() + ")\n");
                     if (!((value & 0x100) != 0))
                     {	// address is complete
                         if ((cmd == DEV9Header.SM_CMD_READ1) || (cmd == DEV9Header.SM_CMD_READ2) || (cmd == DEV9Header.SM_CMD_READ3))
@@ -275,22 +276,22 @@ namespace CLRDEV9.DEV9.FLASH
                             pages = address - (blocks * FLASH_Constants.BLOCK_SIZE);
                             bytes = pages % FLASH_Constants.PAGE_SIZE;
                             pages = pages / FLASH_Constants.PAGE_SIZE;
-                            CLR_DEV9.DEV9_LOG("*FLASH ADDR = 0x" + address.ToString("X8") + " (" + blocks + ":" + pages + ":" + bytes + ") (addrbyte=" + addrbyte + ") FINAL");
+                            Log_Verb("*FLASH ADDR = 0x" + address.ToString("X8") + " (" + blocks + ":" + pages + ":" + bytes + ") (addrbyte=" + addrbyte + ") FINAL");
                         }
                     }
                     break;
 
                 case DEV9Header.FLASH_R_CTRL:
-                    CLR_DEV9.DEV9_LOG("*FLASH CTRL " + (size * 8).ToString() + "bit write 0x" + value.ToString("X8"));
+                    Log_Verb("*FLASH CTRL " + (size * 8).ToString() + "bit write 0x" + value.ToString("X8"));
                     ctrl = (uint)((ctrl & DEV9Header.FLASH_PP_READY) | (value & ~DEV9Header.FLASH_PP_READY));
                     break;
 
                 case DEV9Header.FLASH_R_ID:
-                    CLR_DEV9.DEV9_LOG("*FLASH ID " + (size * 8).ToString() + "bit write 0x" + value.ToString("X8") + " DENIED :P");
+                    Log_Error("*FLASH ID " + (size * 8).ToString() + "bit write 0x" + value.ToString("X8") + " DENIED :P");
                     break;
 
                 default:
-                    CLR_DEV9.DEV9_LOG("*FLASH Unkwnown " + (size * 8).ToString() + "bit write at address 0x" + addr.ToString("X8") + "= 0x" + value.ToString() + " IGNORED");
+                    Log_Error("*FLASH Unkwnown " + (size * 8).ToString() + "bit write at address 0x" + addr.ToString("X8") + "= 0x" + value.ToString() + " IGNORED");
                     break;
             }
         }
@@ -313,6 +314,19 @@ namespace CLRDEV9.DEV9.FLASH
             xor[xoroffset + 0] = (byte)((~a) & 0x77);
             xor[xoroffset + 1] = (byte)((~b) & 0x7F);
             xor[xoroffset + 2] = (byte)((~c) & 0x7F);
+        }
+
+        private void Log_Error(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.FLASH, "FLASH", str);
+        }
+        private void Log_Info(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.FLASH, "FLASH", str);
+        }
+        private void Log_Verb(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.FLASH, "FLASH", str);
         }
     }
 }

@@ -1,6 +1,7 @@
-﻿using System;
+﻿using CLRDEV9.DEV9.SMAP.Data;
+using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
-using CLRDEV9.DEV9.SMAP.Data;
 
 namespace CLRDEV9.DEV9.SMAP.Tap
 {
@@ -45,11 +46,11 @@ namespace CLRDEV9.DEV9.SMAP.Tap
             }
             catch (Exception e)
             {
-                Console.WriteLine("Packet Recive Error :" + e.ToString());
+                Log_Error("Packet Recive Error :" + e.ToString());
                 return false;
             }
 
-            //Console.Error.WriteLine(read_size);
+            //Error.WriteLine(read_size);
 
             //Result would always be true, don't other checking it.
 
@@ -66,14 +67,14 @@ namespace CLRDEV9.DEV9.SMAP.Tap
             if ((Utils.memcmp(pkt.buffer, 0, eeprombytes, 0, 6) == false) & (Utils.memcmp(pkt.buffer, 0, broadcast_adddrrrr, 0, 6) == false))
             {
                 //ignore strange packets
-                Console.Error.WriteLine("Dropping Strange Packet");
+                Log_Error("Dropping Strange Packet");
                 return false;
             }
 
             if (Utils.memcmp(pkt.buffer, 6, eeprombytes, 0, 6) == true)
             {
                 //avoid pcap looping packets
-                Console.Error.WriteLine("Dropping Looping Packet");
+                Log_Error("Dropping Looping Packet");
                 return false;
             }
             pkt.size = read_size;
@@ -95,12 +96,26 @@ namespace CLRDEV9.DEV9.SMAP.Tap
 
             if (writen != pkt.size)
             {
-                Console.Error.WriteLine("incomplete Send " + Marshal.GetLastWin32Error());
+                Log_Error("incomplete Send " + Marshal.GetLastWin32Error());
                 return false;
             }
 
             return true;
         }
+
+        private void Log_Error(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.Tap, "TAP", str);
+        }
+        private void Log_Info(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.Tap, "TAP", str);
+        }
+        private void Log_Verb(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.Tap, "TAP", str);
+        }
+
         public override void Dispose()
         {
             TAPSetStatus(htap, false);

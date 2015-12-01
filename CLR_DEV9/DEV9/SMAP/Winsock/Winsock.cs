@@ -5,6 +5,7 @@ using CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP;
 using CLRDEV9.DEV9.SMAP.Winsock.Sessions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace CLRDEV9.DEV9.SMAP.Winsock
 {
@@ -137,7 +138,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                         }
                         if (Connections[key].isOpen() == false)
                         {
-                            //Console.Error.WriteLine("Removing Closed Connection : " + key);
+                            //Error.WriteLine("Removing Closed Connection : " + key);
                             DeadConnections.Add(key);
                         }
                     }
@@ -168,7 +169,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 if ((Utils.memcmp(pkt.buffer, 0, eeprombytes, 0, 6) == false) & (Utils.memcmp(pkt.buffer, 0, broadcast_adddrrrr, 0, 6) == false))
                 {
                     //ignore strange packets
-                    Console.Error.WriteLine("Dropping Strange Packet");
+                    Log_Error("Dropping Strange Packet");
                     return false;
                 }
                 return true;
@@ -194,25 +195,25 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     break;
                 #region "ARP"
                 case (int)EtherFrameType.ARP:
-                    Console.Error.WriteLine("ARP (Ignoring)");
+                    Log_Verb("ARP (Ignoring)");
                     ARPPacket arppkt = ((ARPPacket)ef.Payload);
 
                     ////Detect ARP Packet Types
                     //if (Utils.memcmp(arppkt.SenderProtocolAddress, 0, new byte[] { 0, 0, 0, 0 }, 0, 4))
                     //{
-                    //    Console.WriteLine("ARP Probe"); //(Who has my IP?)
+                    //    WriteLine("ARP Probe"); //(Who has my IP?)
                     //    break;
                     //}
                     //if (Utils.memcmp(arppkt.SenderProtocolAddress, 0, arppkt.TargetProtocolAddress, 0, 4))
                     //{
                     //    if (Utils.memcmp(arppkt.TargetHardwareAddress, 0, new byte[] { 0, 0, 0, 0, 0, 0 }, 0, 6) & arppkt.OP == 1)
                     //    {
-                    //        Console.WriteLine("ARP Announcement Type 1");
+                    //        WriteLine("ARP Announcement Type 1");
                     //        break;
                     //    }
                     //    if (Utils.memcmp(arppkt.SenderHardwareAddress, 0, arppkt.TargetHardwareAddress, 0, 6) & arppkt.OP == 2)
                     //    {
-                    //        Console.WriteLine("ARP Announcement Type 2");
+                    //        WriteLine("ARP Announcement Type 2");
                     //        break;
                     //    }
                     //}
@@ -223,7 +224,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     ////    if (Utils.memcmp(arppkt.TargetProtocolAddress,0,UDP_DHCPsession.GATEWAY_IP,0,4))
                     ////    //it's trying to resolve the virtual gateway's mac addr
                     ////    {
-                    ////        Console.Error.WriteLine("ARP Attempt to Resolve Gateway Mac");
+                    ////        Error.WriteLine("ARP Attempt to Resolve Gateway Mac");
                     ////        arppkt.TargetHardwareAddress = arppkt.SenderHardwareAddress;
                     ////        arppkt.SenderHardwareAddress = gateway_mac;
                     ////        arppkt.TargetProtocolAddress = arppkt.SenderProtocolAddress;
@@ -238,17 +239,17 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     ////        break;
                     ////    }
                     ////}
-                    //Console.Error.WriteLine("Unhandled ARP packet");
+                    //Error.WriteLine("Unhandled ARP packet");
 
                     result = true;
                     break;
                 #endregion
                 case (int)0x0081:
-                    Console.Error.WriteLine("VLAN-tagged frame (IEEE 802.1Q)");
+                    Log_Error("VLAN-tagged frame (IEEE 802.1Q)");
                     throw new NotImplementedException();
                 //break;
                 default:
-                    Console.Error.WriteLine("Unkown EtherframeType " + ef.Protocol.ToString("X4"));
+                    Log_Error("Unkown EtherframeType " + ef.Protocol.ToString("X4"));
                     break;
             }
 
@@ -260,12 +261,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             //TODO Optimise Checksum for implace checksumming
             if (ippkt.VerifyCheckSum() == false)
             {
-                Console.Error.WriteLine("IP packet with bad CSUM");
+                Log_Error("IP packet with bad CSUM");
                 return false;
             }
             if (ippkt.Payload.VerifyCheckSum(ippkt.SourceIP, ippkt.DestinationIP) == false)
             {
-                Console.Error.WriteLine("IP packet with bad Payload CSUM");
+                Log_Error("IP packet with bad Payload CSUM");
                 return false;
             }
 
@@ -282,7 +283,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 case (byte)IPType.UDP:
                     return SendUDP(Key, ippkt);
                 default:
-                    Console.Error.WriteLine("Unkown Protocol");
+                    Log_Error("Unkown Protocol");
                     //throw new NotImplementedException();
                     return false;
             }
@@ -290,7 +291,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
 
         public bool SendIMCP(ConnectionKey Key, IPPacket ippkt)
         {
-            Console.Error.WriteLine("ICMP");
+            Log_Verb("ICMP");
             lock (sentry)
             {
                 int res = SendFromConnection(Key, ippkt);
@@ -300,7 +301,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     return false;
                 else
                 {
-                    //Console.Error.WriteLine("Creating New Connection with key " + Key);
+                    Log_Verb("Creating New Connection with key " + Key);
                     ICMPSession s = new ICMPSession(Connections);
                     s.DestIP = ippkt.DestinationIP;
                     s.SourceIP = UDP_DHCPsession.PS2_IP;
@@ -311,9 +312,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
         }
         public bool SendTCP(ConnectionKey Key, IPPacket ippkt)
         {
-#if DEBUG
-            Console.Error.WriteLine("TCP");
-#endif
+            Log_Verb("TCP");
             TCP tcp = (TCP)ippkt.Payload;
 
             Key.PS2Port = tcp.SourcePort; Key.SRVPort = tcp.DestinationPort;
@@ -327,10 +326,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     return false;
                 else
                 {
-#if DEBUG
-                    Console.Error.WriteLine("Creating New Connection with key " + Key);
-#endif
-                    Console.Error.WriteLine("Creating New TCP Connection with Dest Port " + tcp.DestinationPort);
+                    Log_Verb("Creating New Connection with key " + Key);
+                    Log_Info("Creating New TCP Connection with Dest Port " + tcp.DestinationPort);
                     TCPSession s = new TCPSession();
                     s.DestIP = ippkt.DestinationIP;
                     s.SourceIP = UDP_DHCPsession.PS2_IP;
@@ -341,9 +338,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
         }
         public bool SendUDP(ConnectionKey Key, IPPacket ippkt)
         {
-#if DEBUG
-            Console.Error.WriteLine("UDP");
-#endif
+            Log_Verb("UDP");
             UDP udp = (UDP)ippkt.Payload;
 
             Key.PS2Port = udp.SourcePort; Key.SRVPort = udp.DestinationPort;
@@ -361,10 +356,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     return false;
                 else
                 {
-#if DEBUG
-                    Console.Error.WriteLine("Creating New Connection with key " + Key);
-#endif
-                    Console.Error.WriteLine("Creating New UDP Connection with Dest Port " + udp.DestinationPort);
+
+                    Log_Verb("Creating New Connection with key " + Key);
+                    Log_Info("Creating New UDP Connection with Dest Port " + udp.DestinationPort);
                     UDPSession s = new UDPSession();
                     s.DestIP = ippkt.DestinationIP;
                     s.SourceIP = UDP_DHCPsession.PS2_IP;
@@ -379,8 +373,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             if (Connections.ContainsKey(Key))
             {
                 if (Connections[Key].isOpen() == false)
+                {
+                    Log_Error("Attempt to send on Closed Connection");
                     throw new Exception("Attempt to send on Closed Connection");
-                //Console.Error.WriteLine("Found Open Connection");
+                }
+                //Error.WriteLine("Found Open Connection");
                 return Connections[Key].send(ippkt.Payload) ? 1 : 0;
             }
             else
@@ -392,9 +389,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             //TODO close all open connections
             lock (sentry)
             {
-#if DEBUG
-                Console.Error.WriteLine("Closing " + Connections.Count + " Connections");
-#endif
+                Log_Verb("Closing " + Connections.Count + " Connections");
                 foreach (ConnectionKey key in Connections.Keys) //ToDo better multi-connection stuff
                 {
                     Connections[key].Dispose(); //replace with dispose?
@@ -404,6 +399,19 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 //Connections.Add("DHCP", DCHP_server);
                 DCHP_server.Dispose();
             }
+        }
+
+        protected void Log_Error(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.Winsock, "UDPSession", str);
+        }
+        protected void Log_Info(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.Winsock, "UDPSession", str);
+        }
+        protected void Log_Verb(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.Winsock, "UDPSession", str);
         }
     }
 }

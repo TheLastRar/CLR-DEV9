@@ -19,8 +19,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             }
             catch (System.Net.Sockets.SocketException err)
             {
-                Console.Error.WriteLine("TCP Connection Error: " + err.Message);
-                Console.Error.WriteLine("ErrorCode: " + err.ErrorCode);
+                Log_Error("TCP Connection Error: " + err.Message);
+                Log_Error("ErrorCode: " + err.ErrorCode);
             }
             bool connected = false;
             lock (clientSentry)
@@ -81,7 +81,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             {
                 if (!(tcp.DestinationPort == DestPort && tcp.SourcePort == SrcPort))
                 {
-                    Console.Error.WriteLine("TCP packet invalid for current session (Duplicate key?)");
+                    Log_Error("TCP packet invalid for current session (Duplicate key?)");
                     return false;
                 }
             }
@@ -142,7 +142,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             if (tcp.SYN == false)
             {
                 PerformRST();
-                Console.Error.WriteLine("Connection Not in Connected State");
+                Log_Error("Attempt To Send Data On Non Connected Connection");
                 return true;
             }
             ExpectedSequenceNumber = tcp.SequenceNumber + 1;
@@ -165,7 +165,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                         MaxSegmentSize = ((TCPopMSS)(tcp.Options[i])).MaxSegmentSize;
                         break;
                     case 3: //WinScale
-                        Console.Error.WriteLine("Got WinScale (Not Supported)");
+                        Log_Info("Got WinScale (Not Supported)");
                         // = ((TCPopWS)(tcp.Options[i])).WindowScale;
                         break;
                     case 8: //TimeStamp
@@ -174,8 +174,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                         TimeStamp.Start();
                         break;
                     default:
-                        Console.Error.WriteLine("Got Unknown Option " + tcp.Options[i].Code);
-                        throw new Exception();
+                        Log_Error("Got Unknown Option " + tcp.Options[i].Code);
+                        throw new Exception("Got Unknown Option " + tcp.Options[i].Code);
                     //break;
                 }
             }
@@ -201,10 +201,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         {
             if (tcp.SYN == true)
             {
+                Log_Error("Attempt to Connect to an operning Port");
                 throw new Exception("Attempt to Connect to an operning Port");
             }
             NumCheckResult Result = CheckNumbers(tcp);
-            if (Result == NumCheckResult.Bad) { throw new Exception("Bad TCP Number Received"); }
+            if (Result == NumCheckResult.Bad) { Log_Error("Bad TCP Numbers Received"); throw new Exception("Bad TCP Numbers Received"); }
 
             for (int i = 0; i < tcp.Options.Count; i++)
             {
@@ -217,8 +218,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                         LastRecivedTimeStamp = ((TCPopTS)(tcp.Options[i])).SenderTimeStamp;
                         break;
                     default:
-                        Console.Error.WriteLine("Got Unknown Option " + tcp.Options[i].Code);
-                        throw new Exception();
+                        Log_Error("Got Unknown Option " + tcp.Options[i].Code);
+                        throw new Exception("Got Unknown Option " + tcp.Options[i].Code);
                     //break;
                 }
             }
@@ -232,6 +233,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         {
             if (tcp.SYN == true)
             {
+                Log_Error("Attempt to Connect to an open Port");
                 throw new Exception("Attempt to Connect to an open Port");
             }
             for (int i = 0; i < tcp.Options.Count; i++)
@@ -242,12 +244,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     case 1://Nop
                         continue;
                     case 8:
-                        //Console.Error.WriteLine("Got TimeStamp");
+                        //Error.WriteLine("Got TimeStamp");
                         LastRecivedTimeStamp = ((TCPopTS)(tcp.Options[i])).SenderTimeStamp;
                         break;
                     default:
-                        Console.Error.WriteLine("Got Unknown Option " + tcp.Options[i].Code);
-                        throw new Exception();
+                        Log_Error("Got Unknown Option " + tcp.Options[i].Code);
+                        throw new Exception("Got Unknown Option " + tcp.Options[i].Code);
                     //break;
                 }
             }
@@ -257,7 +259,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 throw new NotImplementedException();
                 //return true;
             }
-            if (Result == NumCheckResult.Bad) { throw new Exception("Bad TCP Number Received"); }
+            if (Result == NumCheckResult.Bad) { Log_Error("Bad TCP Numbers Received"); throw new Exception("Bad TCP Numbers Received"); }
             if (tcp.GetPayload().Length != 0)
             {
                 ReceivedPS2SequenceNumbers.RemoveAt(0);
@@ -295,10 +297,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         private bool SendCloseResponseResponse(TCP tcp)
         {
             //Close Part 4, Recive ACK from PS2
-            Console.Error.WriteLine("Compleated Close By PS2");
+            Log_Info("Compleated Close By PS2");
             NumCheckResult ResultFIN = CheckNumbers(tcp);
             if (ResultFIN == NumCheckResult.GotOldData) { return false; }
-            if (ResultFIN == NumCheckResult.Bad) { throw new Exception("Bad TCP Number Received"); }
+            if (ResultFIN == NumCheckResult.Bad) { Log_Error("Bad TCP Numbers Received"); throw new Exception("Bad TCP Numbers Received"); }
             state = TCPState.Closed;
             open = false;
             return true;
@@ -313,10 +315,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             //Expect FIN + ACK
             if (tcp.FIN & (HasACKedFIN | tcp.ACK))
             {
-                Console.Error.WriteLine("Compleated Close By Remote");
+                Log_Info("Compleated Close By Remote");
 
                 if (ResultFIN == NumCheckResult.GotOldData) { return false; }
-                if (ResultFIN == NumCheckResult.Bad) { throw new Exception("Bad TCP Number Received"); }
+                if (ResultFIN == NumCheckResult.Bad) { Log_Error("Bad TCP Numbers Received"); throw new Exception("Bad TCP Numbers Received"); }
 
                 unchecked
                 {
@@ -333,22 +335,24 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             }
             else if (tcp.ACK)
             {
-                Console.Error.WriteLine("Got ACK from PS2 during server FIN");
+                Log_Info("Got ACK from PS2 during server FIN");
                 if (ResultFIN == NumCheckResult.GotOldData) { return false; }
-                if (ResultFIN == NumCheckResult.Bad) { throw new Exception("Bad TCP Number Received"); }
+                if (ResultFIN == NumCheckResult.Bad) { Log_Error("Bad TCP Numbers Received"); throw new Exception("Bad TCP Numbers Received"); ; }
                 if (tcp.GetPayload().Length != 0)
                 {
+                    Log_Error("Invalid Packet");
                     throw new Exception("Invalid Packet");
                 }
                 if (MyNumberACKed.WaitOne(0))
                 {
-                    Console.Error.WriteLine("ACK was for FIN");
+                    Log_Info("ACK was for FIN");
                     state = TCPState.ConnectionClosedByRemoteAcknowledged;
                 }
                 return true;
             }
+            Log_Error("Invalid Packet");
             throw new Exception("Invalid Packet");
-            return false;
+            //return false;
         }
 
         private NumCheckResult CheckNumbers(TCP tcp)
@@ -359,9 +363,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
             if (tcp.AcknowledgementNumber != seqNum)
             {
-                Console.Error.WriteLine("Outdated Acknowledgement Number, Got " + tcp.AcknowledgementNumber + " Expected " + seqNum);
+                Log_Verb("Outdated Acknowledgement Number, Got " + tcp.AcknowledgementNumber + " Expected " + seqNum);
                 if (tcp.AcknowledgementNumber != oldSeqNum)
                 {
+                    Log_Error("Unexpected Acknowledgement Number did not Match Old Number of " + oldSeqNum);
                     throw new Exception("Unexpected Acknowledgement Number did not Match Old Number of " + oldSeqNum);
                 }
             }
@@ -374,17 +379,20 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             {
                 if (tcp.GetPayload().Length == 0)
                 {
-                    Console.Error.WriteLine("Unexpected Sequence Number From Act Packet, Got " + tcp.SequenceNumber + " Expected " + ExpectedSequenceNumber);
+                    Log_Verb("Unexpected Sequence Number From ACK Packet, Got " + tcp.SequenceNumber + " Expected " + ExpectedSequenceNumber);
                 }
                 else
                 {
                     if (ReceivedPS2SequenceNumbers.Contains(tcp.SequenceNumber))
                     {
-                        Console.Error.WriteLine("Got an Old Seq Number on an Data packet");
+                        Log_Error("Got an Old Seq Number on an Data packet");
                         return NumCheckResult.GotOldData;
                     }
                     else
+                    {
+                        Log_Error("Unexpected Sequence Number From Data Packet, Got " + tcp.SequenceNumber + " Expected " + ExpectedSequenceNumber);
                         throw new Exception("Unexpected Sequence Number From Data Packet, Got " + tcp.SequenceNumber + " Expected " + ExpectedSequenceNumber);
+                    }
                 }
             }
 
@@ -398,7 +406,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 client.Close();
             }
             netStream = null;
-            Console.Error.WriteLine("PS2 has closed connection");
+            Log_Info("PS2 has closed connection");
             //Connection Close Part 2, Send ACK to PS2
             ReceivedPS2SequenceNumbers.RemoveAt(0);
             ReceivedPS2SequenceNumbers.Add(ExpectedSequenceNumber);

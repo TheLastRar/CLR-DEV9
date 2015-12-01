@@ -1,5 +1,7 @@
 ﻿using CLRDEV9.DEV9.SMAP.Data;
 using System;
+using System.Diagnostics;
+using LOG = PSE.CLR_PSE_PluginLog;
 
 namespace CLRDEV9.DEV9.SMAP
 {
@@ -47,7 +49,7 @@ namespace CLRDEV9.DEV9.SMAP
             NetAdapter na = GetNetAdapter();
             if (na == null)
             {
-                Console.Error.WriteLine("Failed to GetNetAdapter()");
+                LOG.WriteLine(TraceEventType.Critical, (int)DEV9LogSources.PluginInterface, "NetAdapter", "Failed to GetNetAdapter()");
             }
             else
             {

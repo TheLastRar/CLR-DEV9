@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
 {
@@ -13,6 +14,19 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             get;
         }
         public abstract byte[] GetBytes();
+
+        protected void Log_Error(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.TCP, "TCPOption", str);
+        }
+        protected void Log_Info(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.TCP, "TCPOption", str);
+        }
+        protected void Log_Verb(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.TCP, "TCPOption", str);
+        }
     }
     //class TCPopEOO : TCPOption
     //{
@@ -59,7 +73,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             //'(32 bits)'
             offset += 2;
             NetLib.ReadUInt16(data, ref offset, out MaxSegmentSize);
-            Console.Error.WriteLine("Got Maximum segment size of " + MaxSegmentSize);
+            Log_Verb("Got Maximum segment size of " + MaxSegmentSize);
         }
         public override byte Length { get { return 4; } }
         public override byte Code { get { return 2; } }
@@ -87,7 +101,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             //'(24 bits)'
             offset += 2;
             NetLib.ReadByte08(data, ref offset, out WindowScale);
-            Console.Error.WriteLine("Got Window scale of " + WindowScale);
+            Log_Verb("Got Window scale of " + WindowScale);
         }
         public override byte Length { get { return 3; } }
         public override byte Code { get { return 3; } }

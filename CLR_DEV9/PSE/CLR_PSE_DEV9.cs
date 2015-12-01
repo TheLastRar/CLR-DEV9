@@ -85,7 +85,7 @@ namespace PSE
         }
         public static void DEV9setLogDir(string dir)
         {
-            CLRDEV9.CLR_DEV9.DEV9setLogDir(dir);
+            CLRDEV9.CLR_DEV9.SetLogDir(dir);
         }
 
         public static Byte DEV9read8(UInt32 addr)

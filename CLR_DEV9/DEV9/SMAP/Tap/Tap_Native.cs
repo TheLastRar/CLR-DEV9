@@ -37,7 +37,7 @@ namespace CLRDEV9.DEV9.SMAP.Tap
         const UInt32 TAP_IOCTL_SET_MEDIA_STATUS = ((FILE_DEVICE_UNKNOWN) << 16) | ((FILE_ANY_ACCESS) << 14) | ((6) << 2) | (METHOD_BUFFERED);//TAP_CONTROL_CODE(6, METHOD_BUFFERED);
         #endregion
         //Set the connection status
-        static bool TAPSetStatus(Microsoft.Win32.SafeHandles.SafeFileHandle handle, bool status)
+        bool TAPSetStatus(Microsoft.Win32.SafeHandles.SafeFileHandle handle, bool status)
         {
             UInt32 len = 0;
 
@@ -48,7 +48,7 @@ namespace CLRDEV9.DEV9.SMAP.Tap
         }
 
         //Open the TAP adapter and set the connection to enabled :)
-        static Microsoft.Win32.SafeHandles.SafeFileHandle TAPOpen(string device_guid)
+        Microsoft.Win32.SafeHandles.SafeFileHandle TAPOpen(string device_guid)
         {
             string device_path;
 
@@ -71,7 +71,7 @@ namespace CLRDEV9.DEV9.SMAP.Tap
 
             if (handle.IsInvalid)
             {
-                Console.Error.WriteLine("Error @ CF " + Marshal.GetLastWin32Error());
+                Log_Error("Error @ CF " + Marshal.GetLastWin32Error());
                 //return INVALID_HANDLE_VALUE;
                 return new Microsoft.Win32.SafeHandles.SafeFileHandle(new IntPtr(-1), true);
             }
@@ -83,14 +83,14 @@ namespace CLRDEV9.DEV9.SMAP.Tap
                                    ref ver, (UInt32)Marshal.SizeOf(ver), ref version_len, nullptr);
             if (bret == false)
             {
-                Console.Error.WriteLine("Error @ DIOC " + Marshal.GetLastWin32Error());
+                Log_Error("Error @ DIOC " + Marshal.GetLastWin32Error());
                 handle.Close();
                 return new Microsoft.Win32.SafeHandles.SafeFileHandle(new IntPtr(-1), true);
             }
 
             if (!TAPSetStatus(handle, true))
             {
-                Console.Error.WriteLine("Error @ TAPSETSTAT " + Marshal.GetLastWin32Error());
+                Log_Error("Error @ TAPSETSTAT " + Marshal.GetLastWin32Error());
                 return new Microsoft.Win32.SafeHandles.SafeFileHandle(new IntPtr(-1), true);
             }
 

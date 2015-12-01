@@ -38,9 +38,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
         public ICMP(byte[] buffer, int offset, int Length) //Length = IP payload len
         {
             NetLib.ReadByte08(buffer, ref offset, out Type);
-            //Console.Error.WriteLine("Type = " + Type);
+            //Error.WriteLine("Type = " + Type);
             NetLib.ReadByte08(buffer, ref offset, out Code);
-            //Console.Error.WriteLine("Code = " + Code);
+            //Error.WriteLine("Code = " + Code);
             NetLib.ReadUInt16(buffer, ref offset, out Checksum);
             NetLib.ReadByteArray(buffer, ref offset, 4, out HeaderData);
 
@@ -51,7 +51,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             int pHeaderLen = ((Length));
             if ((pHeaderLen & 1) != 0)
             {
-                //Console.Error.WriteLine("OddSizedPacket");
+                //Error.WriteLine("OddSizedPacket");
                 pHeaderLen += 1;
             }
 
@@ -68,7 +68,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             int pHeaderLen = ((Length));
             if ((pHeaderLen & 1) != 0)
             {
-                //Console.Error.WriteLine("OddSizedPacket");
+                //Error.WriteLine("OddSizedPacket");
                 pHeaderLen += 1;
             }
             
@@ -77,7 +77,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             NetLib.WriteByteArray(ref headerSegment, ref counter, GetBytes());
 
             UInt16 CsumCal = IPPacket.InternetChecksum(headerSegment);
-            //Console.Error.WriteLine("IMCP Checksum Good = " + (CsumCal == 0));
+            //Error.WriteLine("IMCP Checksum Good = " + (CsumCal == 0));
             return (CsumCal == 0);
         }
         public override byte[] GetBytes()

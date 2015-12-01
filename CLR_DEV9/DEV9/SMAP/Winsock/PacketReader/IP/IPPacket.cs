@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
 {
@@ -123,10 +124,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             NetLib.ReadUInt16(buffer, ref pktoffset, out _Length);
             if (_Length > bufferSize - offset)
             {
-                Console.Error.WriteLine("Unexpected Length");
+                Log_Error("Unexpected Length");
                 _Length = (UInt16)(bufferSize - offset);
             }
-            //Console.Error.WriteLine("len=" + Length); //Includes hlen
+            //Error.WriteLine("len=" + Length); //Includes hlen
 
             //Bits 32-63
             NetLib.ReadUInt16(buffer, ref pktoffset, out ID); //Send packets with unique IDs
@@ -134,7 +135,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
 
             if (MoreFragments)
             {
-                Console.Error.WriteLine("FragmentedPacket");
+                Log_Error("FragmentedPacket");
             }
 
             //Bits 64-95
@@ -142,19 +143,19 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             NetLib.ReadByte08(buffer, ref pktoffset, out Protocol);
             NetLib.ReadUInt16(buffer, ref pktoffset, out Checksum);
             //bool ccsum = verifyCheckSum(Ef.RawPacket.buffer, pktoffset);
-            //Console.Error.WriteLine("IP Checksum Good? " + ccsum);//Should ALWAYS be true
+            //Error.WriteLine("IP Checksum Good? " + ccsum);//Should ALWAYS be true
 
             //Bits 96-127
             NetLib.ReadByteArray(buffer, ref pktoffset, 4, out SourceIP);
             //Bits 128-159
             NetLib.ReadByteArray(buffer, ref pktoffset, 4, out DestinationIP);
-            //Console.WriteLine("Target IP :" + DestinationIP[0] + "." + DestinationIP[1] + "." + DestinationIP[2] + "." + DestinationIP[3]);
+            //WriteLine("Target IP :" + DestinationIP[0] + "." + DestinationIP[1] + "." + DestinationIP[2] + "." + DestinationIP[3]);
 
             //Bits 160+
             if (hlen > 20) //IP options (if any)
             {
-                Console.Error.WriteLine("hlen=" + hlen + " > 20");
-                Console.Error.WriteLine("IP options are not supported");
+                Log_Error("hlen=" + hlen + " > 20");
+                Log_Error("IP options are not supported");
                 throw new NotImplementedException("IP options are not supported");
             }
             switch (Protocol) //(Prase Payload)
@@ -257,6 +258,19 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             sum = ~sum;
             sum = sum & 0xFFFF;
             return (UInt16)sum;
+        }
+
+        private void Log_Error(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.Winsock, "IPPacket", str);
+        }
+        private void Log_Info(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.Winsock, "IPPacket", str);
+        }
+        private void Log_Verb(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.Winsock, "IPPacket", str);
         }
     }
 }

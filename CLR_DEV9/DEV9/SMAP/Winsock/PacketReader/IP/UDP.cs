@@ -45,9 +45,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
         {
             //Bits 0-31
             NetLib.ReadUInt16(buffer, ref offset, out SourcePort);
-            //Console.Error.WriteLine("src port=" + SourcePort); 
+            //Error.WriteLine("src port=" + SourcePort); 
             NetLib.ReadUInt16(buffer, ref offset, out DestinationPort);
-            //Console.Error.WriteLine("dts port=" + DestinationPort);
+            //Error.WriteLine("dts port=" + DestinationPort);
             //Bits 32-63
 
             NetLib.ReadUInt16(buffer, ref offset, out _Length); //includes header length
@@ -55,7 +55,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
 
             if (_Length > parLength)
             {
-                //Console.Error.WriteLine("Unexpected Length");
+                //Error.WriteLine("Unexpected Length");
                 _Length = (UInt16)(parLength);
             }
 
@@ -112,7 +112,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             NetLib.WriteByteArray(ref headerSegment, ref counter, GetBytes());
 
             UInt16 CsumCal = IPPacket.InternetChecksum(headerSegment);
-            //Console.Error.WriteLine("UDP Checksum Good = " + (CsumCal == 0));
+            //Error.WriteLine("UDP Checksum Good = " + (CsumCal == 0));
             return (CsumCal == 0);
         }
         public override byte[] GetBytes()

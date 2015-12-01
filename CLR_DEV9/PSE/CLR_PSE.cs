@@ -43,9 +43,17 @@ namespace PSE
 #if DEBUG
         public static void MsgBoxError(Exception e, string logPath)
         {
-            Console.Error.WriteLine(e.StackTrace);
-            System.Windows.Forms.MessageBox.Show("Encounted Exception! : " + Environment.NewLine);
-            System.IO.File.WriteAllLines(logPath + "\\" + libraryName + "_ERR.txt", new string[] { e.StackTrace });
+            Console.Error.WriteLine(e.Message + Environment.NewLine + e.StackTrace);
+            System.Windows.Forms.MessageBox.Show("Encounted Exception! : " + Environment.NewLine + e.Message);
+            Console.Error.WriteLine("Writing Log to " + logPath + "\\" + libraryName + " ERR.txt");
+            try
+            {
+                System.IO.File.WriteAllLines(logPath + "\\" + libraryName + " ERR.txt", new string[] { e.Message + Environment.NewLine + e.StackTrace });
+            } 
+            catch
+            {
+                Console.Error.WriteLine("Error while writing ErrorLog");
+            }
         }
 #endif
 

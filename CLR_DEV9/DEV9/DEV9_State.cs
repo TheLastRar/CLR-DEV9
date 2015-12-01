@@ -2,6 +2,7 @@
 using CLRDEV9.DEV9.FLASH;
 using CLRDEV9.DEV9.SMAP;
 using CLRDEV9.DEV9.ATA;
+using System.Diagnostics;
 
 namespace CLRDEV9.DEV9
 {
@@ -45,8 +46,7 @@ namespace CLRDEV9.DEV9
 
         public int _DEV9irqHandler()
         {
-            //Console.Error.WriteLine("_DEV9irqHandler");
-            CLR_DEV9.DEV9_LOG("_DEV9irqHandler " + irqcause.ToString("X") + ", " + dev9Ru16((int)DEV9Header.SPD_R_INTR_MASK).ToString("x"));
+            Log_Verb("_DEV9irqHandler " + irqcause.ToString("X") + ", " + dev9Ru16((int)DEV9Header.SPD_R_INTR_MASK).ToString("x"));
             if ((irqcause & dev9Ru16((int)DEV9Header.SPD_R_INTR_MASK)) != 0)
                 return 1;
             return 0;
@@ -54,8 +54,7 @@ namespace CLRDEV9.DEV9
 
         public void DEV9irq(int cause, int cycles)
         {
-            //Console.Error.WriteLine("_DEV9irq");
-            CLR_DEV9.DEV9_LOG("_DEV9irq " + cause.ToString("X") + ", " + dev9Ru16((int)DEV9Header.SPD_R_INTR_MASK).ToString("X"));
+            Log_Verb("_DEV9irq " + cause.ToString("X") + ", " + dev9Ru16((int)DEV9Header.SPD_R_INTR_MASK).ToString("X"));
 
             irqcause |= cause;
 
@@ -114,7 +113,7 @@ namespace CLRDEV9.DEV9
                         else hard = 0;
                     }
                     else hard = 0;
-                    CLR_DEV9.DEV9_LOG("SPD_R_PIO_DATA read " + hard.ToString("X"));
+                    Log_Verb("SPD_R_PIO_DATA read " + hard.ToString("X"));
                     return hard;
 
                 case DEV9Header.DEV9_R_REV:
@@ -127,8 +126,7 @@ namespace CLRDEV9.DEV9
                     }
 
                     hard = dev9Ru8((int)addr);
-                    //CLR_DEV9.DEV9_LOG("*Unknown 8bit read at address " + addr.ToString("X") + " value " + hard.ToString("X"));
-                    Console.Error.WriteLine("*Unknown 8bit read at address " + addr.ToString("X") + " value " + hard.ToString("X"));
+                    Log_Error("*Unknown 8bit read at address " + addr.ToString("X") + " value " + hard.ToString("X"));
                     return hard;
             }
 
@@ -160,7 +158,7 @@ namespace CLRDEV9.DEV9
             {
                 case DEV9Header.SPD_R_INTR_STAT:
                     //DEV9_LOG("DEV9read16");
-                    CLR_DEV9.DEV9_LOG("SPD_R_INTR_STAT read " + irqcause.ToString("X"));
+                    Log_Verb("SPD_R_INTR_STAT read " + irqcause.ToString("X"));
                     return (UInt16)irqcause;
 
                 case DEV9Header.SPD_R_INTR_MASK:
@@ -206,8 +204,7 @@ namespace CLRDEV9.DEV9
                     }
                     // DEV9_LOG("DEV9read16");
                     hard = dev9Ru16((int)addr);
-                    CLR_DEV9.DEV9_LOG("*Unknown 16bit read at address " + addr.ToString("x") + " value " + hard.ToString("x"));
-                    Console.Error.WriteLine("*Unknown 16bit read at address " + addr.ToString("x") + " value " + hard.ToString("x"));
+                    Log_Error("*Unknown 16bit read at address " + addr.ToString("x") + " value " + hard.ToString("x"));
                     return hard;
             }
 
@@ -243,8 +240,7 @@ namespace CLRDEV9.DEV9
                     }
 
                     hard = dev9Ru32((int)addr);
-                    CLR_DEV9.DEV9_LOG("*Unknown 32bit read at address " + addr.ToString("x") + " value " + hard.ToString("X"));
-                    Console.Error.WriteLine("*Unknown 32bit read at address " + addr.ToString("x") + " value " + hard.ToString("X"));
+                    Log_Error("*Unknown 32bit read at address " + addr.ToString("x") + " value " + hard.ToString("X"));
                     return hard;
             }
 
@@ -254,7 +250,7 @@ namespace CLRDEV9.DEV9
 
         public void DEV9write8(uint addr, byte value)
         {
-            //Console.Error.WriteLine("DEV9write8");
+            //Error.WriteLine("DEV9write8");
             if (addr >= DEV9Header.ATA_DEV9_HDD_BASE && addr < DEV9Header.ATA_DEV9_HDD_END)
             {
                 //#ifdef ENABLE_ATA
@@ -344,7 +340,7 @@ namespace CLRDEV9.DEV9
                             }
                             break;
                         default:
-                            Console.Error.WriteLine("Unkown EEPROM COMMAND");
+                            Log_Error("Unkown EEPROM COMMAND");
                             break;
                     }
 
@@ -358,31 +354,29 @@ namespace CLRDEV9.DEV9
                     }
 
                     dev9Wu8((int)addr, value);
-                    CLR_DEV9.DEV9_LOG("*Unknown 8bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
-                    Console.Error.WriteLine("*Unknown 8bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
+                    Log_Error("*Unknown 8bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
                     return;
             }
-            CLR_DEV9.DEV9_LOG("*Unknown 8bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
-            Console.Error.WriteLine("*Unknown 8bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
+            Log_Error("*Unknown 8bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
             dev9Wu8((int)addr, value);
             //CLR_DEV9.DEV9_LOG("*Known 8bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
         }
 
         public void DEV9write16(uint addr, ushort value)
         {
-            //Console.Error.WriteLine("DEV9write16");
+            //Error.WriteLine("DEV9write16");
             if (addr >= DEV9Header.ATA_DEV9_HDD_BASE && addr < DEV9Header.ATA_DEV9_HDD_END)
             {
                 //#ifdef ENABLE_ATA
                 //        ata_write<2>(addr,value);
                 //#endif
-                //Console.Error.WriteLine("DEV9write16 ATA");
+                //Error.WriteLine("DEV9write16 ATA");
                 return;
             }
             if (addr >= DEV9Header.SMAP_REGBASE && addr < DEV9Header.FLASH_REGBASE)
             {
                 //smap
-                //Console.Error.WriteLine("DEV9write16 SMAP");
+                //Error.WriteLine("DEV9write16 SMAP");
                 smap.smap_write16(addr, value);
                 return;
             }
@@ -394,7 +388,7 @@ namespace CLRDEV9.DEV9
                 case DEV9Header.SPD_R_INTR_MASK:
                     if ((dev9Ru16((int)DEV9Header.SPD_R_INTR_MASK) != value) && (((dev9Ru16((int)DEV9Header.SPD_R_INTR_MASK) | value) & irqcause) != 0))
                     {
-                        CLR_DEV9.DEV9_LOG("SPD_R_INTR_MASK16=0x" + value.ToString("X") + " , checking for masked/unmasked interrupts");
+                        Log_Verb("SPD_R_INTR_MASK16=0x" + value.ToString("X") + " , checking for masked/unmasked interrupts");
                         DEV9Header.DEV9irq(1);
                     }
                     dev9Wu16((int)DEV9Header.SPD_R_INTR_MASK, value);
@@ -409,13 +403,12 @@ namespace CLRDEV9.DEV9
 
                     if ((addr >= DEV9Header.FLASH_REGBASE) && (addr < (DEV9Header.FLASH_REGBASE + DEV9Header.FLASH_REGSIZE)))
                     {
-                        Console.Error.WriteLine("DEV9write16 flash");
+                        Log_Verb("DEV9write16 flash");
                         flash.FLASHwrite(addr, (UInt32)value, 2);
                         return;
                     }
                     dev9Wu16((int)addr, value);
-                    CLR_DEV9.DEV9_LOG("*Unknown 16bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
-                    Console.Error.WriteLine("*Unknown 16bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
+                    Log_Error("*Unknown 16bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
                     return;
             }
             //dev9Wu16((int)addr, value);
@@ -424,7 +417,7 @@ namespace CLRDEV9.DEV9
 
         public void DEV9write32(uint addr, uint value)
         {
-            //Console.Error.WriteLine("DEV9write32");
+            //Error.WriteLine("DEV9write32");
             if (addr >= DEV9Header.ATA_DEV9_HDD_BASE && addr < DEV9Header.ATA_DEV9_HDD_END)
             {
                 //#ifdef ENABLE_ATA
@@ -441,7 +434,7 @@ namespace CLRDEV9.DEV9
             switch (addr)
             {
                 case DEV9Header.SPD_R_INTR_MASK:
-                    Console.Error.WriteLine("SPD_R_INTR_MASK	, WTFH ?\n");
+                    Log_Error("SPD_R_INTR_MASK	, WTFH ?\n");
                     break;
                 default:
                     if ((addr >= DEV9Header.FLASH_REGBASE) && (addr < (DEV9Header.FLASH_REGBASE + DEV9Header.FLASH_REGSIZE)))
@@ -451,18 +444,18 @@ namespace CLRDEV9.DEV9
                     }
 
                     dev9Wu32((int)addr, value);
-                    CLR_DEV9.DEV9_LOG("*Unknown 32bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
-                    Console.Error.WriteLine("*Unknown 32bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
+                    Log_Error("*Unknown 32bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
                     return;
             }
             dev9Wu32((int)addr, value);
-            CLR_DEV9.DEV9_LOG("*Known 32bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
-            Console.Error.WriteLine("*Unknown 32bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
+            Log_Error("*Known 32bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
         }
 
         public void DEV9readDMA8Mem(System.IO.UnmanagedMemoryStream pMem, int size)
         {
+            Log_Verb("*DEV9readDMA8Mem: size " + size.ToString("X"));
             smap.smap_readDMA8Mem(pMem, size);
+            Log_Info("rDMA");
             //#ifdef ENABLE_ATA
             //    ata_readDMA8Mem(pMem,size);
             //#endif
@@ -470,7 +463,9 @@ namespace CLRDEV9.DEV9
 
         public void DEV9writeDMA8Mem(System.IO.UnmanagedMemoryStream pMem, int size)
         {
+            Log_Verb("*DEV9writeDMA8Mem: size " + size.ToString("X"));
             smap.smap_writeDMA8Mem(pMem, size);
+            Log_Info("wDMA");
             //#ifdef ENABLE_ATA
             //    ata_writeDMA8Mem(pMem,size);
             //#endif
@@ -479,6 +474,19 @@ namespace CLRDEV9.DEV9
         public void DEV9async(uint cycles)
         {
             smap.smap_async(cycles);
+        }
+
+        private void Log_Error(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.Dev9, "DEV9", str);
+        }
+        private void Log_Info(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.Dev9, "DEV9", str);
+        }
+        private void Log_Verb(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.Dev9, "DEV9", str);
         }
     }
 }

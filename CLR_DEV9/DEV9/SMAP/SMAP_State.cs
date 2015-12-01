@@ -1,5 +1,6 @@
 ﻿using CLRDEV9.DEV9.SMAP.Data;
 using System;
+using System.Diagnostics;
 
 namespace CLRDEV9.DEV9.SMAP
 {
@@ -69,7 +70,7 @@ namespace CLRDEV9.DEV9.SMAP
         {
             if (!rx_fifo_can_rx())
             {
-                Console.Error.WriteLine("ERROR : !rx_fifo_can_rx at rx_process");
+                Log_Error("ERROR : !rx_fifo_can_rx at rx_process");
                 return;
             }
             //smap_bd_t* pbd = ((smap_bd_t*)&dev9.dev9R[SMAP_BD_RX_BASE & 0xffff]) + dev9.rxbdi;
@@ -80,8 +81,8 @@ namespace CLRDEV9.DEV9.SMAP
 
             if (!((pbd.ctrl_stat & DEV9Header.SMAP_BD_RX_EMPTY) != 0))
             {
-                Console.Error.WriteLine("ERROR (!(pbd->ctrl_stat & SMAP_BD_RX_EMPTY))");
-                Console.Error.WriteLine("ERROR : Discarding " + bytes + " bytes (RX" + dev9.rxbdi + " not ready)");
+                Log_Error("ERROR (!(pbd->ctrl_stat & SMAP_BD_RX_EMPTY))");
+                Log_Error("ERROR : Discarding " + bytes + " bytes (RX" + dev9.rxbdi + " not ready)");
                 return;
             }
 
@@ -128,7 +129,7 @@ namespace CLRDEV9.DEV9.SMAP
         //tx_process
         private void tx_process()
         {
-            //Console.Error.WriteLine("TX");
+            //Error.WriteLine("TX");
             //we loop based on count ? or just *use* it ?
             UInt32 cnt = dev9.dev9Ru8((int)DEV9Header.SMAP_R_TXFIFO_FRAME_CNT);
             //spams// printf("tx_process : %d cnt frames !\n",cnt);
@@ -144,7 +145,7 @@ namespace CLRDEV9.DEV9.SMAP
 
                 if (!((pbd.ctrl_stat & DEV9Header.SMAP_BD_TX_READY) != 0))
                 {
-                    Console.Error.WriteLine("ERROR : !pbd->ctrl_stat&SMAP_BD_TX_READY\n");
+                    Log_Error("ERROR : !pbd->ctrl_stat&SMAP_BD_TX_READY\n");
                     break;
                 }
                 if ((pbd.length & 3) != 0)
@@ -154,12 +155,12 @@ namespace CLRDEV9.DEV9.SMAP
 
                 if (pbd.length > 1514)
                 {
-                    Console.Error.WriteLine("ERROR : Trying to send packet too big.\n");
+                    Log_Error("ERROR : Trying to send packet too big.\n");
                 }
                 else
                 {
                     UInt32 _base = (UInt32)((pbd.pointer - 0x1000) & 16383);
-                    CLR_DEV9.DEV9_LOG("Sending Packet from base " + _base.ToString("X") + ", size " + pbd.length);
+                    Log_Verb("Sending Packet from base " + _base.ToString("X") + ", size " + pbd.length);
                     //The 1st packet we send should be base 0, size 1514
                     //spams// emu_printf("Sending Packet from base %x, size %d\n", base, pbd->length);
 
@@ -167,7 +168,7 @@ namespace CLRDEV9.DEV9.SMAP
 
                     if (!(pbd.pointer >= 0x1000))
                     {
-                        CLR_DEV9.DEV9_LOG("ERROR: odd , !pbd->pointer>0x1000 | 0x" + pbd.pointer.ToString("X") + " " + pbd.length.ToString());
+                        Log_Verb("ERROR: odd , !pbd->pointer>0x1000 | 0x" + pbd.pointer.ToString("X") + " " + pbd.length.ToString());
                     }
 
                     if (_base + pbd.length > 16384)
@@ -175,7 +176,7 @@ namespace CLRDEV9.DEV9.SMAP
                         UInt32 was = 16384 - _base;
                         Utils.memcpy(ref pk.buffer, 0, dev9.txfifo, (int)_base, (int)was);
                         Utils.memcpy(ref pk.buffer, (int)was, dev9.txfifo, 0, (int)(pbd.length - was)); //I thingk this was a bug in the original plugin
-                        Console.Error.WriteLine("Warped read, was=" + was + ", sz=" + pbd.length + ", sz-was=" + (pbd.length - was));
+                        Log_Verb("Warped read, was=" + was + ", sz=" + pbd.length + ", sz-was=" + (pbd.length - was));
                     }
                     else
                     {
@@ -202,7 +203,7 @@ namespace CLRDEV9.DEV9.SMAP
             //if some error/early exit signal TXDNV
             if (fc != cnt || cnt == 0)
             {
-                Console.Error.WriteLine("WARN : (fc!=cnt || cnt==0) but packet send request was made oO..");
+                Log_Error("WARN : (fc!=cnt || cnt==0) but packet send request was made oO..");
                 dev9.DEV9irq(DEV9Header.SMAP_INTR_TXDNV, 0);
             }
             //if we actualy send something send TXEND
@@ -216,33 +217,33 @@ namespace CLRDEV9.DEV9.SMAP
             switch (addr)
             {
                 case DEV9Header.SMAP_R_EMAC3_MODE0_L:
-                    CLR_DEV9.DEV9_LOG("SMAP: SMAP_R_EMAC3_MODE0 write " + value.ToString("X"));
+                    Log_Verb("SMAP: SMAP_R_EMAC3_MODE0 write " + value.ToString("X"));
                     value = (value & (~DEV9Header.SMAP_E3_SOFT_RESET)) | DEV9Header.SMAP_E3_TXMAC_IDLE | DEV9Header.SMAP_E3_RXMAC_IDLE;
                     UInt16 tmp = (UInt16)(dev9.dev9Ru16((int)DEV9Header.SMAP_R_EMAC3_STA_CTRL_H) | DEV9Header.SMAP_E3_PHY_OP_COMP);
                     dev9.dev9Wu16((int)DEV9Header.SMAP_R_EMAC3_STA_CTRL_H, tmp);
                     break;
                 case DEV9Header.SMAP_R_EMAC3_TxMODE0_L:
-                    CLR_DEV9.DEV9_LOG("SMAP: SMAP_R_EMAC3_TxMODE0_L write " + value.ToString("X"));
+                    Log_Verb("SMAP: SMAP_R_EMAC3_TxMODE0_L write " + value.ToString("X"));
                     //spams// emu_printf("SMAP: SMAP_R_EMAC3_TxMODE0_L write %x\n", value);
                     //Process TX  here ?
                     if (!(value != 0) & (DEV9Header.SMAP_E3_TX_GNP_0 != 0))
-                        Console.Error.WriteLine("SMAP_R_EMAC3_TxMODE0_L: SMAP_E3_TX_GNP_0 not set");
+                        Log_Error("SMAP_R_EMAC3_TxMODE0_L: SMAP_E3_TX_GNP_0 not set");
 
                     tx_process();
                     value = value & ~DEV9Header.SMAP_E3_TX_GNP_0;
                     if (value != 0)
-                        Console.Error.WriteLine("SMAP_R_EMAC3_TxMODE0_L: extra bits set !");
+                        Log_Error("SMAP_R_EMAC3_TxMODE0_L: extra bits set !");
                     break;
                 case DEV9Header.SMAP_R_EMAC3_TxMODE1_L:
-                    Console.Error.WriteLine("SMAP_R_EMAC3_TxMODE1_L 32bit write " + value.ToString("X"));
+                    Log_Error("SMAP_R_EMAC3_TxMODE1_L 32bit write " + value.ToString("X"));
                     if (value == 0x380f0000)
                     {
-                        Console.Error.WriteLine("Adapter Detection Hack - Resetting RX/TX");
+                        Log_Error("Adapter Detection Hack - Resetting RX/TX");
                         dev9.DEV9irq(DEV9Header.SMAP_INTR_RXEND | DEV9Header.SMAP_INTR_TXEND | DEV9Header.SMAP_INTR_TXDNV, 5);
                     }
                     break;
                 case DEV9Header.SMAP_R_EMAC3_STA_CTRL_L:
-                    CLR_DEV9.DEV9_LOG("SMAP: SMAP_R_EMAC3_STA_CTRL write " + value.ToString("X"));
+                    Log_Verb("SMAP: SMAP_R_EMAC3_STA_CTRL write " + value.ToString("X"));
                     {
                         if ((value & (DEV9Header.SMAP_E3_PHY_READ)) != 0)
                         {
@@ -260,7 +261,7 @@ namespace CLRDEV9.DEV9.SMAP
                                         val |= DEV9Header.SMAP_PHY_STS_LINK | DEV9Header.SMAP_PHY_STS_100M | DEV9Header.SMAP_PHY_STS_FDX | DEV9Header.SMAP_PHY_STS_ANCP;
                                     break;
                             }
-                            CLR_DEV9.DEV9_LOG("phy_read " + reg.ToString() + ": " + val.ToString("X"));
+                            Log_Verb("phy_read " + reg.ToString() + ": " + val.ToString("X"));
                             value = (uint)((value & 0xFFFFu) | (uint)((int)val << 16));
                         }
                         if ((value & (DEV9Header.SMAP_E3_PHY_WRITE)) != 0)
@@ -278,13 +279,13 @@ namespace CLRDEV9.DEV9.SMAP
                                     val |= 0x1;
                                     break;
                             }
-                            CLR_DEV9.DEV9_LOG("phy_write " + reg.ToString() + ": " + val.ToString("X"));
+                            Log_Verb("phy_write " + reg.ToString() + ": " + val.ToString("X"));
                             dev9.phyregs[reg] = val;
                         }
                     }
                     break;
                 default:
-                    CLR_DEV9.DEV9_LOG("SMAP: emac3 write  " + addr.ToString("X8") + "=" + value.ToString("X"));
+                    Log_Verb("SMAP: emac3 write  " + addr.ToString("X8") + "=" + value.ToString("X"));
                     break;
             }
             dev9.dev9Wu32((int)addr, wswap(value));
@@ -301,15 +302,15 @@ namespace CLRDEV9.DEV9.SMAP
                     break;
 
                 case DEV9Header.SMAP_R_BD_MODE:
-                    CLR_DEV9.DEV9_LOG("SMAP_R_BD_MODE 8bit read value " + dev9.bd_swap.ToString("X"));
+                    Log_Verb("SMAP_R_BD_MODE 8bit read value " + dev9.bd_swap.ToString("X"));
                     return dev9.bd_swap;
 
                 default:
-                    CLR_DEV9.DEV9_LOG("SMAP : Unknown 8 bit read @ " + addr.ToString("X") + ", v=" + dev9.dev9Ru8((int)addr).ToString("X"));
+                    Log_Error("SMAP : Unknown 8 bit read @ " + addr.ToString("X") + ", v=" + dev9.dev9Ru8((int)addr).ToString("X"));
                     return dev9.dev9Ru8((int)addr);
             }
 
-            CLR_DEV9.DEV9_LOG("SMAP : error , 8 bit read @ " + addr.ToString("X") + ", v=" + dev9.dev9Ru8((int)addr).ToString("X"));
+            Log_Error("SMAP : error , 8 bit read @ " + addr.ToString("X") + ", v=" + dev9.dev9Ru8((int)addr).ToString("X"));
             return dev9.dev9Ru8((int)addr);
         }
         public UInt16 smap_read16(UInt32 addr)
@@ -319,10 +320,10 @@ namespace CLRDEV9.DEV9.SMAP
                 int rv = dev9.dev9Ru16((int)addr);
                 if (dev9.bd_swap != 0)
                 {
-                    CLR_DEV9.DEV9_LOG("SMAP : Generic TX read " + ((rv << 8) | (rv >> 8)).ToString("X"));
+                    Log_Verb("SMAP : Generic TX read " + ((rv << 8) | (rv >> 8)).ToString("X"));
                     return (UInt16)((rv << 8) | (rv >> 8));
                 }
-                CLR_DEV9.DEV9_LOG("SMAP : Generic TX read " + rv.ToString("X"));
+                Log_Verb("SMAP : Generic TX read " + rv.ToString("X"));
                 return (UInt16)rv;
             }
             else if (addr >= DEV9Header.SMAP_BD_RX_BASE && addr < (DEV9Header.SMAP_BD_RX_BASE + DEV9Header.SMAP_BD_SIZE))
@@ -330,10 +331,10 @@ namespace CLRDEV9.DEV9.SMAP
                 int rv = dev9.dev9Ru16((int)addr);
                 if (dev9.bd_swap != 0)
                 {
-                    CLR_DEV9.DEV9_LOG("SMAP : Generic RX read " + ((rv << 8) | (rv >> 8)).ToString("X"));
+                    Log_Verb("SMAP : Generic RX read " + ((rv << 8) | (rv >> 8)).ToString("X"));
                     return (UInt16)((rv << 8) | (rv >> 8));
                 }
-                CLR_DEV9.DEV9_LOG("SMAP : Generic RX read " + rv.ToString("X"));
+                Log_Verb("SMAP : Generic RX read " + rv.ToString("X"));
                 return (UInt16)rv;
             }
 
@@ -341,77 +342,77 @@ namespace CLRDEV9.DEV9.SMAP
             {
                 case DEV9Header.SMAP_R_TXFIFO_FRAME_CNT:
                     //printf("SMAP_R_TXFIFO_FRAME_CNT read 16\n");
-                    CLR_DEV9.DEV9_LOG("SMAP_R_TXFIFO_FRAME_CNT 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
+                    Log_Verb("SMAP_R_TXFIFO_FRAME_CNT 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
                     return dev9.dev9Ru16((int)addr);
                 case DEV9Header.SMAP_R_RXFIFO_FRAME_CNT:
                     //printf("SMAP_R_RXFIFO_FRAME_CNT read 16\n");
-                    CLR_DEV9.DEV9_LOG("SMAP_R_RXFIFO_FRAME_CNT 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
+                    Log_Verb("SMAP_R_RXFIFO_FRAME_CNT 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
                     return dev9.dev9Ru16((int)addr);
                 case DEV9Header.SMAP_R_EMAC3_MODE0_L:
-                    CLR_DEV9.DEV9_LOG("SMAP_R_EMAC3_MODE0_L 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
+                    Log_Verb("SMAP_R_EMAC3_MODE0_L 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
                     return dev9.dev9Ru16((int)addr);
 
                 case DEV9Header.SMAP_R_EMAC3_MODE0_H:
-                    CLR_DEV9.DEV9_LOG("SMAP_R_EMAC3_MODE0_H 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
+                    Log_Verb("SMAP_R_EMAC3_MODE0_H 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
                     return dev9.dev9Ru16((int)addr);
 
                 case DEV9Header.SMAP_R_EMAC3_MODE1_L:
-                    CLR_DEV9.DEV9_LOG("SMAP_R_EMAC3_MODE1_L 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
+                    Log_Verb("SMAP_R_EMAC3_MODE1_L 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
                     return dev9.dev9Ru16((int)addr);
 
                 case DEV9Header.SMAP_R_EMAC3_MODE1_H:
-                    CLR_DEV9.DEV9_LOG("SMAP_R_EMAC3_MODE1_H 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
+                    Log_Verb("SMAP_R_EMAC3_MODE1_H 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
                     return dev9.dev9Ru16((int)addr);
 
                 case DEV9Header.SMAP_R_EMAC3_RxMODE_L:
-                    CLR_DEV9.DEV9_LOG("SMAP_R_EMAC3_RxMODE_L 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
+                    Log_Verb("SMAP_R_EMAC3_RxMODE_L 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
                     return dev9.dev9Ru16((int)addr);
 
                 case DEV9Header.SMAP_R_EMAC3_RxMODE_H:
-                    CLR_DEV9.DEV9_LOG("SMAP_R_EMAC3_RxMODE_H 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
+                    Log_Verb("SMAP_R_EMAC3_RxMODE_H 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
                     return dev9.dev9Ru16((int)addr);
 
                 case DEV9Header.SMAP_R_EMAC3_INTR_STAT_L:
-                    CLR_DEV9.DEV9_LOG("SMAP_R_EMAC3_INTR_STAT_L 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
+                    Log_Verb("SMAP_R_EMAC3_INTR_STAT_L 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
                     return dev9.dev9Ru16((int)addr);
 
                 case DEV9Header.SMAP_R_EMAC3_INTR_STAT_H:
-                    CLR_DEV9.DEV9_LOG("SMAP_R_EMAC3_INTR_STAT_H 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
+                    Log_Verb("SMAP_R_EMAC3_INTR_STAT_H 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
                     return dev9.dev9Ru16((int)addr);
 
                 case DEV9Header.SMAP_R_EMAC3_INTR_ENABLE_L:
-                    CLR_DEV9.DEV9_LOG("SMAP_R_EMAC3_INTR_ENABLE_L 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
+                    Log_Verb("SMAP_R_EMAC3_INTR_ENABLE_L 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
                     return dev9.dev9Ru16((int)addr);
 
                 case DEV9Header.SMAP_R_EMAC3_INTR_ENABLE_H:
-                    CLR_DEV9.DEV9_LOG("SMAP_R_EMAC3_INTR_ENABLE_H 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
+                    Log_Verb("SMAP_R_EMAC3_INTR_ENABLE_H 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
                     return dev9.dev9Ru16((int)addr);
 
                 case DEV9Header.SMAP_R_EMAC3_TxMODE0_L:
-                    CLR_DEV9.DEV9_LOG("SMAP_R_EMAC3_TxMODE0_L 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
+                    Log_Verb("SMAP_R_EMAC3_TxMODE0_L 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
                     return dev9.dev9Ru16((int)addr);
 
                 case DEV9Header.SMAP_R_EMAC3_TxMODE0_H:
-                    CLR_DEV9.DEV9_LOG("SMAP_R_EMAC3_TxMODE0_H 16bit read " + dev9.dev9Ru16((int)addr).ToString("X")); ;
+                    Log_Verb("SMAP_R_EMAC3_TxMODE0_H 16bit read " + dev9.dev9Ru16((int)addr).ToString("X")); ;
                     return dev9.dev9Ru16((int)addr);
 
                 case DEV9Header.SMAP_R_EMAC3_TxMODE1_L:
-                    CLR_DEV9.DEV9_LOG("SMAP_R_EMAC3_TxMODE1_L 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
+                    Log_Verb("SMAP_R_EMAC3_TxMODE1_L 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
                     return dev9.dev9Ru16((int)addr);
 
                 case DEV9Header.SMAP_R_EMAC3_TxMODE1_H:
-                    CLR_DEV9.DEV9_LOG("SMAP_R_EMAC3_TxMODE1_H 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
+                    Log_Verb("SMAP_R_EMAC3_TxMODE1_H 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
                     return dev9.dev9Ru16((int)addr);
 
                 case DEV9Header.SMAP_R_EMAC3_STA_CTRL_L:
-                    CLR_DEV9.DEV9_LOG("SMAP_R_EMAC3_STA_CTRL_L 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
+                    Log_Verb("SMAP_R_EMAC3_STA_CTRL_L 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
                     return dev9.dev9Ru16((int)addr);
 
                 case DEV9Header.SMAP_R_EMAC3_STA_CTRL_H:
-                    CLR_DEV9.DEV9_LOG("SMAP_R_EMAC3_STA_CTRL_H 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
+                    Log_Verb("SMAP_R_EMAC3_STA_CTRL_H 16bit read " + dev9.dev9Ru16((int)addr).ToString("X"));
                     return dev9.dev9Ru16((int)addr);
                 default:
-                    CLR_DEV9.DEV9_LOG("SMAP: Unknown 16 bit read @ " + addr.ToString("X") + ", v=" + dev9.dev9Ru16((int)addr).ToString("X"));
+                    Log_Verb("SMAP: Unknown 16 bit read @ " + addr.ToString("X") + ", v=" + dev9.dev9Ru16((int)addr).ToString("X"));
                     return dev9.dev9Ru16((int)addr);
             }
 
@@ -423,19 +424,19 @@ namespace CLRDEV9.DEV9.SMAP
         {
             if (addr >= DEV9Header.SMAP_EMAC3_REGBASE && addr < DEV9Header.SMAP_EMAC3_REGEND)
             {
-                CLR_DEV9.DEV9_LOG("SMAP : 32bit read is double 16bit read");
+                Log_Verb("SMAP : 32bit read is double 16bit read");
                 UInt32 hi = smap_read16(addr);
                 UInt32 lo = (UInt32)((int)smap_read16(addr + 2) << 16);
-                CLR_DEV9.DEV9_LOG("SMAP : Double 16bit read combined value " + (hi | lo).ToString("X"));
+                Log_Verb("SMAP : Double 16bit read combined value " + (hi | lo).ToString("X"));
                 return hi | lo;
             }
             switch (addr)
             {
                 case DEV9Header.SMAP_R_TXFIFO_FRAME_CNT:
-                    //Console.Error.WriteLine("SMAP_R_TXFIFO_FRAME_CNT read 32" + DEV9Header.dev9Ru32((int)addr).ToString("X"));
+                    //Error.WriteLine("SMAP_R_TXFIFO_FRAME_CNT read 32" + DEV9Header.dev9Ru32((int)addr).ToString("X"));
                     return dev9.dev9Ru32((int)addr);
                 case DEV9Header.SMAP_R_RXFIFO_FRAME_CNT:
-                    //Console.Error.WriteLine("SMAP_R_RXFIFO_FRAME_CNT read 32\n" + DEV9Header.dev9Ru32((int)addr).ToString("X"));
+                    //Error.WriteLine("SMAP_R_RXFIFO_FRAME_CNT read 32\n" + DEV9Header.dev9Ru32((int)addr).ToString("X"));
                     return dev9.dev9Ru32((int)addr);
                 //This Case is handled in above if statement relating to EMAC regs
                 //case DEV9Header.SMAP_R_EMAC3_STA_CTRL_L:
@@ -456,11 +457,11 @@ namespace CLRDEV9.DEV9.SMAP
                             rv = (rv << 24) | (rv >> 24) | ((rv >> 8) & 0xFF00) | ((rv << 8) & 0xFF0000);
                         }
 
-                        CLR_DEV9.DEV9_LOG("SMAP_R_RXFIFO_DATA 32bit read " + rv.ToString("X"));
+                        Log_Verb("SMAP_R_RXFIFO_DATA 32bit read " + rv.ToString("X"));
                         return (uint)rv;
                     }
                 default:
-                    CLR_DEV9.DEV9_LOG("SMAP : Unknown 32 bit read @ " + addr.ToString("X8") + ",v=" + dev9.dev9Ru32((int)addr).ToString("X"));
+                    Log_Error("SMAP : Unknown 32 bit read @ " + addr.ToString("X8") + ",v=" + dev9.dev9Ru32((int)addr).ToString("X"));
                     return dev9.dev9Ru32((int)addr);
             }
 
@@ -473,7 +474,7 @@ namespace CLRDEV9.DEV9.SMAP
             switch (addr)
             {
                 case DEV9Header.SMAP_R_TXFIFO_FRAME_INC:
-                    CLR_DEV9.DEV9_LOG("SMAP_R_TXFIFO_FRAME_INC 8bit write " + value);
+                    Log_Verb("SMAP_R_TXFIFO_FRAME_INC 8bit write " + value);
                     {
                         //DEV9Header.dev9Ru8(DEV9Header.SMAP_R_TXFIFO_FRAME_CNT)++;
                         dev9.dev9Wu8((int)DEV9Header.SMAP_R_TXFIFO_FRAME_CNT, (byte)(dev9.dev9Ru8((int)DEV9Header.SMAP_R_TXFIFO_FRAME_CNT) + 1));
@@ -481,7 +482,7 @@ namespace CLRDEV9.DEV9.SMAP
                     return;
 
                 case DEV9Header.SMAP_R_RXFIFO_FRAME_DEC:
-                    CLR_DEV9.DEV9_LOG("SMAP_R_RXFIFO_FRAME_DEC 8bit write " + value);
+                    Log_Verb("SMAP_R_RXFIFO_FRAME_DEC 8bit write " + value);
                     lock (counter_sentry)
                     {
                         dev9.dev9Wu8((int)addr, value); //yes this is a write
@@ -492,7 +493,7 @@ namespace CLRDEV9.DEV9.SMAP
                     return;
 
                 case DEV9Header.SMAP_R_TXFIFO_CTRL:
-                    CLR_DEV9.DEV9_LOG("SMAP_R_TXFIFO_CTRL 8bit write " + value.ToString("X"));
+                    Log_Verb("SMAP_R_TXFIFO_CTRL 8bit write " + value.ToString("X"));
                     if ((value & DEV9Header.SMAP_TXFIFO_RESET) != 0)
                     {
                         dev9.txbdi = 0;
@@ -509,7 +510,7 @@ namespace CLRDEV9.DEV9.SMAP
                     return;
 
                 case DEV9Header.SMAP_R_RXFIFO_CTRL:
-                    CLR_DEV9.DEV9_LOG("SMAP_R_RXFIFO_CTRL 8bit write " + value.ToString("X"));
+                    Log_Verb("SMAP_R_RXFIFO_CTRL 8bit write " + value.ToString("X"));
                     if ((value & DEV9Header.SMAP_RXFIFO_RESET) != 0)
                     {
                         lock (reset_sentry)
@@ -534,19 +535,19 @@ namespace CLRDEV9.DEV9.SMAP
                 case DEV9Header.SMAP_R_BD_MODE:
                     if ((value & DEV9Header.SMAP_BD_SWAP) != 0)
                     {
-                        CLR_DEV9.DEV9_LOG("SMAP_R_BD_MODE: byteswapped.");
-                        Console.Error.WriteLine("BD Byteswapping enabled");
+                        Log_Verb("SMAP_R_BD_MODE: byteswapped.");
+                        Log_Info("BD Byteswapping enabled");
                         dev9.bd_swap = 1;
                     }
                     else
                     {
-                        CLR_DEV9.DEV9_LOG("SMAP_R_BD_MODE: NOT byteswapped");
-                        Console.Error.WriteLine("BD Byteswapping disabled");
+                        Log_Verb("SMAP_R_BD_MODE: NOT byteswapped");
+                        Log_Info("BD Byteswapping disabled");
                         dev9.bd_swap = 0;
                     }
                     return;
                 default:
-                    CLR_DEV9.DEV9_LOG("SMAP : Unknown 8 bit write @ " + addr.ToString("X8") + " ,v=" + value.ToString("X"));
+                    Log_Error("SMAP : Unknown 8 bit write @ " + addr.ToString("X8") + " ,v=" + value.ToString("X"));
                     dev9.dev9Wu8((int)addr, value);
                     return;
             }
@@ -576,12 +577,12 @@ namespace CLRDEV9.DEV9.SMAP
             switch (addr)
             {
                 case DEV9Header.SMAP_R_INTR_CLR:
-                    CLR_DEV9.DEV9_LOG("SMAP: SMAP_R_INTR_CLR 16bit write " + value.ToString("X"));
+                    Log_Verb("SMAP: SMAP_R_INTR_CLR 16bit write " + value.ToString("X"));
                     dev9.irqcause &= ~value;
                     return;
 
                 case DEV9Header.SMAP_R_TXFIFO_WR_PTR:
-                    CLR_DEV9.DEV9_LOG("SMAP: SMAP_R_TXFIFO_WR_PTR 16bit write " + value.ToString("X"));
+                    Log_Verb("SMAP: SMAP_R_TXFIFO_WR_PTR 16bit write " + value.ToString("X"));
                     dev9.dev9Wu16((int)addr, value);
                     return;
 
@@ -592,11 +593,11 @@ namespace CLRDEV9.DEV9.SMAP
                 //        dev9Ru16(addr) = value; \
                 //        return;
                 case DEV9Header.SMAP_R_EMAC3_MODE0_L:
-                    CLR_DEV9.DEV9_LOG("SMAP: SMAP_R_EMAC3_SMAP_R_EMAC3_MODE0_L 16bit write " + value.ToString("X"));
+                    Log_Verb("SMAP: SMAP_R_EMAC3_SMAP_R_EMAC3_MODE0_L 16bit write " + value.ToString("X"));
                     dev9.dev9Wu16((int)addr, value);
                     return;
                 case DEV9Header.SMAP_R_EMAC3_MODE1_L:
-                    CLR_DEV9.DEV9_LOG("SMAP: SMAP_R_EMAC3_SMAP_R_EMAC3_MODE1_L 16bit write " + value.ToString("X"));
+                    Log_Verb("SMAP: SMAP_R_EMAC3_SMAP_R_EMAC3_MODE1_L 16bit write " + value.ToString("X"));
                     dev9.dev9Wu16((int)addr, value);
                     return;
                 case DEV9Header.SMAP_R_EMAC3_TxMODE0_L:
@@ -625,7 +626,7 @@ namespace CLRDEV9.DEV9.SMAP
                 case DEV9Header.SMAP_R_EMAC3_RX_WATERMARK_L:
                 case DEV9Header.SMAP_R_EMAC3_TX_OCTETS:
                 case DEV9Header.SMAP_R_EMAC3_RX_OCTETS:
-                    CLR_DEV9.DEV9_LOG("SMAP: SMAP_R_EMAC3_***(L_Write) 16bit write " + value.ToString("X"));
+                    Log_Verb("SMAP: SMAP_R_EMAC3_***(L_Write) 16bit write " + value.ToString("X"));
                     //Look at all that logging I'm not doing
                     dev9.dev9Wu16((int)addr, value);
                     return;
@@ -666,13 +667,13 @@ namespace CLRDEV9.DEV9.SMAP
                 case DEV9Header.SMAP_R_EMAC3_TX_OCTETS + 2:
                 case DEV9Header.SMAP_R_EMAC3_RX_OCTETS + 2:
                     // DEV9_LOG("SMAP: " #name " 16 bit write %x\n", value); \
-                    CLR_DEV9.DEV9_LOG("SMAP: SMAP_R_EMAC3_***(H_Write) 16bit write " + value.ToString("X"));
+                    Log_Verb("SMAP: SMAP_R_EMAC3_***(H_Write) 16bit write " + value.ToString("X"));
                     dev9.dev9Wu16((int)addr, value);
                     emac3_write(addr - 2);
                     return;
 
                 default:
-                    CLR_DEV9.DEV9_LOG("SMAP : Unknown 16 bit write @" + addr.ToString("X8") + ",v=" + value.ToString("X"));
+                    Log_Error("SMAP : Unknown 16 bit write @" + addr.ToString("X8") + ",v=" + value.ToString("X"));
                     dev9.dev9Wu16((int)addr, value);
                     return;
             }
@@ -694,7 +695,7 @@ namespace CLRDEV9.DEV9.SMAP
                     if (dev9.bd_swap != 0)
                         value = (value << 24) | (value >> 24) | ((value >> 8) & 0xFF00) | ((value << 8) & 0xFF0000);
 
-                    CLR_DEV9.DEV9_LOG("SMAP_R_TXFIFO_DATA 32bit write " + value.ToString("X"));
+                    Log_Verb("SMAP_R_TXFIFO_DATA 32bit write " + value.ToString("X"));
                     //*((u32*)(DEV9Header.dev9.txfifo + dev9Ru32(DEV9Header.SMAP_R_TXFIFO_WR_PTR))) = value; //I'm sorry but what??
                     // I think this is how its supposed to work
                     byte[] valuebytes = BitConverter.GetBytes(value);
@@ -703,7 +704,7 @@ namespace CLRDEV9.DEV9.SMAP
                     dev9.dev9Wu32((int)DEV9Header.SMAP_R_TXFIFO_WR_PTR, (dev9.dev9Ru32((int)DEV9Header.SMAP_R_TXFIFO_WR_PTR) + 4) & 16383);
                     return;
                 default:
-                    CLR_DEV9.DEV9_LOG("SMAP : Unknown 32 bit write @ " + addr.ToString("X8") + ",v=" + value.ToString("X"));
+                    Log_Error("SMAP : Unknown 32 bit write @ " + addr.ToString("X8") + ",v=" + value.ToString("X"));
                     dev9.dev9Wu32((int)addr, value);
                     return;
             }
@@ -720,7 +721,7 @@ namespace CLRDEV9.DEV9.SMAP
                 int valueSize = 4;
                 dev9.dev9Wu32((int)DEV9Header.SMAP_R_RXFIFO_RD_PTR, dev9.dev9Ru32((int)DEV9Header.SMAP_R_RXFIFO_RD_PTR) & 16383);
                 size >>= 1;
-                CLR_DEV9.DEV9_LOG(" * * SMAP DMA READ START: rd_ptr=" + dev9.dev9Ru32((int)DEV9Header.SMAP_R_RXFIFO_RD_PTR).ToString() + ", wr_ptr=" + dev9.rxfifo_wr_ptr.ToString());
+                Log_Verb(" * * SMAP DMA READ START: rd_ptr=" + dev9.dev9Ru32((int)DEV9Header.SMAP_R_RXFIFO_RD_PTR).ToString() + ", wr_ptr=" + dev9.rxfifo_wr_ptr.ToString());
                 while (size > 0)
                 {
                     //*pMem = *((u32*)(DEV9Header.dev9.rxfifo + DEV9Header.dev9Ru32((int)DEV9Header.SMAP_R_RXFIFO_RD_PTR)));
@@ -734,7 +735,7 @@ namespace CLRDEV9.DEV9.SMAP
 
                     size -= valueSize;
                 }
-                CLR_DEV9.DEV9_LOG(" * * SMAP DMA READ END:   rd_ptr=" + dev9.dev9Ru32((int)DEV9Header.SMAP_R_RXFIFO_RD_PTR).ToString() + ", wr_ptr=" + dev9.rxfifo_wr_ptr.ToString());
+                Log_Verb(" * * SMAP DMA READ END:   rd_ptr=" + dev9.dev9Ru32((int)DEV9Header.SMAP_R_RXFIFO_RD_PTR).ToString() + ", wr_ptr=" + dev9.rxfifo_wr_ptr.ToString());
 
                 dev9.dev9Wu16((int)DEV9Header.SMAP_R_RXFIFO_CTRL, (UInt16)(dev9.dev9Ru16((int)DEV9Header.SMAP_R_RXFIFO_CTRL) & ~DEV9Header.SMAP_RXFIFO_DMAEN));
             }
@@ -747,7 +748,7 @@ namespace CLRDEV9.DEV9.SMAP
                 int valueSize = 4;
                 dev9.dev9Wu32((int)DEV9Header.SMAP_R_TXFIFO_WR_PTR, dev9.dev9Ru32((int)DEV9Header.SMAP_R_TXFIFO_WR_PTR) & 16383);
                 size >>= 1;
-                CLR_DEV9.DEV9_LOG(" * * SMAP DMA WRITE START: wr_ptr=" + dev9.dev9Ru32((int)DEV9Header.SMAP_R_TXFIFO_WR_PTR).ToString() + ", rd_ptr=" + dev9.txfifo_rd_ptr.ToString());
+                Log_Verb(" * * SMAP DMA WRITE START: wr_ptr=" + dev9.dev9Ru32((int)DEV9Header.SMAP_R_TXFIFO_WR_PTR).ToString() + ", rd_ptr=" + dev9.txfifo_rd_ptr.ToString());
                 while (size > 0)
                 {
                     pMem.Seek(pMemAddr, System.IO.SeekOrigin.Begin);
@@ -764,7 +765,7 @@ namespace CLRDEV9.DEV9.SMAP
                     dev9.dev9Wu32((int)DEV9Header.SMAP_R_TXFIFO_WR_PTR, (dev9.dev9Ru32((int)DEV9Header.SMAP_R_TXFIFO_WR_PTR) + 4) & 16383);
                     size -= valueSize;
                 }
-                CLR_DEV9.DEV9_LOG(" * * SMAP DMA WRITE END:   wr_ptr=" + dev9.dev9Ru32((int)DEV9Header.SMAP_R_TXFIFO_WR_PTR).ToString() + ", rd_ptr=" + dev9.txfifo_rd_ptr.ToString());
+                Log_Verb(" * * SMAP DMA WRITE END:   wr_ptr=" + dev9.dev9Ru32((int)DEV9Header.SMAP_R_TXFIFO_WR_PTR).ToString() + ", rd_ptr=" + dev9.txfifo_rd_ptr.ToString());
 
                 dev9.dev9Wu16((int)DEV9Header.SMAP_R_TXFIFO_CTRL, (UInt16)(dev9.dev9Ru16((int)DEV9Header.SMAP_R_TXFIFO_CTRL) & ~DEV9Header.SMAP_TXFIFO_DMAEN));
 
@@ -778,6 +779,19 @@ namespace CLRDEV9.DEV9.SMAP
                 //Is this used to signal each individual packet, or just when there are packets in the RX fifo?
                 dev9.DEV9irq(DEV9Header.SMAP_INTR_RXEND, 0); //Make the call to _DEV9irq in a thread safe way
             }
+        }
+
+        private void Log_Error(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.SMAP, "SMAP", str);
+        }
+        private void Log_Info(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.SMAP, "SMAP", str);
+        }
+        private void Log_Verb(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.SMAP, "SMAP", str);
         }
     }
 }

@@ -29,12 +29,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             {
                 if (avaData > (MaxSegmentSize - 16))
                 {
-                    Console.Error.WriteLine("Got a lot of data");
+                    Log_Info("Got a lot of data");
                     avaData = MaxSegmentSize - 16;
                 }
 
                 byte[] recived = new byte[avaData];
-                //Console.Error.WriteLine("Received " + avaData);
+                Log_Verb("Received " + avaData);
                 netStream.Read(recived, 0, avaData);
 
                 TCP iRet = CreateBasePacket(recived);
@@ -51,7 +51,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             {
                 if (client.Client.Poll(1, SelectMode.SelectRead) && client.Client.Available == 0 && state == TCPState.Connected)
                 {
-                    Console.Error.WriteLine("Detected Closed By Remote Connection");
+                    Log_Info("Detected Closed By Remote Connection");
                     PerformCloseByRemote();
                     client.Close();
                 }
@@ -64,7 +64,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         {
             client.Close();
             netStream = null;
-            Console.Error.WriteLine("Remote has closed connection");
+            Log_Info("Remote has closed connection");
 
             TCP ret = CreateBasePacket();
             IncrementMyNumber(1);

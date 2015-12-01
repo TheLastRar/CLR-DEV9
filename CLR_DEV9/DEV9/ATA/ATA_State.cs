@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Diagnostics;
 
 namespace CLRDEV9.DEV9.ATA
 {
@@ -118,8 +119,7 @@ namespace CLRDEV9.DEV9.ATA
             }
 
 
-            CLR_DEV9.DEV9_LOG("*Unknown 16bit read at address " + addr.ToString("x") + " value " + dev9.dev9Ru16((int)addr).ToString("x"));
-            Console.Error.WriteLine("*Unknown 16bit read at address " + addr.ToString("x") + " value " + dev9.dev9Ru16((int)addr).ToString("x"));
+            Log_Error("*Unknown 16bit read at address " + addr.ToString("x") + " value " + dev9.dev9Ru16((int)addr).ToString("x"));
             return dev9.dev9Ru16((int)addr); ;
         }
 
@@ -172,6 +172,19 @@ namespace CLRDEV9.DEV9.ATA
                 size >>= 1;
                 //TODO
             }
+        }
+
+        private void Log_Error(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.ATA, "ATA", str);
+        }
+        private void Log_Info(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.ATA, "ATA", str);
+        }
+        private void Log_Verb(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.ATA, "ATA", str);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace CLRDEV9
@@ -6,77 +7,122 @@ namespace CLRDEV9
     class CLR_DEV9
     {
         public static string LogFolderPath = "logs";
-        private static PSE.CLR_PSE_PluginLog DEVLOG_shared;
         private static DEV9.DEV9_State dev9 = null;
-        const bool DoLog = false;
+        const bool DoLog = true;
         private static void LogInit()
         {
-#pragma warning disable 0162
             if (DoLog)
             {
                 if (LogFolderPath.EndsWith(System.IO.Path.DirectorySeparatorChar.ToString()))
                 {
-                    //PluginLog.Open(LogFolderPath + "dev9clr.log");
+                    PSE.CLR_PSE_PluginLog.Open(LogFolderPath.TrimEnd('/'), "CLR_DEV9.log");
                 }
                 else
                 {
-                    //PluginLog.Open(LogFolderPath + System.IO.Path.DirectorySeparatorChar + "dev9clr.log");
+                    PSE.CLR_PSE_PluginLog.Open(LogFolderPath, "CLR_DEV9.log");
                 }
+                //TODO Set Log Options
+                PSE.CLR_PSE_PluginLog.SetLogLevel(SourceLevels.All, (int)DEV9LogSources.ATA);
+                PSE.CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Error, (int)DEV9LogSources.Dev9);
+                PSE.CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Error, (int)DEV9LogSources.PluginInterface);
+                PSE.CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Error, (int)DEV9LogSources.SMAP);
+                PSE.CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Error, (int)DEV9LogSources.Tap);
+                PSE.CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Verbose, (int)DEV9LogSources.TCP);
+                PSE.CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Information, (int)DEV9LogSources.Winsock);
                 //PluginLog.SetWriteToFile(true);
-                DEVLOG_shared = null; //PluginLog;
-            }
-#pragma warning restore 0162
-        }
-        public static void DEV9_LOG(string basestr)
-        {
-            if (DoLog)
-            {
-                Console.Error.WriteLine(basestr);
-                //DEVLOG_shared.LogWriteLine(basestr);
             }
         }
 
         public static Int32 Init()
         {
-            LogInit();
-            DEV9_LOG("DEV9init");
-            dev9 = new DEV9.DEV9_State();
-            DEV9_LOG("DEV9init ok");
-
-            return 0;
+#if DEBUG
+            try
+            {
+#endif
+                LogInit();
+                Log_Info("Init");
+                dev9 = new DEV9.DEV9_State();
+                Log_Info("Init ok");
+                return 0;
+#if DEBUG
+            }
+            catch (Exception e)
+            {
+                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                return -1;
+            }
+#endif
         }
         public static Int32 Open(IntPtr winHandle)
         {
-            DEV9_LOG("DEV9open");
-            Config.LoadConf();
-            DEV9_LOG("open r+: " + DEV9Header.config.Hdd);
+#if DEBUG
+            try
+            {
+#endif
+                Log_Info("Open");
+                Config.LoadConf();
+                //Log_Info("open r+: " + DEV9Header.config.Hdd);
 
-            DEV9Header.config.HddSize = 8 * 1024;
+                DEV9Header.config.HddSize = 8 * 1024;
 
-            return dev9.Open();
+                return dev9.Open();
+#if DEBUG
+            }
+            catch (Exception e)
+            {
+                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                return -1;
+            }
+#endif
         }
         public static void Close()
         {
-            dev9.Close();
+#if DEBUG
+            try
+            {
+#endif
+                dev9.Close();
+#if DEBUG
+            }
+            catch (Exception e)
+            {
+                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                throw e;
+            }
+#endif
         }
         public static void Shutdown()
         {
-            DEV9_LOG("DEV9shutdown\n");
-            //PluginLog.Close(); //fclose(dev9Log);
-            DEVLOG_shared = null;
-            if (irqHandle.IsAllocated)
+#if DEBUG
+            try
             {
-                irqHandle.Free(); //allow garbage collection
+#endif
+                Log_Info("Shutdown");
+                PSE.CLR_PSE_PluginLog.Close();
+                //PluginLog.Close(); //fclose(dev9Log);
+
+                if (irqHandle.IsAllocated)
+                {
+                    irqHandle.Free(); //allow garbage collection
+                }
+                //Do dispose()?
+#if DEBUG
             }
-            //Do dispose()?
+            catch (Exception e)
+            {
+                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                throw e;
+            }
+#endif
         }
         public static void SetSettingsDir(string dir)
         {
             //throw new NotImplementedException();
         }
-        public static void DEV9setLogDir(string dir)
+        public static void SetLogDir(string dir)
         {
-            //throw new NotImplementedException();
+            LogFolderPath = dir;
+            LogInit();
         }
 
         public static byte DEV9read8(uint addr)
@@ -183,9 +229,7 @@ namespace CLRDEV9
             try
             {
 #endif
-                DEV9_LOG("*DEV9readDMA8Mem: size " + size.ToString("X"));
                 System.IO.UnmanagedMemoryStream pMem = new System.IO.UnmanagedMemoryStream(memPointer, size, size, System.IO.FileAccess.Write);
-                Console.Error.WriteLine("rDMA");
                 dev9.DEV9readDMA8Mem(pMem, size);
 #if DEBUG
             }
@@ -202,9 +246,7 @@ namespace CLRDEV9
             try
             {
 #endif
-                DEV9_LOG("*DEV9writeDMA8Mem: size " + size.ToString("X"));
                 System.IO.UnmanagedMemoryStream pMem = new System.IO.UnmanagedMemoryStream(memPointer, size, size, System.IO.FileAccess.Read);
-                Console.Error.WriteLine("wDMA");
                 dev9.DEV9writeDMA8Mem(pMem, size);
 #if DEBUG
             }
@@ -249,7 +291,7 @@ namespace CLRDEV9
             {
                 irqHandle.Free(); //allow garbage collection
             }
-            DEV9_LOG("Get IRQ");
+            Log_Info("Get IRQ");
             PSE.CLR_PSE_Callbacks.CLR_IRQHandler fp = new PSE.CLR_PSE_Callbacks.CLR_IRQHandler(_DEV9irqHandler);
             irqHandle = GCHandle.Alloc(fp); //prevent GC
             return fp;
@@ -262,6 +304,19 @@ namespace CLRDEV9
         public static int Test()
         {
             return 0;
+        }
+
+        private static void Log_Error(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.PluginInterface, "Plugin", str);
+        }
+        private static void Log_Info(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "Plugin", str);
+        }
+        private static void Log_Verb(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.PluginInterface, "Plugin", str);
         }
     }
 }

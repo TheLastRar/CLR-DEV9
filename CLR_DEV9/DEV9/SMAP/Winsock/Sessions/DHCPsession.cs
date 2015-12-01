@@ -2,6 +2,7 @@
 using CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -67,7 +68,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                             //IPAddressInfo.AddressPreferredLifetime != UInt32.MaxValue &
                             IPAddressInfo.Address.AddressFamily == AddressFamily.InterNetwork)
                         {
-                            Console.Error.WriteLine("Matched Adapter");
+                            Log_Info("Matched Adapter");
                             IPaddress = IPAddressInfo.Address; ;
                             FoundAdapter = true;
                             break;
@@ -100,13 +101,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 }
                 if (FoundAdapter == true)
                 {
-                    Console.Error.WriteLine(adapter.Name);
-                    Console.Error.WriteLine(adapter.Description);
-                    Console.Error.WriteLine("IP Address :" + IPaddress.ToString());
-                    Console.Error.WriteLine("Domain Name :" + Dns.GetHostName());
-                    //Console.Error.WriteLine("Subnet Mask :" + NetMask.ToString());
-                    //Console.Error.WriteLine("Gateway IP :" + GatewayIP.ToString());
-                    Console.Error.WriteLine("DNS 1 : " + DNS_IP[0].ToString());
+                    Log_Info(adapter.Name);
+                    Log_Info(adapter.Description);
+                    Log_Verb("IP Address :" + IPaddress.ToString());
+                    Log_Verb("Domain Name :" + Dns.GetHostName());
+                    //Error.WriteLine("Subnet Mask :" + NetMask.ToString());
+                    //Error.WriteLine("Gateway IP :" + GatewayIP.ToString());
+                    Log_Verb("DNS 1 : " + DNS_IP[0].ToString());
                     break;
                 }
             }
@@ -129,47 +130,47 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 switch (dhcp.Options[i].Code)
                 {
                     case 0:
-                        //Console.Error.WriteLine("Got NOP");
+                        //Error.WriteLine("Got NOP");
                         continue;
                     case 50:
-                        Console.Error.WriteLine("Got Request IP");
+                        Log_Info("Got Request IP");
                         if (Utils.memcmp(PS2_IP, 0, ((DHCPopREQIP)dhcp.Options[i]).IPaddress, 0, 4) == false)
                             throw new Exception("ReqIP missmatch");
                         break;
                     case 53:
                         msg = ((DHCPopMSG)(dhcp.Options[i])).Message;
-                        Console.Error.WriteLine("Got MSG ID = " + msg);
+                        Log_Info("Got MSG ID = " + msg);
                         break;
                     case 54:
-                        Console.Error.WriteLine("Got Server IP");
+                        Log_Info("Got Server IP");
                         if (Utils.memcmp(DHCP_IP, 0, ((DHCPopSERVIP)dhcp.Options[i]).IPaddress, 0, 4) == false)
                             throw new Exception("ServIP missmatch");
                         break;
                     case 55:
                         reqList = ((DHCPopREQLIST)(dhcp.Options[i])).RequestList;
-                        Console.Error.WriteLine("Got Request List of length " + reqList.Length);
+                        Log_Verb("Got Request List of length " + reqList.Length);
                         for (int rID = 0; rID < reqList.Length; rID++)
                         {
-                            Console.Error.WriteLine("Requested : " + reqList[rID]);
+                            Log_Verb("Requested : " + reqList[rID]);
                         }
                         break;
                     case 56:
-                        Console.Error.WriteLine("Got String Message");
+                        Log_Verb("Got String Message (Not Suppported)");
                         break;
                     case 57:
                         maMs = ((DHCPopMMSGS)(dhcp.Options[i])).MaxMessageSize;
-                        Console.Error.WriteLine("Got Max Message Size of " + maMs);
+                        Log_Verb("Got Max Message Size of " + maMs);
                         break;
                     case 61:
-                        Console.Error.WriteLine("Got Client ID");
+                        Log_Verb("Got Client ID");
                         clientID = dhcp.Options[i];
                         //Ignore
                         break;
                     case 255:
-                        Console.Error.WriteLine("Got END");
+                        Log_Verb("Got END");
                         break;
                     default:
-                        Console.Error.WriteLine("Got Unknown Option " + dhcp.Options[i].Code);
+                        Log_Error("Got Unknown Option " + dhcp.Options[i].Code);
                         throw new Exception();
                     //break;
                 }
@@ -204,27 +205,27 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                         switch (reqList[i])
                         {
                             case 1:
-                                Console.Error.WriteLine("Sending Subnet");
+                                Log_Verb("Sending Subnet");
                                 //retPay.Options.Add(new DHCPopSubnet(NetMask.GetAddressBytes()));
                                 retPay.Options.Add(new DHCPopSubnet(NETMASK));
                                 break;
                             case 3:
-                                Console.Error.WriteLine("Sending Router");
+                                Log_Verb("Sending Router");
                                 retPay.Options.Add(new DHCPopRouter(GATEWAY_IP));
                                 break;
                             case 6:
-                                Console.Error.WriteLine("Sending DNS"); //TODO support more than 1
+                                Log_Verb("Sending DNS"); //TODO support more than 1
                                 //
                                 retPay.Options.Add(new DHCPopDNS(DNS_IP[0]));
                                 //retPay.Options.Add(new DHCPopDNS(IPAddress.Parse("1.1.1.1")));
                                 break;
                             case 15:
-                                Console.Error.WriteLine("Sending Domain Name");
+                                Log_Verb("Sending Domain Name");
                                 //retPay.Options.Add(new DHCPopDNSNAME(Dns.GetHostName()));
                                 retPay.Options.Add(new DHCPopDNSNAME("PCSX2-CLRDEV9"));
                                 break;
                             case 28:
-                                Console.Error.WriteLine("Sending Broadcast Addr");
+                                Log_Verb("Sending Broadcast Addr");
                                 for (int i2 = 0; i2 < 4; i2++)
                                 {
                                     BROADCAST[i2] = (byte)((PS2_IP[i2]) | (~NETMASK[i2]));
@@ -232,7 +233,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                                 retPay.Options.Add(new DHCPopBCIP(BROADCAST));
                                 break;
                             default:
-                                Console.Error.WriteLine("Got Unknown Option " + reqList[i]);
+                                Log_Error("Got Unknown Option " + reqList[i]);
                                 throw new Exception();
 
                         }
@@ -243,7 +244,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
             if (msg == 7)
             {
-                Console.Error.WriteLine("PS2 has Disconnected");
+                Log_Info("PS2 has Disconnected");
                 return true;
             }
 
@@ -260,5 +261,18 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         public override bool isOpen() { return true; }
         public override void Dispose() { }
+
+        private void Log_Error(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.Winsock, "DCHPSession", str);
+        }
+        private void Log_Info(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.Winsock, "DCHPSession", str);
+        }
+        private void Log_Verb(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.Winsock, "DCHPSession", str);
+        }
     }
 }

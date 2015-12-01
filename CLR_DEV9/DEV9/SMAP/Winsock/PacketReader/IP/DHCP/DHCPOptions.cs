@@ -1,7 +1,8 @@
-﻿using System;
+﻿using CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP;
+using System;
+using System.Diagnostics;
 using System.Net;
 using System.Text;
-using CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP;
 
 namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
 {
@@ -299,30 +300,31 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
             return ret;
         }
     }
-    class DHCPopMSGStrOld : TCPOption
-    {
-        byte len;
-        byte[] MsgBytes;
-        public DHCPopMSGStrOld(byte[] data, int offset) //Offset will include Kind and Len
-        {
-            len = data[offset + 1];
-            MsgBytes = new byte[len];
-            Utils.memcpy(ref MsgBytes, 0, data, offset + 2, len);
-            Encoding enc = Encoding.ASCII;
-            Console.Error.WriteLine(enc.GetString(MsgBytes));
-        }
-        public override byte Length { get { return (byte)(2 + len); } }
-        public override byte Code { get { return 56; } }
+    //class DHCPopMSGStrOld : TCPOption
+    //{
+    //    byte len;
+    //    byte[] MsgBytes;
+    //    public DHCPopMSGStrOld(byte[] data, int offset) //Offset will include Kind and Len
+    //    {
+    //        len = data[offset + 1];
+    //        MsgBytes = new byte[len];
+    //        Utils.memcpy(ref MsgBytes, 0, data, offset + 2, len);
+    //        Encoding enc = Encoding.ASCII;
+    //        //Error.WriteLine(enc.GetString(MsgBytes));
+            
+    //    }
+    //    public override byte Length { get { return (byte)(2 + len); } }
+    //    public override byte Code { get { return 56; } }
 
-        public override byte[] GetBytes()
-        {
-            byte[] ret = new byte[Length];
-            ret[0] = Code;
-            ret[1] = (byte)(Length - 2);
-            Utils.memcpy(ref ret, 2, MsgBytes, 0, len);
-            return ret;
-        }
-    }
+    //    public override byte[] GetBytes()
+    //    {
+    //        byte[] ret = new byte[Length];
+    //        ret[0] = Code;
+    //        ret[1] = (byte)(Length - 2);
+    //        Utils.memcpy(ref ret, 2, MsgBytes, 0, len);
+    //        return ret;
+    //    }
+    //}
     class DHCPopMSGStr : TCPOption
     {
         byte len;
@@ -334,8 +336,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
             NetLib.ReadByteArray(data, ref offset, len, out MsgBytes);
 
             Encoding enc = Encoding.ASCII;
-            Console.Error.WriteLine(enc.GetString(MsgBytes));
-            //Console.Error.WriteLine(BitConverter.ToString(MsgBytes, 0, MsgBytes.Length));
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.Winsock, "DCHP", enc.GetString(MsgBytes));
         }
         public override byte Length { get { return (byte)(2 + len); } }
         public override byte Code { get { return 56; } }

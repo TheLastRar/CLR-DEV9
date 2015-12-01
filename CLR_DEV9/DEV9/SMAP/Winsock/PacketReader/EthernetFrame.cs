@@ -1,5 +1,6 @@
 ﻿using CLRDEV9.DEV9.SMAP.Data;
 using System;
+using System.Diagnostics;
 
 namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader
 {
@@ -76,9 +77,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader
             _pkt = pkt;
             int offset = 0;
             NetLib.ReadByteArray(pkt.buffer, ref offset, 6, out DestinationMAC);
-            //Console.WriteLine("eth dst MAC :" + DestinationMAC[0] + ":" + DestinationMAC[1] + ":" + DestinationMAC[2] + ":" + DestinationMAC[3] + ":" + DestinationMAC[4] + ":" + DestinationMAC[5]);
+            //WriteLine("eth dst MAC :" + DestinationMAC[0] + ":" + DestinationMAC[1] + ":" + DestinationMAC[2] + ":" + DestinationMAC[3] + ":" + DestinationMAC[4] + ":" + DestinationMAC[5]);
             NetLib.ReadByteArray(pkt.buffer, ref offset, 6, out SourceMAC);
-            //Console.WriteLine("src MAC :" + SourceMAC[0] + ":" + SourceMAC[1] + ":" + SourceMAC[2] + ":" + SourceMAC[3] + ":" + SourceMAC[4] + ":" + SourceMAC[5]);
+            //WriteLine("src MAC :" + SourceMAC[0] + ":" + SourceMAC[1] + ":" + SourceMAC[2] + ":" + SourceMAC[3] + ":" + SourceMAC[4] + ":" + SourceMAC[5]);
 
             hlen = 14; //(6+6+2)
 
@@ -96,11 +97,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader
                     _pl = new ARP.ARPPacket(this);
                     break;
                 case (UInt16)EtherFrameType.VLAN_TAGGED_FRAME:
-                    //Console.Error.WriteLine("VLAN-tagged frame (IEEE 802.1Q)");
+                    //Error.WriteLine("VLAN-tagged frame (IEEE 802.1Q)");
                     throw new NotImplementedException();
                 //break;
                 default:
-                    Console.Error.WriteLine("Unkown Ethernet Protocol " + proto.ToString("X4"));
+                    PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.Winsock, "ETH", "Unkown Ethernet Protocol " + proto.ToString("X4"));
                     break;
             }
         }

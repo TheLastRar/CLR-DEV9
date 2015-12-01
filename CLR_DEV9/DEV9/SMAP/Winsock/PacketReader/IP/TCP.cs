@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
 {
@@ -155,29 +156,29 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             int initialOffset = offset;
             //Bits 0-31
             NetLib.ReadUInt16(buffer, ref offset, out SourcePort);
-            //Console.Error.WriteLine("src port=" + SourcePort); 
+            //Error.WriteLine("src port=" + SourcePort); 
             NetLib.ReadUInt16(buffer, ref offset, out DestinationPort);
-            //Console.Error.WriteLine("dts port=" + DestinationPort);
+            //Error.WriteLine("dts port=" + DestinationPort);
 
             //Bits 32-63
             NetLib.ReadUInt32(buffer, ref offset, out SequenceNumber);
-            //Console.Error.WriteLine("seq num=" + SequenceNumber); //Where in the stream the start of the payload is
+            //Error.WriteLine("seq num=" + SequenceNumber); //Where in the stream the start of the payload is
 
             //Bits 64-95
             NetLib.ReadUInt32(buffer, ref offset, out AcknowledgementNumber);
-            //Console.Error.WriteLine("ack num=" + AcknowledgmentNumber); //the next expected byte(seq) number
+            //Error.WriteLine("ack num=" + AcknowledgmentNumber); //the next expected byte(seq) number
 
             //Bits 96-127
             NetLib.ReadByte08(buffer, ref offset, out data_offset_and_NS_flag);
-            //Console.Error.WriteLine("TCP hlen=" + HeaderLength);
+            //Error.WriteLine("TCP hlen=" + HeaderLength);
             NetLib.ReadByte08(buffer, ref offset, out flags);
             NetLib.ReadUInt16(buffer, ref offset, out WindowSize);
-            //Console.Error.WriteLine("win Size=" + WindowSize);
+            //Error.WriteLine("win Size=" + WindowSize);
 
             //Bits 127-159
             NetLib.ReadUInt16(buffer, ref offset, out Checksum);
             NetLib.ReadUInt16(buffer, ref offset, out UrgentPointer);
-            //Console.Error.WriteLine("urg ptr=" + UrgentPointer);
+            //Error.WriteLine("urg ptr=" + UrgentPointer);
 
             //Bits 160+
             if (HeaderLength > 20) //TCP options
@@ -190,33 +191,33 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
                     switch (opKind)
                     {
                         case 0:
-                            //Console.Error.WriteLine("Got End of Options List @ " + (op_offset-offset-1));
+                            //Error.WriteLine("Got End of Options List @ " + (op_offset-offset-1));
                             opReadFin = true;
                             break;
                         case 1:
-                            //Console.Error.WriteLine("Got NOP");
+                            //Error.WriteLine("Got NOP");
                             Options.Add(new TCPopNOP());
                             offset += 1;
                             continue;
                         case 2:
-                            //Console.Error.WriteLine("Got MMS");
+                            //Error.WriteLine("Got MMS");
                             Options.Add(new TCPopMSS(buffer, offset));
                             break;
                         case 3:
                             Options.Add(new TCPopWS(buffer, offset));
                             break;
                         case 8:
-                            //Console.Error.WriteLine("Got Timestamp");
+                            //Error.WriteLine("Got Timestamp");
                             Options.Add(new TCPopTS(buffer, offset));
                             break;
                         default:
-                            Console.Error.WriteLine("Got TCP Unknown Option " + opKind + "with len" + opLen);
+                            Log_Error("Got TCP Unknown Option " + opKind + "with len" + opLen);
                             break;
                     }
                     offset += opLen;
                     if (offset == initialOffset + HeaderLength)
                     {
-                        //Console.Error.WriteLine("Reached end of Options");
+                        //Error.WriteLine("Reached end of Options");
                         opReadFin = true;
                     }
                 } while (opReadFin == false);
@@ -233,7 +234,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             int pHeaderLen = (12 + TCPLength);
             if ((pHeaderLen & 1) != 0)
             {
-                //Console.Error.WriteLine("OddSizedPacket");
+                //Error.WriteLine("OddSizedPacket");
                 pHeaderLen += 1;
             }
 
@@ -260,7 +261,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             int pHeaderLen = (12 + TCPLength);
             if ((pHeaderLen & 1) != 0)
             {
-                //Console.Error.WriteLine("OddSizedPacket");
+                //Error.WriteLine("OddSizedPacket");
                 pHeaderLen += 1;
             }
 
@@ -277,7 +278,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             NetLib.WriteByteArray(ref headerSegment, ref counter, GetBytes());
 
             UInt16 CsumCal = IPPacket.InternetChecksum(headerSegment);
-            //Console.Error.WriteLine("Checksum Good = " + (CsumCal == 0));
+            //Error.WriteLine("Checksum Good = " + (CsumCal == 0));
             return (CsumCal == 0);
         }
 
@@ -304,6 +305,19 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             counter = HeaderLength;
             NetLib.WriteByteArray(ref ret, ref counter, data);
             return ret;
+        }
+
+        private void Log_Error(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.TCP, "TCPPacket", str);
+        }
+        private void Log_Info(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.TCP, "TCPPacket", str);
+        }
+        private void Log_Verb(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.TCP, "TCPPacket", str);
         }
     }
 }

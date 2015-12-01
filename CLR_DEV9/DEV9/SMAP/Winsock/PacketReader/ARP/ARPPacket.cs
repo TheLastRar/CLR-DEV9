@@ -61,19 +61,19 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.ARP
             NetLib.ReadByte08(Ef.RawPacket.buffer, ref pktoffset, out HardwareAddressLength);
             NetLib.ReadByte08(Ef.RawPacket.buffer, ref pktoffset, out ProtocolAddressLength);
             NetLib.ReadUInt16(Ef.RawPacket.buffer, ref pktoffset, out OP);
-            //Console.Error.WriteLine("OP" + OP);
+            //Error.WriteLine("OP" + OP);
 
             NetLib.ReadByteArray(Ef.RawPacket.buffer, ref pktoffset, HardwareAddressLength, out SenderHardwareAddress);
-            //Console.WriteLine("sender MAC :" + SenderHardwareAddress[0] + ":" + SenderHardwareAddress[1] + ":" + SenderHardwareAddress[2] + ":" + SenderHardwareAddress[3] + ":" + SenderHardwareAddress[4] + ":" + SenderHardwareAddress[5]);
+            //WriteLine("sender MAC :" + SenderHardwareAddress[0] + ":" + SenderHardwareAddress[1] + ":" + SenderHardwareAddress[2] + ":" + SenderHardwareAddress[3] + ":" + SenderHardwareAddress[4] + ":" + SenderHardwareAddress[5]);
 
             NetLib.ReadByteArray(Ef.RawPacket.buffer, ref pktoffset, HardwareAddressLength, out SenderProtocolAddress);
-            //Console.WriteLine("sender IP :" + SenderProtocolAddress[0] + "." + SenderProtocolAddress[1] + "." + SenderProtocolAddress[2] + "." + SenderProtocolAddress[3]);      
+            //WriteLine("sender IP :" + SenderProtocolAddress[0] + "." + SenderProtocolAddress[1] + "." + SenderProtocolAddress[2] + "." + SenderProtocolAddress[3]);      
 
             NetLib.ReadByteArray(Ef.RawPacket.buffer, ref pktoffset, HardwareAddressLength, out TargetHardwareAddress);
-            //Console.WriteLine("target MAC :" + TargetHardwareAddress[0] + ":" + TargetHardwareAddress[1] + ":" + TargetHardwareAddress[2] + ":" + TargetHardwareAddress[3] + ":" + TargetHardwareAddress[4] + ":" + TargetHardwareAddress[5]);
+            //WriteLine("target MAC :" + TargetHardwareAddress[0] + ":" + TargetHardwareAddress[1] + ":" + TargetHardwareAddress[2] + ":" + TargetHardwareAddress[3] + ":" + TargetHardwareAddress[4] + ":" + TargetHardwareAddress[5]);
 
             NetLib.ReadByteArray(Ef.RawPacket.buffer, ref pktoffset, HardwareAddressLength, out TargetProtocolAddress);
-            //Console.WriteLine("target IP :" + TargetProtocolAddress[0] + "." + TargetProtocolAddress[1] + "." + TargetProtocolAddress[2] + "." + TargetProtocolAddress[3]);
+            //WriteLine("target IP :" + TargetProtocolAddress[0] + "." + TargetProtocolAddress[1] + "." + TargetProtocolAddress[2] + "." + TargetProtocolAddress[3]);
         }
     }
 }

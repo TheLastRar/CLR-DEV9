@@ -54,7 +54,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                         remoteIPEndPoint = new IPEndPoint(new IPAddress(DestIP), DestPort);
                     }
                     byte[] recived = client.Receive(ref remoteIPEndPoint);
-                    //Console.Error.WriteLine("UDP Got Data");
+                    //Error.WriteLine("UDP Got Data");
                     if (isBroadcast)
                     {
                         DestIP = remoteIPEndPoint.Address.GetAddressBytes(); //assumes ipv4
@@ -82,7 +82,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             {
                 if (!(udp.DestinationPort == DestPort && udp.SourcePort == SrcPort))
                 {
-                    Console.Error.WriteLine("UDP packet invalid for current session (Duplicate key?)");
+                    Log_Error("UDP packet invalid for current session (Duplicate key?)");
                     return false;
                 }
             }
@@ -98,7 +98,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
                 if (isBroadcast)
                 {
-                    Console.Error.WriteLine("Is Broadcast");
+                    Log_Info("Is Broadcast");
 
                     client = new UdpClient(SrcPort); //Assuming broadcast wants a return message
                     client.EnableBroadcast = true;
@@ -123,7 +123,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     client.Connect(address, DestPort); //address to send on
                     if (SrcPort != 0)
                     {
-                        //Console.Error.WriteLine("UDP expects Data");
+                        //Error.WriteLine("UDP expects Data");
                         open = true;
                     }
                 }
@@ -139,13 +139,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             }
 
 
-            //Console.Error.WriteLine("UDP Sent");
+            //Error.WriteLine("UDP Sent");
             return true;
         }
 
         private void ReceiveFromBroadcast(IAsyncResult ar)
         {
-            Console.Error.WriteLine("Got Data");
+            Log_Verb("Got Data");
             IPEndPoint ip = new IPEndPoint(IPAddress.Any, DestPort);
             byte[] bytes = client.EndReceive(ar, ref ip);
             broadcastResponseData = bytes;
@@ -161,6 +161,19 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         {
             open = false;
             client.Close();
+        }
+
+        protected void Log_Error(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.Winsock, "UDPSession", str);
+        }
+        protected void Log_Info(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.Winsock, "UDPSession", str);
+        }
+        protected void Log_Verb(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.Winsock, "UDPSession", str);
         }
     }
 }

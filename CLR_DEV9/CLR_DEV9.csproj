@@ -90,6 +90,7 @@
     <Compile Include="Config.cs" />
     <Compile Include="DEV9.cs" />
     <Compile Include="DEV9Header.cs" />
+    <Compile Include="DEV9LogSources.cs" />
     <Compile Include="DEV9\ATA\ATA_Commands.cs" />
     <Compile Include="DEV9\ATA\ATA_Constants.cs" />
     <Compile Include="DEV9\ATA\ATA_State.cs" />

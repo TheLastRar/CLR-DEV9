@@ -1,6 +1,7 @@
-﻿using System;
+﻿using CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP;
+using System;
 using System.Collections.Generic;
-using CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP;
+using System.Diagnostics;
 
 namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
 {
@@ -31,40 +32,40 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
             int offset = 0;
             //Bits 0-31 //Bytes 0-3
             NetLib.ReadByte08(data, ref offset, out OP);
-            Console.Error.WriteLine("OP " + OP);
+            Log_Verb("OP " + OP);
             NetLib.ReadByte08(data, ref offset, out HardwareType);
-            //Console.Error.WriteLine("HWt " + HardwareType);
+            //Error.WriteLine("HWt " + HardwareType);
             NetLib.ReadByte08(data, ref offset, out HardwareAddressLength);
-            //Console.Error.WriteLine("HWaddrlen " + HardwareAddressLength);
+            //Error.WriteLine("HWaddrlen " + HardwareAddressLength);
             NetLib.ReadByte08(data, ref offset, out Hops);
-            //Console.Error.WriteLine("Hops " + Hops);
+            //Error.WriteLine("Hops " + Hops);
 
             //Bits 32-63 //Bytes 4-7
             //TransactionID = BitConverter.ToInt32(data, 4);
             NetLib.ReadUInt32(data, ref offset, out TransactionID);
-            Console.Error.WriteLine("xid " + TransactionID);
+            Log_Verb("xid " + TransactionID);
 
             //Bits 64-95 //Bytes 8-11
             NetLib.ReadUInt16(data, ref offset, out Seconds);
-            //Console.Error.WriteLine("sec " + Seconds);
+            //Error.WriteLine("sec " + Seconds);
             NetLib.ReadUInt16(data, ref offset, out Flags);
-            //Console.Error.WriteLine("Flags " + Flags);
+            //Error.WriteLine("Flags " + Flags);
 
             //Bits 96-127 //Bytes 12-15
             NetLib.ReadByteArray(data, ref offset, 4, out ClientIP);
-            Console.Error.WriteLine("CIP " + ClientIP[0] + "." + ClientIP[1] + "." + ClientIP[2] + "." + ClientIP[3]);
+            Log_Info("CIP " + ClientIP[0] + "." + ClientIP[1] + "." + ClientIP[2] + "." + ClientIP[3]);
 
             //Bits 128-159 //Bytes 16-19
             NetLib.ReadByteArray(data, ref offset, 4, out YourIP);
-            Console.Error.WriteLine("YIP " + YourIP[0] + "." + YourIP[1] + "." + YourIP[2] + "." + YourIP[3]);
+            Log_Info("YIP " + YourIP[0] + "." + YourIP[1] + "." + YourIP[2] + "." + YourIP[3]);
 
             //Bits 160-191 //Bytes 20-23
             NetLib.ReadByteArray(data, ref offset, 4, out ServerIP);
-            Console.Error.WriteLine("SIP " + ServerIP[0] + "." + ServerIP[1] + "." + ServerIP[2] + "." + ServerIP[3]);
+            Log_Info("SIP " + ServerIP[0] + "." + ServerIP[1] + "." + ServerIP[2] + "." + ServerIP[3]);
 
             //Bits 192-223 //Bytes 24-27
             NetLib.ReadByteArray(data, ref offset, 4, out GatewayIP);
-            Console.Error.WriteLine("GIP " + GatewayIP[0] + "." + GatewayIP[1] + "." + GatewayIP[2] + "." + GatewayIP[3]);
+            Log_Info("GIP " + GatewayIP[0] + "." + GatewayIP[1] + "." + GatewayIP[2] + "." + GatewayIP[3]);
 
             //Bits 192+ //Bytes 28-43
             NetLib.ReadByteArray(data, ref offset, 16, out ClientHardwareAddress);
@@ -80,7 +81,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
 
             //Bytes 236-239
             NetLib.ReadUInt32(data, ref offset, out MagicCookie);
-            //Console.Error.WriteLine("Cookie " + MagicCookie);
+            //Error.WriteLine("Cookie " + MagicCookie);
             bool opReadFin = false;
             //int op_offset = 240;
             do
@@ -88,7 +89,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
                 byte opKind = data[offset];
                 if ((offset + 1) >= data.Length)
                 {
-                    Console.Error.WriteLine("Unexpected end of packet");
+                    Log_Error("Unexpected end of packet");
                     Options.Add(new DHCPopEND());
                     opReadFin = true;
                     continue;
@@ -97,66 +98,66 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
                 switch (opKind)
                 {
                     case 0:
-                        //Console.Error.WriteLine("Got NOP");
+                        //Error.WriteLine("Got NOP");
                         Options.Add(new DHCPopNOP());
                         offset += 1;
                         continue;
                     case 1:
-                        //Console.Error.WriteLine("Got Subnet");
+                        //Error.WriteLine("Got Subnet");
                         Options.Add(new DHCPopSubnet(data, offset));
                         break;
                     case 3:
-                        //Console.Error.WriteLine("Got Router");
+                        //Error.WriteLine("Got Router");
                         Options.Add(new DHCPopRouter(data, offset));
                         break;
                     case 15:
-                        //Console.Error.WriteLine("Got Domain Name (Not supported)");
+                        //Error.WriteLine("Got Domain Name (Not supported)");
                         Options.Add(new DHCPopDNSNAME(data, offset));
                         break;
                     case 28:
-                        //Console.Error.WriteLine("Got broadcast");
+                        //Error.WriteLine("Got broadcast");
                         Options.Add(new DHCPopBCIP(data, offset));
                         break;
                     case 50:
-                        //Console.Error.WriteLine("Got Request IP");
+                        //Error.WriteLine("Got Request IP");
                         Options.Add(new DHCPopREQIP(data, offset));
                         break;
                     case 53:
-                        //Console.Error.WriteLine("Got MSG");
+                        //Error.WriteLine("Got MSG");
                         Options.Add(new DHCPopMSG(data, offset));
                         break;
                     case 54:
-                        //Console.Error.WriteLine("Got Server IP");
+                        //Error.WriteLine("Got Server IP");
                         Options.Add(new DHCPopSERVIP(data, offset));
                         break;
                     case 55:
-                        //Console.Error.WriteLine("Got Request List");
+                        //Error.WriteLine("Got Request List");
                         Options.Add(new DHCPopREQLIST(data, offset));
                         break;
                     case 56:
                         Options.Add(new DHCPopMSGStr(data, offset));
                         break;
                     case 57:
-                        //Console.Error.WriteLine("Got Max Message Size");
+                        //Error.WriteLine("Got Max Message Size");
                         Options.Add(new DHCPopMMSGS(data, offset));
                         break;
                     case 61:
-                        //Console.Error.WriteLine("Got Client ID");
+                        //Error.WriteLine("Got Client ID");
                         Options.Add(new DHCPopCID(data, offset));
                         break;
                     case 255:
-                        //Console.Error.WriteLine("Got END");
+                        //Error.WriteLine("Got END");
                         Options.Add(new DHCPopEND());
                         opReadFin = true;
                         break;
                     default:
-                        Console.Error.WriteLine("Got Unknown Option " + opKind + "with len" + opLen);
+                        Log_Error("Got Unknown Option " + opKind + "with len" + opLen);
                         break;
                 }
                 offset += opLen + 2;
                 if (offset >= data.Length)
                 {
-                    Console.Error.WriteLine("Unexpected end of packet");
+                    Log_Error("Unexpected end of packet");
                     Options.Add(new DHCPopEND());
                     opReadFin = true;
                 }
@@ -206,6 +207,19 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
             //Utils.memcpy(ref RetFinal, 240, retOp, 0, OpLength);
             //return RetFinal;
             return ret;
+        }
+
+        private void Log_Error(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.Winsock, "DCHPPacket", str);
+        }
+        private void Log_Info(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.Winsock, "DCHPPacket", str);
+        }
+        private void Log_Verb(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.Winsock, "DCHPPacket", str);
         }
     }
 }
