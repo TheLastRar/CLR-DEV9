@@ -12,6 +12,7 @@ namespace CLRDEV9.DEV9.ATA
             UInt16 status = dev9.dev9Ru16((int)DEV9Header.ATA_R_STATUS);
             status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_READY));
             status |= DEV9Header.ATA_STAT_ERR;
+            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
             dev9.dev9Wu16((int)DEV9Header.ATA_R_ERROR, DEV9Header.ATA_ERR_ABORT);
         }
 

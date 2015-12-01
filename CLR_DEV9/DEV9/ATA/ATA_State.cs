@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Diagnostics;
+using System.IO;
 
 namespace CLRDEV9.DEV9.ATA
 {
@@ -10,9 +8,12 @@ namespace CLRDEV9.DEV9.ATA
     {
         DEV9_State dev9 = null;
 
+        FileStream hddimage = null;
+
         public ATA_State(DEV9_State pardev9)
         {
             dev9 = pardev9;
+            //should be in open
             dev9.dev9Wu16((int)DEV9Header.ATA_R_NSECTOR, 1);
             dev9.dev9Wu16((int)DEV9Header.ATA_R_SECTOR, 1);
             dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, 1);
@@ -69,6 +70,12 @@ namespace CLRDEV9.DEV9.ATA
             hddInfo[60 * 2 + 1] = BitConverter.GetBytes((UInt16)(nbSectors & 0xFFFF))[1];
             hddInfo[61 * 2] = BitConverter.GetBytes((UInt16)((nbSectors >> 16)))[0];
             hddInfo[61 * 2 + 1] = BitConverter.GetBytes((UInt16)((nbSectors >> 16)))[1];
+
+            //Open File
+            if(File.Exists(DEV9Header.config.Hdd))
+            {
+                hddimage = new FileStream(DEV9Header.config.Hdd, FileMode.Open, FileAccess.ReadWrite);
+            }
         }
 
         public UInt16 ATAread16(UInt32 addr)
@@ -155,13 +162,28 @@ namespace CLRDEV9.DEV9.ATA
             }
         }
 
+        static int rd_transferred;
+        static int wr_transferred;
         public void ATAreadDMA8Mem(System.IO.UnmanagedMemoryStream pMem, int size)
         {
             if (((xfer_mode & 0xF0) == 0x40) &&
                 (dev9.dev9Ru16((int)DEV9Header.SPD_R_IF_CTRL) & DEV9Header.SPD_IF_DMA_ENABLE) != 0)
             {
                 size >>= 1;
-                //TODO
+                Log_Verb("DEV9 : DMA read, size " + size + ", transferred " + rd_transferred + ", total size " + dev9.dev9Ru16((int)DEV9Header.ATA_R_NSECTOR) * 512);
+                if (HDDseek() == 0)
+                {
+                    //read
+                    byte[] temp = new byte[size];
+                    hddimage.Read(temp, 0, size);
+                    pMem.Write(temp, 0, size);
+                }
+                rd_transferred += size;
+                if (rd_transferred >= (dev9.dev9Ru16((int)DEV9Header.ATA_R_NSECTOR) * 512))
+                {
+                    dev9.DEV9irq(3, 0x6C);
+                    rd_transferred = 0;
+                }
             }
         }
         public void ATAwriteDMA8Mem(System.IO.UnmanagedMemoryStream pMem, int size)
@@ -170,8 +192,65 @@ namespace CLRDEV9.DEV9.ATA
                 (dev9.dev9Ru16((int)DEV9Header.SPD_R_IF_CTRL) & DEV9Header.SPD_IF_DMA_ENABLE) != 0)
             {
                 size >>= 1;
-                //TODO
+                Log_Verb("DEV9 : DMA write, size " + size + ", transferred " + rd_transferred + ", total size " + dev9.dev9Ru16((int)DEV9Header.ATA_R_NSECTOR) * 512);
+                if (HDDseek() == 0)
+                {
+                    //write
+                    byte[] temp = new byte[size];
+                    pMem.Read(temp, 0, size);
+                    hddimage.Write(temp, 0, size);
+                }
+                rd_transferred += size;
+                if (rd_transferred >= (dev9.dev9Ru16((int)DEV9Header.ATA_R_NSECTOR) * 512))
+                {
+                    dev9.DEV9irq(3, 0x6C);
+                    rd_transferred = 0;
+                }
             }
+        }
+
+        int HDDgetLBA()
+            {
+                if ((dev9.dev9Ru16((int)DEV9Header.ATA_R_SELECT) & 0x40) != 0)
+	            {
+		            return ((dev9.dev9Ru16((int)DEV9Header.ATA_R_SECTOR)) |
+				            (dev9.dev9Ru16((int)DEV9Header.ATA_R_LCYL) << 8) |
+				            (dev9.dev9Ru16((int)DEV9Header.ATA_R_HCYL) << 16) |
+				            (dev9.dev9Ru16((int)DEV9Header.ATA_R_SELECT & 0x0f)<< 24));
+	            }
+	            else
+	            {
+                    UInt16 status = dev9.dev9Ru16((int)DEV9Header.ATA_R_STATUS);
+                    UInt16 error = dev9.dev9Ru16((int)DEV9Header.ATA_R_ERROR);
+
+                    status |= DEV9Header.ATA_STAT_ERR;
+                    error |= DEV9Header.ATA_ERR_ABORT;
+
+                    dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
+                    dev9.dev9Wu16((int)DEV9Header.ATA_R_ERROR, error);
+
+		            Log_Error("DEV9 ERROR : tried to get LBA address while LBA mode disabled\n");
+
+		            return -1;
+	            }
+
+	            return -1;
+        }
+
+        int HDDseek()
+        {
+            int lba;
+            long pos;
+
+            lba = HDDgetLBA();
+            if (lba == -1)
+                return -1;
+
+            pos = ((long)lba * 512);
+            //fsetpos(hddImage, &pos);
+            hddimage.Seek(pos, SeekOrigin.Begin);
+
+            return 0;
         }
 
         private void Log_Error(string str)

@@ -13,6 +13,7 @@ namespace PSE
         static CLR_PSE_PluginLog()
         {
             defualtSwicth.Level = SourceLevels.Error;
+            Trace.AutoFlush = true;
         }
 
         static Dictionary<int, SourceSwitch> enabledLogLevels = new Dictionary<int, SourceSwitch>();
