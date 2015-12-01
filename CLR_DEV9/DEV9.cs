@@ -22,6 +22,7 @@ namespace CLRDEV9
                     PSE.CLR_PSE_PluginLog.Open(LogFolderPath, "CLR_DEV9.log");
                 }
                 //TODO Set Log Options
+#if DEBUG
                 PSE.CLR_PSE_PluginLog.SetLogLevel(SourceLevels.All, (int)DEV9LogSources.ATA);
                 PSE.CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Error, (int)DEV9LogSources.Dev9);
                 PSE.CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Error, (int)DEV9LogSources.PluginInterface);
@@ -29,7 +30,7 @@ namespace CLRDEV9
                 PSE.CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Error, (int)DEV9LogSources.Tap);
                 PSE.CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Verbose, (int)DEV9LogSources.TCP);
                 PSE.CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Information, (int)DEV9LogSources.Winsock);
-                //PluginLog.SetWriteToFile(true);
+#endif
             }
         }
 
