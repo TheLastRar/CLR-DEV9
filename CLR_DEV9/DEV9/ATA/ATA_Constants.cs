@@ -4,12 +4,12 @@ namespace CLRDEV9.DEV9.ATA
     partial class ATA_State
     {
         byte[] hddInfo = new byte[] {
-	    0x00, 0x40,
-	    0x3F, 0xFF,//16383,
+	    0x40, 0x00,//0x0040
+	    0xFF, 0x3F,//16383,
 	    0, 0,
-	    0, 16, //16
+	    16, 0, //16
 	    0, 0, 0, 0,
-	    0, 63,
+	    63, 0,
 	    0, 0, 0, 0, 0, 0,
 	    (byte)'A', (byte)'G', // serial
 	    (byte)'D', (byte)'V',
@@ -61,7 +61,7 @@ namespace CLRDEV9.DEV9.ATA
         //(byte)' ', (byte)' ',
         //(byte)' ', (byte)' ',
         (byte)'C', (byte)'L', // model
-	    (byte)'R', (byte)'_',
+	    (byte)'R', (byte)' ',
 	    (byte)'D', (byte)'E',
 	    (byte)'V', (byte)'9',
 	    (byte)' ', (byte)'H',
@@ -100,16 +100,16 @@ namespace CLRDEV9.DEV9.ATA
 	    twochars(' ', ' '),
 	    twochars(' ', ' '),
 	    twochars(' ', ' '),*/
-	    0, 1,
+	    1, 0,
 	    0, 0,
-	    0x03, 0x00,
+	    0x00, 0x03,
 	    0, 0,
-	    0x02, 0x00,
-	    0x02, 0x00,
+	    0x00, 0x02,
+	    0x00, 0x02,
 	    0, 0,
 	    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
 	    0, 0,
-	    0x00, 0x00, 0x01, 0x00		// Sector number (default : 8 GB, changed on config load)
+	    0x00, 0x00, 0x00, 0x10		// Sector number (default : 8 GB, changed on config load)
 						    // After that... nothing interesting, only zeroes
         };
     }

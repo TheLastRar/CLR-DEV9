@@ -132,7 +132,7 @@ namespace CLRDEV9.DEV9.ATA
             status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_ERR | DEV9Header.ATA_STAT_READY));
             status |= DEV9Header.ATA_STAT_BUSY;
 
-            Utils.memcpy(ref pio_buf, 0, hddInfo, 0, pio_buf.Length);
+            Utils.memcpy(ref pio_buf, 0, hddInfo, 0, Math.Min(pio_buf.Length, hddInfo.Length));
             pio_count = 0;
             pio_size = 256;
 

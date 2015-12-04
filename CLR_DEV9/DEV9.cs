@@ -283,7 +283,19 @@ namespace CLRDEV9
         static GCHandle irqHandle;
         public static int _DEV9irqHandler()
         {
+            #if DEBUG
+            try
+            {
+#endif
             return dev9._DEV9irqHandler();
+#if DEBUG
+            }
+            catch (Exception e)
+            {
+                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                throw e;
+            }
+#endif
         }
         public static PSE.CLR_PSE_Callbacks.CLR_IRQHandler DEV9irqHandler()
         {

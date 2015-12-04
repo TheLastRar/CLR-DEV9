@@ -56,7 +56,7 @@ namespace PSE
                 }
                 //Console Normal
                 ConsoleTraceListener consoleLog = new ConsoleTraceListener(true);
-                consoleLog.Filter = new EventTypeFilter(SourceLevels.Information & ~ (SourceLevels.Error));
+                consoleLog.Filter = new EventTypeFilter(SourceLevels.All & ~ (SourceLevels.Error)); //information
                 //Console Error
                 ConsoleTraceListener consoleError = new ConsoleTraceListener(true);
                 consoleError.Filter = new EventTypeFilter(SourceLevels.Error);

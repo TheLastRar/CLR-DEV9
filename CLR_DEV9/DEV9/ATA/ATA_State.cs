@@ -13,10 +13,6 @@ namespace CLRDEV9.DEV9.ATA
         public ATA_State(DEV9_State pardev9)
         {
             dev9 = pardev9;
-            //should be in open
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_NSECTOR, 1);
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_SECTOR, 1);
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, 1);
 
             //Fillout Command table (inspired from MegaDev9)
             //This is actully a pretty neat way of doing this
@@ -63,18 +59,41 @@ namespace CLRDEV9.DEV9.ATA
             /* Sending this command to a standard HDD will give an error */
             /* We roughly emulate it to make programs think the HDD is a Sony one */
             HDDcmds[0x8E] = HDDsceSecCtrl; //HDDcmdNames[0x8E] = "SCE security control";
+        }
+
+        public int Open()
+        {
+            dev9.dev9Wu16((int)DEV9Header.ATA_R_NSECTOR, 1);
+            dev9.dev9Wu16((int)DEV9Header.ATA_R_SECTOR, 1);
+            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, 0x40);
 
             // Set the number of sectors
-            Int32 nbSectors = (((DEV9Header.config.HddSize * 1024) / 512) * 1024 * 1024);
+
+            Int32 nbSectors = (((DEV9Header.config.HddSize) / 512) * 1024 * 1024);
+            Log_Verb("HddSize : " + DEV9Header.config.HddSize);
+            Log_Verb("HddSector 1: " + nbSectors);
+            Log_Verb("HddSector 2: " + (nbSectors >> 16));
             hddInfo[60 * 2] = BitConverter.GetBytes((UInt16)(nbSectors & 0xFFFF))[0];
             hddInfo[60 * 2 + 1] = BitConverter.GetBytes((UInt16)(nbSectors & 0xFFFF))[1];
             hddInfo[61 * 2] = BitConverter.GetBytes((UInt16)((nbSectors >> 16)))[0];
             hddInfo[61 * 2 + 1] = BitConverter.GetBytes((UInt16)((nbSectors >> 16)))[1];
 
             //Open File
-            if(File.Exists(DEV9Header.config.Hdd))
+            if (File.Exists(DEV9Header.config.Hdd))
             {
                 hddimage = new FileStream(DEV9Header.config.Hdd, FileMode.Open, FileAccess.ReadWrite);
+            }
+
+            return 0;
+        }
+
+        public void Close()
+        {
+            if (hddimage != null)
+            {
+                hddimage.Close();
+                hddimage.Dispose();
+                hddimage = null;
             }
         }
 
@@ -83,46 +102,59 @@ namespace CLRDEV9.DEV9.ATA
             switch (addr)
             {
                 case DEV9Header.ATA_R_DATA:
+                    Log_Verb("*ATA_R_DATA 16bit read at address " + addr.ToString("x") + " pio_count " + pio_count + " pio_size " + pio_size);
                     if (pio_count < pio_size)
                     {
                         UInt16 ret = BitConverter.ToUInt16(pio_buf, pio_count * 2);
+                        //ret = (UInt16)System.Net.IPAddress.HostToNetworkOrder((Int16)ret);
+                        Log_Verb("*ATA_R_DATA returned value is  " + ret.ToString("x"));
                         pio_count++;
                         return ret;
                     }
                     break;
 
                 case DEV9Header.ATA_R_NSECTOR:
+                    Log_Verb("*ATA_R_NSECTOR 16bit read at address " + addr.ToString("x") + " value " + dev9.dev9Ru16((int)addr).ToString("x") + " Active " + ((dev9.dev9Ru16((int)DEV9Header.ATA_R_SELECT) & 0x10) == 0));
                     if ((dev9.dev9Ru16((int)DEV9Header.ATA_R_SELECT) & 0x10) != 0)
                         return 0;
                     return dev9.dev9Ru16((int)DEV9Header.ATA_R_NSECTOR);
 
                 case DEV9Header.ATA_R_SECTOR:
+                    Log_Verb("*ATA_R_SECTOR 16bit read at address " + addr.ToString("x") + " value " + dev9.dev9Ru16((int)addr).ToString("x") + " Active " + ((dev9.dev9Ru16((int)DEV9Header.ATA_R_SELECT) & 0x10) == 0));
                     if ((dev9.dev9Ru16((int)DEV9Header.ATA_R_SELECT) & 0x10) != 0)
                         return 0;
                     return dev9.dev9Ru16((int)DEV9Header.ATA_R_SECTOR);
 
                 case DEV9Header.ATA_R_LCYL:
+                    Log_Verb("*ATA_R_LCYL 16bit read at address " + addr.ToString("x") + " value " + dev9.dev9Ru16((int)addr).ToString("x") + " Active " + ((dev9.dev9Ru16((int)DEV9Header.ATA_R_SELECT) & 0x10) == 0));
                     if ((dev9.dev9Ru16((int)DEV9Header.ATA_R_SELECT) & 0x10) != 0)
                         return 0;
                     return dev9.dev9Ru16((int)DEV9Header.ATA_R_LCYL);
 
                 case DEV9Header.ATA_R_HCYL:
+                    Log_Verb("*ATA_R_HCYL 16bit read at address " + addr.ToString("x") + " value " + dev9.dev9Ru16((int)addr).ToString("x") + " Active " + ((dev9.dev9Ru16((int)DEV9Header.ATA_R_SELECT) & 0x10) == 0));
                     if ((dev9.dev9Ru16((int)DEV9Header.ATA_R_SELECT) & 0x10) != 0)
                         return 0;
                     return dev9.dev9Ru16((int)DEV9Header.ATA_R_HCYL);
 
                 case DEV9Header.ATA_R_SELECT:
+                    Log_Verb("*ATA_R_SELECT 16bit read at address " + addr.ToString("x") + " value " + dev9.dev9Ru16((int)addr).ToString("x"));
                     return dev9.dev9Ru16((int)DEV9Header.ATA_R_SELECT);
 
                 case DEV9Header.ATA_R_STATUS:
+                    Log_Verb("*ATA_R_STATUS 16bit read at address " + addr.ToString("x") + " value " + dev9.dev9Ru16((int)addr).ToString("x") + " Active " + ((dev9.dev9Ru16((int)DEV9Header.ATA_R_SELECT) & 0x10) == 0));
                     if ((dev9.dev9Ru16((int)DEV9Header.ATA_R_SELECT) & 0x10) != 0)
                         return 0;
                     return dev9.dev9Ru16((int)DEV9Header.ATA_R_STATUS);
 
                 case DEV9Header.ATA_R_ALT_STATUS:
+                    Log_Verb("*ATA_R_ALT_STATUS 16bit read at address " + addr.ToString("x") + " value " + dev9.dev9Ru16((int)(int)DEV9Header.ATA_R_STATUS).ToString("x") + " Active " + ((dev9.dev9Ru16((int)DEV9Header.ATA_R_SELECT) & 0x10) == 0));
                     if ((dev9.dev9Ru16((int)DEV9Header.ATA_R_SELECT) & 0x10) != 0)
                         return 0;
                     return dev9.dev9Ru16((int)DEV9Header.ATA_R_STATUS);
+                default:
+                    Log_Error("*Unknown 16bit read at address " + addr.ToString("x") + " value " + dev9.dev9Ru16((int)addr).ToString("x"));
+                    return dev9.dev9Ru16((int)addr);
             }
 
 
@@ -135,29 +167,41 @@ namespace CLRDEV9.DEV9.ATA
             switch (addr)
             {
                 case DEV9Header.ATA_R_FEATURE:
+                    Log_Verb("*ATA_R_FEATURE 16bit write at address " + addr.ToString("x") + " value " + value.ToString("x"));
                     feature = value;
                     break;
                 case DEV9Header.ATA_R_NSECTOR:
+                    Log_Verb("*ATA_R_NSECTOR 16bit write at address " + addr.ToString("x") + " value " + value.ToString("x"));
                     dev9.dev9Wu16((int)DEV9Header.ATA_R_NSECTOR, value);
                     break;
                 case DEV9Header.ATA_R_SECTOR:
+                    Log_Verb("*ATA_R_SECTOR 16bit write at address " + addr.ToString("x") + " value " + value.ToString("x"));
                     dev9.dev9Wu16((int)DEV9Header.ATA_R_SECTOR, value);
                     break;
                 case DEV9Header.ATA_R_LCYL:
+                    Log_Verb("*ATA_R_LCYL 16bit write at address " + addr.ToString("x") + " value " + value.ToString("x"));
                     dev9.dev9Wu16((int)DEV9Header.ATA_R_LCYL, value);
                     break;
                 case DEV9Header.ATA_R_HCYL:
+                    Log_Verb("*ATA_R_HCYL 16bit write at address " + addr.ToString("x") + " value " + value.ToString("x"));
                     dev9.dev9Wu16((int)DEV9Header.ATA_R_HCYL, value);
                     break;
                 case DEV9Header.ATA_R_SELECT:
+                    Log_Verb("*ATA_R_SELECT 16bit write at address " + addr.ToString("x") + " value " + value.ToString("x"));
                     dev9.dev9Wu16((int)DEV9Header.ATA_R_SELECT, value);
                     break;
                 case DEV9Header.ATA_R_CMD:
+                    Log_Verb("*ATA_R_CMD 16bit write at address " + addr.ToString("x") + " value " + value.ToString("x"));
                     command = value;
                     HDDcmds[value]();
                     break;
                 case DEV9Header.ATA_R_CONTROL:
+                    Log_Verb("*ATA_R_CONTROL 16bit write at address " + addr.ToString("x") + " value " + value.ToString("x"));
                     dev9.dev9Wu16((int)DEV9Header.ATA_R_CONTROL, value);
+                    break;
+                default:
+                    dev9.dev9Wu16((int)addr, value);
+                    Log_Error("*Unknown 16bit write at address " + addr.ToString("x") + " value " + value.ToString("x"));
                     break;
             }
         }
@@ -192,7 +236,7 @@ namespace CLRDEV9.DEV9.ATA
                 (dev9.dev9Ru16((int)DEV9Header.SPD_R_IF_CTRL) & DEV9Header.SPD_IF_DMA_ENABLE) != 0)
             {
                 size >>= 1;
-                Log_Verb("DEV9 : DMA write, size " + size + ", transferred " + rd_transferred + ", total size " + dev9.dev9Ru16((int)DEV9Header.ATA_R_NSECTOR) * 512);
+                Log_Verb("DEV9 : DMA write, size " + size + ", transferred " + wr_transferred + ", total size " + dev9.dev9Ru16((int)DEV9Header.ATA_R_NSECTOR) * 512);
                 if (HDDseek() == 0)
                 {
                     //write
@@ -200,11 +244,12 @@ namespace CLRDEV9.DEV9.ATA
                     pMem.Read(temp, 0, size);
                     hddimage.Write(temp, 0, size);
                 }
-                rd_transferred += size;
-                if (rd_transferred >= (dev9.dev9Ru16((int)DEV9Header.ATA_R_NSECTOR) * 512))
+                wr_transferred += size;
+                if (wr_transferred >= (dev9.dev9Ru16((int)DEV9Header.ATA_R_NSECTOR) * 512))
                 {
+                    hddimage.Flush();
                     dev9.DEV9irq(3, 0x6C);
-                    rd_transferred = 0;
+                    wr_transferred = 0;
                 }
             }
         }
@@ -252,6 +297,46 @@ namespace CLRDEV9.DEV9.ATA
 
             return 0;
         }
+
+        public void _ATAirqHandler()
+        {
+            Log_Verb("_ATAirqHandler");
+
+            //	dev9.intr_stat |= dev9.irq_cause;
+            dev9.dev9Wu16((int)DEV9Header.SPD_R_INTR_STAT, (UInt16)dev9.irqcause);//dev9.intr_stat = dev9.irqcause;
+            
+            //	dev9.intr_stat = 0;
+            UInt16 status = dev9.dev9Ru16((int)DEV9Header.ATA_R_STATUS);
+
+            if (/*dev9.intr_stat*/(dev9.irqcause & 0x0001) != 0)				// ATA command completion
+            {
+                status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_BUSY));
+                status |= DEV9Header.ATA_STAT_READY;
+            }
+
+            if (/*dev9.intr_stat*/(dev9.irqcause & 0x0002) != 0)				// DMA transfer completion (no DRQ)
+            {
+                status &= unchecked((UInt16)~DEV9Header.ATA_STAT_BUSY);
+                status |= DEV9Header.ATA_STAT_READY;
+            }
+
+            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
+
+            //if ((/*dev9.intr_stat*/(dev9.irqcause & dev9.intr_mask) != 0) && (!((dev9.ata_regs.control & 2) != 0)))
+            //{
+            //    //	dev9.intr_stat &= ~(dev9.irq_cause);
+            //    //	dev9.intr_stat = dev9.irq_cause;
+            //    //	dev9.intr_stat = 0;
+            //    //Log("_DEV9irqHandler = 1\n");
+
+            //    return 1;
+            //}
+
+            //Log("_DEV9irqHandler = 0\n");
+
+            //return 0;
+        }
+
 
         private void Log_Error(string str)
         {

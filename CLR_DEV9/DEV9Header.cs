@@ -13,7 +13,7 @@ namespace CLRDEV9
             public string Hdd;
             public int HddSize;
 
-            //public int hddEnable;
+            public int hddEnable;
             public int ethEnable;
         }
 

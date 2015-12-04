@@ -35,21 +35,29 @@ namespace CLRDEV9.DEV9
         public int Open()
         {
             //flash.Open()
-            return smap.Open() | 0;
+            return smap.Open() | ata.Open();
         }
         //Close
         public void Close()
         {
             //flash.Close()
+            ata.Close();
             smap.Close();
         }
 
         public int _DEV9irqHandler()
         {
             Log_Verb("_DEV9irqHandler " + irqcause.ToString("X") + ", " + dev9Ru16((int)DEV9Header.SPD_R_INTR_MASK).ToString("x"));
+
+            //Pass IRQ to other handlers
+            int ret = 0;
+            //Check if should return
             if ((irqcause & dev9Ru16((int)DEV9Header.SPD_R_INTR_MASK)) != 0)
-                return 1;
-            return 0;
+            {
+                ret = 1;
+            }
+            ata._ATAirqHandler();
+            return ret;
         }
 
         public void DEV9irq(int cause, int cycles)
@@ -68,14 +76,14 @@ namespace CLRDEV9.DEV9
         {
             //DEV9_LOG("DEV9read8");
             byte hard;
-            if (addr >= DEV9Header.ATA_DEV9_HDD_BASE && addr < DEV9Header.ATA_DEV9_HDD_END)
-            {
-                //#ifdef ENABLE_ATA
-                //        return ata_read<1>(addr);
-                //#else
-                return 0;
-                //#endif
-            }
+            //if (addr >= DEV9Header.ATA_DEV9_HDD_BASE && addr < DEV9Header.ATA_DEV9_HDD_END)
+            //{
+            //    //#ifdef ENABLE_ATA
+            //    //        return ata_read<1>(addr);
+            //    //#else
+            //    return 0; //ATA only has 16bit regs
+            //    //#endif
+            //}
             if (addr >= DEV9Header.SMAP_REGBASE && addr < DEV9Header.FLASH_REGBASE)
             {
                 //smap
@@ -141,11 +149,8 @@ namespace CLRDEV9.DEV9
             UInt16 hard;
             if (addr >= DEV9Header.ATA_DEV9_HDD_BASE && addr < DEV9Header.ATA_DEV9_HDD_END)
             {
-                //#ifdef ENABLE_ATA
-                //        return ata_read<2>(addr);
-                //#else
-                return 0;
-                //#endif
+                //ata
+                return ata.ATAread16(addr);
             }
             if (addr >= DEV9Header.SMAP_REGBASE && addr < DEV9Header.FLASH_REGBASE)
             {
@@ -165,7 +170,8 @@ namespace CLRDEV9.DEV9
                     return dev9Ru16((int)DEV9Header.SPD_R_INTR_MASK);
 
                 case DEV9Header.DEV9_R_REV:
-                    hard = 0x0030; // expansion bay
+                    //hard = 0x0030; // expansion bay
+                    hard = 0x0032; // expansion bay
                     //DEV9_LOG("DEV9_R_REV 16bit read " + hard.ToString("X"));
                     return hard;
 
@@ -179,9 +185,10 @@ namespace CLRDEV9.DEV9
                     // bit 1: hdd
                     // bit 5: flash
                     hard = 0;
-                    /*if (config.hddEnable) {
+                    if (DEV9Header.config.hddEnable != 0)
+                    {
                         hard|= 0x2;
-                    }*/
+                    }
                     if (DEV9Header.config.ethEnable != 0)
                     {
                         hard |= 0x1;
@@ -217,14 +224,14 @@ namespace CLRDEV9.DEV9
         {
             //DEV9_LOG("DEV9read32");
             UInt32 hard;
-            if (addr >= DEV9Header.ATA_DEV9_HDD_BASE && addr < DEV9Header.ATA_DEV9_HDD_END)
-            {
-                //#ifdef ENABLE_ATA
-                //        return ata_read<4>(addr);
-                //#else
-                return 0;
-                //#endif
-            }
+            //if (addr >= DEV9Header.ATA_DEV9_HDD_BASE && addr < DEV9Header.ATA_DEV9_HDD_END)
+            //{
+            //    //#ifdef ENABLE_ATA
+            //    //        return ata_read<4>(addr);
+            //    //#else
+            //    return 0;
+            //    //#endif
+            //}
             if (addr >= DEV9Header.SMAP_REGBASE && addr < DEV9Header.FLASH_REGBASE)
             {
                 //smap
@@ -251,13 +258,13 @@ namespace CLRDEV9.DEV9
         public void DEV9write8(uint addr, byte value)
         {
             //Error.WriteLine("DEV9write8");
-            if (addr >= DEV9Header.ATA_DEV9_HDD_BASE && addr < DEV9Header.ATA_DEV9_HDD_END)
-            {
-                //#ifdef ENABLE_ATA
-                //        ata_write<1>(addr,value);
-                //#endif
-                return;
-            }
+            //if (addr >= DEV9Header.ATA_DEV9_HDD_BASE && addr < DEV9Header.ATA_DEV9_HDD_END)
+            //{
+            //    //#ifdef ENABLE_ATA
+            //    //        ata_write<1>(addr,value);
+            //    //#endif
+            //    return;
+            //}
             if (addr >= DEV9Header.SMAP_REGBASE && addr < DEV9Header.FLASH_REGBASE)
             {
                 //smap
@@ -367,9 +374,7 @@ namespace CLRDEV9.DEV9
             //Error.WriteLine("DEV9write16");
             if (addr >= DEV9Header.ATA_DEV9_HDD_BASE && addr < DEV9Header.ATA_DEV9_HDD_END)
             {
-                //#ifdef ENABLE_ATA
-                //        ata_write<2>(addr,value);
-                //#endif
+                ata.ATAwrite16(addr, value);
                 //Error.WriteLine("DEV9write16 ATA");
                 return;
             }
@@ -457,7 +462,7 @@ namespace CLRDEV9.DEV9
             smap.smap_readDMA8Mem(pMem, size);
             Log_Info("rDMA");
             //#ifdef ENABLE_ATA
-            //    ata_readDMA8Mem(pMem,size);
+            ata.ATAreadDMA8Mem(pMem, size);
             //#endif
         }
 
@@ -467,7 +472,7 @@ namespace CLRDEV9.DEV9
             smap.smap_writeDMA8Mem(pMem, size);
             Log_Info("wDMA");
             //#ifdef ENABLE_ATA
-            //    ata_writeDMA8Mem(pMem,size);
+            ata.ATAwriteDMA8Mem(pMem, size);
             //#endif
         }
 

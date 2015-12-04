@@ -39,7 +39,7 @@ namespace CLRDEV9
             //DEV9Header.config.ethEnable = (int)myKey.GetValue("ethEnable", DEV9Header.config.ethEnable);
             DEV9Header.config.ethEnable = 1;
             //DEV9Header.config.hddEnable = (int)myKey.GetValue("hddEnable", DEV9Header.config.hddEnable);
-
+            DEV9Header.config.hddEnable = 1;
             //myKey.Close();
         }
     }
