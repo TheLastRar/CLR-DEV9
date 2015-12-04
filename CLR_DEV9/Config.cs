@@ -1,46 +1,68 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Win32;
-using PSE;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Xml;
 
 namespace CLRDEV9
 {
-    static class Config
+    [DataContract]
+    class Config
     {
-        public static void SaveConf()
+        [DataMember]
+        public string Eth;
+        [DataMember]
+        public string Hdd;
+        [DataMember]
+        public int HddSize;
+        [DataMember]
+        public int HddEnable;
+        [DataMember]
+        public int EthEnable;
+
+        public static void SaveConf(string iniFolderPath, string iniFileName)
         {
-            //RegistryKey myKey = Registry.CurrentUser.CreateSubKey("Software\\PS2Eplugin\\DEV9\\DEV9linuz");
-            //myKey.SetValue("Eth", DEV9Header.config.Eth);
-            //myKey.SetValue("Hdd", DEV9Header.config.Hdd);
-            //myKey.SetValue("HddSize", DEV9Header.config.HddSize);
-            //myKey.SetValue("ethEnable", DEV9Header.config.ethEnable);
-            //myKey.SetValue("hddEnable", DEV9Header.config.hddEnable);
-            //myKey.Close();
+            string filePath = iniFolderPath + "\\" + iniFileName;
+            DataContractSerializer ConfSerializer = new DataContractSerializer(typeof(Config));
+
+            var settings = new XmlWriterSettings()
+            {
+                Indent = true,
+                IndentChars = "\t"
+            };
+
+            FileStream Writer = new FileStream(filePath, FileMode.Create, FileAccess.ReadWrite);
+            using (var writer = XmlWriter.Create(Writer, settings))
+            {
+                ConfSerializer.WriteObject(writer, DEV9Header.config);
+            }
+            Writer.Close();
         }
 
-        public static void LoadConf()
+        public static void LoadConf(string iniFolderPath, string iniFileName)
         {
-            DEV9Header.config = new DEV9Header.Config();
+            string filePath = iniFolderPath + "\\" + iniFileName;
+
+            if (File.Exists(filePath))
+            {
+                DataContractSerializer ConfSerializer = new DataContractSerializer(typeof(Config));
+                FileStream Reader = new FileStream(filePath, FileMode.Open);
+
+                DEV9Header.config = (Config)ConfSerializer.ReadObject(Reader);
+
+                Reader.Close();
+                return;
+            }
+
+            DEV9Header.config = new Config();
             DEV9Header.config.Hdd = DEV9Header.HDD_DEF;
             DEV9Header.config.HddSize = 8 * 1024;
             DEV9Header.config.Eth = DEV9Header.ETH_DEF;
+            DEV9Header.config.EthEnable = 1;
+            DEV9Header.config.HddEnable = 0;
 
-            //RegistryKey myKey = Registry.CurrentUser.OpenSubKey("Software\\PS2Eplugin\\DEV9\\DEV9linuz");
-            //if (myKey == null)
-            //{
-            //    SaveConf(); return;
-            //}
-            //DEV9Header.config.Eth = (string)myKey.GetValue("Eth", DEV9Header.config.Eth);
-            DEV9Header.config.Eth = "winsock";
-            //DEV9Header.config.Hdd = (string)myKey.GetValue("Hdd", DEV9Header.config.Hdd);
-            //DEV9Header.config.HddSize = (int)myKey.GetValue("HddSize", DEV9Header.config.HddSize);
-            //DEV9Header.config.ethEnable = (int)myKey.GetValue("ethEnable", DEV9Header.config.ethEnable);
-            DEV9Header.config.ethEnable = 1;
-            //DEV9Header.config.hddEnable = (int)myKey.GetValue("hddEnable", DEV9Header.config.hddEnable);
-            DEV9Header.config.hddEnable = 1;
-            //myKey.Close();
+            DEV9Header.config.HddEnable = 1;
+
+            SaveConf(iniFolderPath, iniFileName);
         }
     }
 }

@@ -7,16 +7,6 @@ namespace CLRDEV9
         public const string ETH_DEF = "winsock";//"eth0";
         public const string HDD_DEF = "DEV9hdd.raw";
 
-        public struct Config
-        {
-            public string Eth;
-            public string Hdd;
-            public int HddSize;
-
-            public int hddEnable;
-            public int ethEnable;
-        }
-
         public static Config config;
 
         public static PSE.CLR_PSE_Callbacks.CLR_CyclesCallback DEV9irq;

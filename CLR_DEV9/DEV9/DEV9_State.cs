@@ -185,11 +185,11 @@ namespace CLRDEV9.DEV9
                     // bit 1: hdd
                     // bit 5: flash
                     hard = 0;
-                    if (DEV9Header.config.hddEnable != 0)
+                    if (DEV9Header.config.HddEnable != 0)
                     {
                         hard|= 0x2;
                     }
-                    if (DEV9Header.config.ethEnable != 0)
+                    if (DEV9Header.config.EthEnable != 0)
                     {
                         hard |= 0x1;
                     }

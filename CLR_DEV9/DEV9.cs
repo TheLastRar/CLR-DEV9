@@ -7,7 +7,7 @@ namespace CLRDEV9
     class CLR_DEV9
     {
         private static string LogFolderPath = "logs";
-        private static string IniFolderPath = "ini";
+        private static string IniFolderPath = "inis";
         private static DEV9.DEV9_State dev9 = null;
         const bool DoLog = true;
         private static void LogInit()
@@ -62,7 +62,7 @@ namespace CLRDEV9
             {
 #endif
                 Log_Info("Open");
-                Config.LoadConf();
+                Config.LoadConf(IniFolderPath, "CLR_DEV9.ini");
                 //Log_Info("open r+: " + DEV9Header.config.Hdd);
 
                 DEV9Header.config.HddSize = 8 * 1024;
@@ -119,6 +119,7 @@ namespace CLRDEV9
         }
         public static void SetSettingsDir(string dir)
         {
+            IniFolderPath = dir;
         }
         public static void SetLogDir(string dir)
         {
