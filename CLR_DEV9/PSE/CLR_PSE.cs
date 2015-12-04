@@ -30,6 +30,16 @@ namespace PSE
 
     public class CLR_PSE
     {
+        #region NativeExport
+        [DllExport("PS2EgetLibName", CallingConvention = CallingConvention.StdCall)]
+        [return: MarshalAs(UnmanagedType.LPStr)]
+        private static string nat_PS2EgetLibName() { return PS2EgetLibName(); }
+        [DllExport("PS2EgetLibType", CallingConvention = CallingConvention.StdCall)]
+        private static CLR_Type nat_PS2EgetLibType() { return PS2EgetLibType(); }
+        [DllExport("PS2EgetLibVersion2", CallingConvention = CallingConvention.StdCall)]
+        private static int nat_PS2EgetLibVersion2(CLR_Type type) { return PS2EgetLibVersion2(type); }
+        #endregion
+
         //major
         public const byte revision = 0;
         //minor
@@ -57,20 +67,16 @@ namespace PSE
         }
 #endif
 
-        [DllExport(CallingConvention = CallingConvention.StdCall)]
-        [return: MarshalAs(UnmanagedType.LPStr)]
         public static string PS2EgetLibName()
         {
             return libraryName;
         }
 
-        [DllExport(CallingConvention = CallingConvention.StdCall)]
         public static CLR_Type PS2EgetLibType()
         {
             return CLR_Type.DEV9;
         }
 
-        [DllExport(CallingConvention = CallingConvention.StdCall)]
         public static int PS2EgetLibVersion2(CLR_Type type)
         {
             CLR_Type_Version version = 0;
@@ -105,27 +111,4 @@ namespace PSE
             return ((int)version << 16) | (rev << 8) | bui;
         }
     }
-
-    //public abstract class CLR_PSE_Config
-    //{
-
-    //    protected CLR_PSE_Base Base;
-    //    public string IniFolderPath = "inis";
-    //    PluginConf calls
-    //    public CLR_PSE_Callbacks.Config_Open Open;
-    //    public CLR_PSE_Callbacks.Close Close;
-    //    public CLR_PSE_Callbacks.Config_WriteInt WriteInt;
-
-    //    public CLR_PSE_Callbacks.Config_ReadInt ReadInt;
-    //    public void SetBase(CLR_PSE_Base common)
-    //    {
-    //        Base = common;
-    //    }
-
-    //    public abstract void About();
-    //    public abstract void Configure();
-
-    //    public abstract void LoadConfig();
-    //    protected abstract void SaveConfig();
-    //}
 }

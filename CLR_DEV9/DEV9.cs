@@ -6,7 +6,8 @@ namespace CLRDEV9
 {
     class CLR_DEV9
     {
-        public static string LogFolderPath = "logs";
+        private static string LogFolderPath = "logs";
+        private static string IniFolderPath = "ini";
         private static DEV9.DEV9_State dev9 = null;
         const bool DoLog = true;
         private static void LogInit()
@@ -118,12 +119,11 @@ namespace CLRDEV9
         }
         public static void SetSettingsDir(string dir)
         {
-            //throw new NotImplementedException();
         }
         public static void SetLogDir(string dir)
         {
             LogFolderPath = dir;
-            LogInit();
+            //LogInit();
         }
 
         public static byte DEV9read8(uint addr)
