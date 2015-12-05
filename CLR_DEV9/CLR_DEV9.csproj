@@ -79,6 +79,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
@@ -89,6 +90,24 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
+    <Compile Include="ConfigFormEth.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ConfigFormEth.Designer.cs">
+      <DependentUpon>ConfigFormEth.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ConfigForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ConfigForm.Designer.cs">
+      <DependentUpon>ConfigForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ConfigFormHdd.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ConfigFormHdd.Designer.cs">
+      <DependentUpon>ConfigFormHdd.cs</DependentUpon>
+    </Compile>
     <Compile Include="DEV9.cs" />
     <Compile Include="DEV9Header.cs" />
     <Compile Include="DEV9LogSources.cs" />
@@ -122,6 +141,12 @@
     <Compile Include="DEV9\SMAP\Winsock\PacketReader\IP\TCPOption.cs" />
     <Compile Include="DEV9\SMAP\Winsock\PacketReader\IP\UDP.cs" />
     <Compile Include="DEV9\SMAP\Winsock\PacketReader\NetLib.cs" />
+    <Compile Include="HddCreate.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="HddCreate.Designer.cs">
+      <DependentUpon>HddCreate.cs</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PSE\CLR_PSE.cs" />
     <Compile Include="PSE\CLR_PSE_Callbacks.cs" />
@@ -142,7 +167,20 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="ConfigForm.resx">
+      <DependentUpon>ConfigForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ConfigFormEth.resx">
+      <DependentUpon>ConfigFormEth.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ConfigFormHdd.resx">
+      <DependentUpon>ConfigFormHdd.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="HddCreate.resx">
+      <DependentUpon>HddCreate.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="../packages/UnmanagedExports.1.2.7/tools/RGiesecke.DllExport.targets" Condition="Exists('../packages/UnmanagedExports.1.2.7/tools/RGiesecke.DllExport.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

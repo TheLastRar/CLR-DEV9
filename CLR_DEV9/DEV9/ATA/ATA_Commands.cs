@@ -67,7 +67,6 @@ namespace CLRDEV9.DEV9.ATA
         void HDDwriteDMA()
         {
             dev9.dev9Wu16((int)DEV9Header.ATA_R_ERROR, 0);
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_ERROR, 0);
             UInt16 status = dev9.dev9Ru16((int)DEV9Header.ATA_R_STATUS);
             status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_ERR | DEV9Header.ATA_STAT_READY));
             status |= DEV9Header.ATA_STAT_BUSY;
@@ -182,7 +181,5 @@ namespace CLRDEV9.DEV9.ATA
 
             dev9.DEV9irq(1, 0x6C);
         }
-
-
     }
 }

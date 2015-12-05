@@ -63,11 +63,13 @@ namespace CLRDEV9
 #endif
                 Log_Info("Open");
                 Config.LoadConf(IniFolderPath, "CLR_DEV9.ini");
-                //Log_Info("open r+: " + DEV9Header.config.Hdd);
 
                 DEV9Header.config.HddSize = 8 * 1024;
 
-                return dev9.Open();
+                if (DEV9Header.config.Hdd.Contains("\\") || DEV9Header.config.Hdd.Contains("/"))
+                    return dev9.Open(DEV9Header.config.Hdd);
+                else
+                    return dev9.Open(IniFolderPath + "\\" + DEV9Header.config.Hdd);
 #if DEBUG
             }
             catch (Exception e)
@@ -319,6 +321,13 @@ namespace CLRDEV9
         {
             return 0;
         }
+        public static void Configure()
+        {
+            Config.LoadConf(IniFolderPath, "CLR_DEV9.ini");
+            Config.DoConfig();
+            Config.SaveConf(IniFolderPath, "CLR_DEV9.ini");
+        }
+
 
         private static void Log_Error(string str)
         {

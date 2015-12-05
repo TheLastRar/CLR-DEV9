@@ -61,7 +61,7 @@ namespace CLRDEV9.DEV9.ATA
             HDDcmds[0x8E] = HDDsceSecCtrl; //HDDcmdNames[0x8E] = "SCE security control";
         }
 
-        public int Open()
+        public int Open(string hddPath)
         {
             dev9.dev9Wu16((int)DEV9Header.ATA_R_NSECTOR, 1);
             dev9.dev9Wu16((int)DEV9Header.ATA_R_SECTOR, 1);
@@ -79,9 +79,21 @@ namespace CLRDEV9.DEV9.ATA
             hddInfo[61 * 2 + 1] = BitConverter.GetBytes((UInt16)((nbSectors >> 16)))[1];
 
             //Open File
-            if (File.Exists(DEV9Header.config.Hdd))
+            if (File.Exists(hddPath))
             {
-                hddimage = new FileStream(DEV9Header.config.Hdd, FileMode.Open, FileAccess.ReadWrite);
+                hddimage = new FileStream(hddPath, FileMode.Open, FileAccess.ReadWrite);
+            }
+            else
+            {
+                //Need to Zero fill the hdd image
+                HddCreate hddcreator = new HddCreate();
+                hddcreator.neededSize = DEV9Header.config.HddSize;
+                hddcreator.filePath = hddPath;
+
+                hddcreator.ShowDialog();
+                hddcreator.Dispose();
+
+                hddimage = new FileStream(hddPath, FileMode.Open, FileAccess.ReadWrite);
             }
 
             return 0;
@@ -300,8 +312,6 @@ namespace CLRDEV9.DEV9.ATA
 
         public void _ATAirqHandler()
         {
-            Log_Verb("_ATAirqHandler");
-
             //	dev9.intr_stat |= dev9.irq_cause;
             dev9.dev9Wu16((int)DEV9Header.SPD_R_INTR_STAT, (UInt16)dev9.irqcause);//dev9.intr_stat = dev9.irqcause;
             
@@ -336,7 +346,6 @@ namespace CLRDEV9.DEV9.ATA
 
             //return 0;
         }
-
 
         private void Log_Error(string str)
         {

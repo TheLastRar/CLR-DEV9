@@ -15,9 +15,16 @@ namespace CLRDEV9
         [DataMember]
         public int HddSize;
         [DataMember]
-        public int HddEnable;
+        public bool HddEnable;
         [DataMember]
-        public int EthEnable;
+        public bool EthEnable;
+
+        public static void DoConfig()
+        {
+            ConfigForm cfgF = new ConfigForm();
+            cfgF.ShowDialog();
+            cfgF.Dispose();
+        }
 
         public static void SaveConf(string iniFolderPath, string iniFileName)
         {
@@ -57,10 +64,8 @@ namespace CLRDEV9
             DEV9Header.config.Hdd = DEV9Header.HDD_DEF;
             DEV9Header.config.HddSize = 8 * 1024;
             DEV9Header.config.Eth = DEV9Header.ETH_DEF;
-            DEV9Header.config.EthEnable = 1;
-            DEV9Header.config.HddEnable = 0;
-
-            DEV9Header.config.HddEnable = 1;
+            DEV9Header.config.EthEnable = true;
+            DEV9Header.config.HddEnable = false;
 
             SaveConf(iniFolderPath, iniFileName);
         }

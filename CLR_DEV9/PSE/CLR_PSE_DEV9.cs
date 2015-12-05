@@ -161,6 +161,7 @@ namespace PSE
         }
         public static void DEV9configure()
         {
+            CLRDEV9.CLR_DEV9.Configure();
         }
         public static void DEV9about() //(When is this called?)
         {

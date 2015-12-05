@@ -32,10 +32,16 @@ namespace CLRDEV9.DEV9
 
         }
         //Open
-        public int Open()
+        public int Open(string hddPath)
         {
             //flash.Open()
-            return smap.Open() | ata.Open();
+            int ret = 0;
+            if (DEV9Header.config.HddEnable)
+                ret |= ata.Open(hddPath);
+            if (DEV9Header.config.EthEnable)
+                ret |= smap.Open();
+
+            return ret;
         }
         //Close
         public void Close()
@@ -185,11 +191,11 @@ namespace CLRDEV9.DEV9
                     // bit 1: hdd
                     // bit 5: flash
                     hard = 0;
-                    if (DEV9Header.config.HddEnable != 0)
+                    if (DEV9Header.config.HddEnable)
                     {
                         hard|= 0x2;
                     }
-                    if (DEV9Header.config.EthEnable != 0)
+                    if (DEV9Header.config.EthEnable)
                     {
                         hard |= 0x1;
                     }
@@ -388,6 +394,7 @@ namespace CLRDEV9.DEV9
             switch (addr)
             {
                 case DEV9Header.SPD_R_DMA_CTRL: //??
+                    Log_Verb("SPD_R_DMA_CTRL=0x" + value.ToString("X"));
                     dev9Wu16((int)DEV9Header.SPD_R_DMA_CTRL, value);
                     return;
                 case DEV9Header.SPD_R_INTR_MASK:
@@ -398,11 +405,21 @@ namespace CLRDEV9.DEV9
                     }
                     dev9Wu16((int)DEV9Header.SPD_R_INTR_MASK, value);
                     return;
+                case DEV9Header.SPD_R_XFR_CTRL: //??
+                    Log_Verb("SPD_R_XFR_CTRL=0x" + value.ToString("X"));
+                    dev9Wu16((int)DEV9Header.SPD_R_XFR_CTRL, value);
+                    break;
                 case DEV9Header.SPD_R_38:
+                    Log_Verb("SPD_R_38=0x" + value.ToString("X"));
                     dev9Wu16((int)DEV9Header.SPD_R_38, value);
                     break;
                 case DEV9Header.SPD_R_IF_CTRL:
+                    Log_Verb("SPD_R_IF_CTRL=0x" + value.ToString("X"));
                     dev9Wu16((int)DEV9Header.SPD_R_IF_CTRL, value);
+                    break;
+                case DEV9Header.SPD_R_PIO_MODE: //??
+                    Log_Verb("SPD_R_PIO_MODE=0x" + value.ToString("X"));
+                    dev9Wu16((int)DEV9Header.SPD_R_PIO_MODE, value);
                     break;
                 default:
 
