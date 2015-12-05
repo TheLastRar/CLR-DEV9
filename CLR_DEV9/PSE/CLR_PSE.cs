@@ -23,7 +23,7 @@ namespace PSE
         SPU2_NewIOP_DMA = 0x0006,
         CDVD = 0x0005,
         DEV9 = 0x0003,
-        DEV9_NewIOP_DMA = 0x0004,
+        DEV9_NewIOP_DMA = 0x0004, //Not supported by PCSX2
         USB = 0x0003,
         FW = 0x0002
     }

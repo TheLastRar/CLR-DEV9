@@ -205,6 +205,9 @@ namespace CLRDEV9.DEV9
                 case DEV9Header.SPD_R_0e:
                     hard = 0x0002;
                     return hard;
+                case DEV9Header.SPD_R_XFR_CTRL: //??
+                    Log_Verb("SPD_R_XFR_CTRL=0x" + dev9Ru16((int)DEV9Header.SPD_R_XFR_CTRL).ToString("X"));
+                    return dev9Ru16((int)DEV9Header.SPD_R_XFR_CTRL);
                 case DEV9Header.SPD_R_38:
                     return dev9Ru16((int)DEV9Header.SPD_R_38);
                 case DEV9Header.SPD_R_IF_CTRL:

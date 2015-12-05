@@ -121,6 +121,12 @@ namespace CLRDEV9.DEV9.ATA
                         //ret = (UInt16)System.Net.IPAddress.HostToNetworkOrder((Int16)ret);
                         Log_Verb("*ATA_R_DATA returned value is  " + ret.ToString("x"));
                         pio_count++;
+                        if (pio_count == pio_size) //Fnished transfer (Changed from MegaDev9)
+                        {
+                            UInt16 status = dev9.dev9Ru16((int)DEV9Header.ATA_R_STATUS);
+                            status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_DRQ));
+                            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
+                        }
                         return ret;
                     }
                     break;
@@ -318,33 +324,33 @@ namespace CLRDEV9.DEV9.ATA
             //	dev9.intr_stat = 0;
             UInt16 status = dev9.dev9Ru16((int)DEV9Header.ATA_R_STATUS);
 
-            if (/*dev9.intr_stat*/(dev9.irqcause & 0x0001) != 0)				// ATA command completion
-            {
-                status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_BUSY));
-                status |= DEV9Header.ATA_STAT_READY;
-            }
-
-            if (/*dev9.intr_stat*/(dev9.irqcause & 0x0002) != 0)				// DMA transfer completion (no DRQ)
-            {
-                status &= unchecked((UInt16)~DEV9Header.ATA_STAT_BUSY);
-                status |= DEV9Header.ATA_STAT_READY;
-            }
-
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
-
-            //if ((/*dev9.intr_stat*/(dev9.irqcause & dev9.intr_mask) != 0) && (!((dev9.ata_regs.control & 2) != 0)))
+            //if (/*dev9.intr_stat*/(dev9.irqcause & 0x0001) != 0)				// ATA command completion
             //{
-            //    //	dev9.intr_stat &= ~(dev9.irq_cause);
-            //    //	dev9.intr_stat = dev9.irq_cause;
-            //    //	dev9.intr_stat = 0;
-            //    //Log("_DEV9irqHandler = 1\n");
-
-            //    return 1;
+            //    status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_BUSY));
+            //    status |= DEV9Header.ATA_STAT_READY;
             //}
 
-            //Log("_DEV9irqHandler = 0\n");
+            //if (/*dev9.intr_stat*/(dev9.irqcause & 0x0002) != 0)				// DMA transfer completion (no DRQ)
+            //{
+            //    status &= unchecked((UInt16)~DEV9Header.ATA_STAT_BUSY);
+            //    status |= DEV9Header.ATA_STAT_READY;
+            //}
 
-            //return 0;
+            //dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
+
+            ////if ((/*dev9.intr_stat*/(dev9.irqcause & dev9.intr_mask) != 0) && (!((dev9.ata_regs.control & 2) != 0)))
+            ////{
+            ////    //	dev9.intr_stat &= ~(dev9.irq_cause);
+            ////    //	dev9.intr_stat = dev9.irq_cause;
+            ////    //	dev9.intr_stat = 0;
+            ////    //Log("_DEV9irqHandler = 1\n");
+
+            ////    return 1;
+            ////}
+
+            ////Log("_DEV9irqHandler = 0\n");
+
+            ////return 0;
         }
 
         private void Log_Error(string str)
