@@ -19,31 +19,31 @@ namespace CLRDEV9.DEV9.ATA
             for (int i = 0; i < 256; i++)
             {
                 HDDcmds[i] = HDDunk;
-                //HDDcmdNames[i] = "unknown";
             }
 
-            HDDcmds[0x00] = HDDnop; //HDDcmdNames[0x00] = "nop";
+            HDDcmds[0x00] = HDDnop;
 
-            HDDcmds[0xB0] = HDDsmart; //HDDcmdNames[0xB0] = "SMART";
+            HDDcmds[0x20] = HDDreadPIO;
 
-            HDDcmds[0xC8] = HDDreadDMA; //HDDcmdNames[0xC8] = "DMA read";
-            HDDcmds[0xCA] = HDDwriteDMA; //HDDcmdNames[0xCA] = "DMA write";
-            /*	HDDcmds[0x25] = HDDreadDMA_ext;*/
-            //HDDcmdNames[0x25] = "DMA read (48-bit)";		// 48-bit
+            HDDcmds[0xB0] = HDDsmart;
+
+            HDDcmds[0xC8] = HDDreadDMA;
+            HDDcmds[0xCA] = HDDwriteDMA;
+            //HDDcmds[0x25] = HDDreadDMA48;
             /*	HDDcmds[0x35] = HDDwriteDMA_ext;*/
             //HDDcmdNames[0x35] = "DMA write (48-bit)";		// 48-bit
 
-            HDDcmds[0xE3] = HDDidle; //HDDcmdNames[0xE3] = "idle";
+            HDDcmds[0xE3] = HDDidle;
 
-            HDDcmds[0xE7] = HDDflushCache; //HDDcmdNames[0xE7] = "flush cache";
+            HDDcmds[0xE7] = HDDflushCache;
             /*	HDDcmds[0xEA] = HDDflushCacheExt;*/
             //HDDcmdNames[0xEA] = "flush cache (48-bit)";		// 48-bit
 
-            HDDcmds[0xEC] = HDDidentifyDevice; //HDDcmdNames[0xEC] = "identify device";
+            HDDcmds[0xEC] = HDDidentifyDevice;
             /*	HDDcmds[0xA1] = HDDidentifyPktDevice;*/
             //HDDcmdNames[0xA1] = "identify ATAPI device";	// For ATAPI devices
 
-            HDDcmds[0xEF] = HDDsetFeatures; //HDDcmdNames[0xEF] = "set features";
+            HDDcmds[0xEF] = HDDsetFeatures;
 
             ///*	HDDcmds[0xF1] = HDDsecSetPassword;*/
             //HDDcmdNames[0xF1] = "security set password";
@@ -69,14 +69,15 @@ namespace CLRDEV9.DEV9.ATA
 
             // Set the number of sectors
 
-            Int32 nbSectors = (((DEV9Header.config.HddSize) / 512) * 1024 * 1024);
-            Log_Verb("HddSize : " + DEV9Header.config.HddSize);
-            Log_Verb("HddSector 1: " + nbSectors);
-            Log_Verb("HddSector 2: " + (nbSectors >> 16));
-            hddInfo[60 * 2] = BitConverter.GetBytes((UInt16)(nbSectors & 0xFFFF))[0];
-            hddInfo[60 * 2 + 1] = BitConverter.GetBytes((UInt16)(nbSectors & 0xFFFF))[1];
-            hddInfo[61 * 2] = BitConverter.GetBytes((UInt16)((nbSectors >> 16)))[0];
-            hddInfo[61 * 2 + 1] = BitConverter.GetBytes((UInt16)((nbSectors >> 16)))[1];
+            //Int32 nbSectors = (((DEV9Header.config.HddSize) / 512) * 1024 * 1024);
+            //Log_Verb("HddSize : " + DEV9Header.config.HddSize);
+            //Log_Verb("HddSector 1: " + nbSectors);
+            //Log_Verb("HddSector 2: " + (nbSectors >> 16));
+            //hddInfo[60 * 2] = BitConverter.GetBytes((UInt16)(nbSectors & 0xFFFF))[0];
+            //hddInfo[60 * 2 + 1] = BitConverter.GetBytes((UInt16)(nbSectors & 0xFFFF))[1];
+            //hddInfo[61 * 2] = BitConverter.GetBytes((UInt16)((nbSectors >> 16)))[0];
+            //hddInfo[61 * 2 + 1] = BitConverter.GetBytes((UInt16)((nbSectors >> 16)))[1];
+            CreateHDDid(DEV9Header.config.HddSize);
 
             //Open File
             if (File.Exists(hddPath))
@@ -216,6 +217,29 @@ namespace CLRDEV9.DEV9.ATA
                 case DEV9Header.ATA_R_CONTROL:
                     Log_Verb("*ATA_R_CONTROL 16bit write at address " + addr.ToString("x") + " value " + value.ToString("x"));
                     dev9.dev9Wu16((int)DEV9Header.ATA_R_CONTROL, value);
+                    if ((value & 0x2) != 0)
+                    {
+                        //Supress all IRQ
+                        sendIRQ = false;
+                    }
+                    else
+                    {
+                        sendIRQ = true;
+                    }
+                    if ((value & 0x4) != 0)
+                    {
+                        Log_Verb("*ATA_R_CONTROL RESET");
+                        dev9.dev9Wu16((int)DEV9Header.ATA_R_ERROR, 0);
+                        dev9.dev9Wu16((int)DEV9Header.ATA_R_NSECTOR, 1);
+                        dev9.dev9Wu16((int)DEV9Header.ATA_R_SECTOR, 1);
+                        dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, 0x40);
+                        dev9.dev9Wu16((int)DEV9Header.ATA_R_LCYL, 0);
+                        dev9.dev9Wu16((int)DEV9Header.ATA_R_HCYL, 0);
+                        feature = 0;
+                        xfer_mode = 0;
+                        pio_count = 0;
+                        //command = 0;
+                    }
                     break;
                 default:
                     dev9.dev9Wu16((int)addr, value);
@@ -233,17 +257,16 @@ namespace CLRDEV9.DEV9.ATA
             {
                 size >>= 1;
                 Log_Verb("DEV9 : DMA read, size " + size + ", transferred " + rd_transferred + ", total size " + dev9.dev9Ru16((int)DEV9Header.ATA_R_NSECTOR) * 512);
-                if (HDDseek() == 0)
-                {
+
                     //read
                     byte[] temp = new byte[size];
                     hddimage.Read(temp, 0, size);
                     pMem.Write(temp, 0, size);
-                }
+
                 rd_transferred += size;
                 if (rd_transferred >= (dev9.dev9Ru16((int)DEV9Header.ATA_R_NSECTOR) * 512))
                 {
-                    dev9.DEV9irq(3, 0x6C);
+                    if (sendIRQ) dev9.DEV9irq(3, 0x6C); //0x6c
                     rd_transferred = 0;
                 }
             }
@@ -255,18 +278,17 @@ namespace CLRDEV9.DEV9.ATA
             {
                 size >>= 1;
                 Log_Verb("DEV9 : DMA write, size " + size + ", transferred " + wr_transferred + ", total size " + dev9.dev9Ru16((int)DEV9Header.ATA_R_NSECTOR) * 512);
-                if (HDDseek() == 0)
-                {
+
                     //write
                     byte[] temp = new byte[size];
                     pMem.Read(temp, 0, size);
                     hddimage.Write(temp, 0, size);
-                }
+
                 wr_transferred += size;
                 if (wr_transferred >= (dev9.dev9Ru16((int)DEV9Header.ATA_R_NSECTOR) * 512))
                 {
                     hddimage.Flush();
-                    dev9.DEV9irq(3, 0x6C);
+                    if (sendIRQ) dev9.DEV9irq(3, 0x6C); //0x6C
                     wr_transferred = 0;
                 }
             }
@@ -297,7 +319,7 @@ namespace CLRDEV9.DEV9.ATA
 		            return -1;
 	            }
 
-	            return -1;
+	            //return -1;
         }
 
         int HDDseek()
@@ -308,7 +330,7 @@ namespace CLRDEV9.DEV9.ATA
             lba = HDDgetLBA();
             if (lba == -1)
                 return -1;
-
+            Log_Verb("LBA :" + lba);
             pos = ((long)lba * 512);
             //fsetpos(hddImage, &pos);
             hddimage.Seek(pos, SeekOrigin.Begin);
@@ -316,41 +338,120 @@ namespace CLRDEV9.DEV9.ATA
             return 0;
         }
 
+        void CreateHDDid(int sizeMb)
+        {
+            int sectorSize = 512;
+            Log_Verb("HddSize : " + DEV9Header.config.HddSize);
+            int nbSectors = (((sizeMb) / sectorSize) * 1024 * 1024);
+            Log_Verb("nbSectors : " + nbSectors);
+
+            hddInfo = new byte[512];
+            UInt16 heads = 255;
+            UInt16 sectors = 63;
+            UInt16 cylinders = (UInt16)(nbSectors / heads / sectors);
+            int oldsize = cylinders * heads * sectors;
+
+            Utils.memcpy(ref hddInfo, 0 * 2, BitConverter.GetBytes((UInt16)0x0040),0,2);
+            Utils.memcpy(ref hddInfo, 1 * 2, BitConverter.GetBytes((UInt16)cylinders), 0, 2);
+            //3
+            Utils.memcpy(ref hddInfo, 3 * 2, BitConverter.GetBytes((UInt16)heads), 0, 2);
+            Utils.memcpy(ref hddInfo, 4 * 2, BitConverter.GetBytes((UInt16)(sectorSize * sectors)), 0, 2);
+            Utils.memcpy(ref hddInfo, 5 * 2, BitConverter.GetBytes((UInt16)sectorSize), 0, 2);
+            Utils.memcpy(ref hddInfo, 6 * 2, BitConverter.GetBytes((UInt16)sectors), 0, 2);
+            //8
+            Utils.memcpy(ref hddInfo, 10 * 2,
+                new byte[] {
+                	    (byte)'C', (byte)'L', // serial
+	                    (byte)'R', (byte)'-',
+	                    (byte)'D', (byte)'E',
+	                    (byte)'V', (byte)'9',
+	                    (byte)'-', (byte)'A',
+	                    (byte)'I', (byte)'R',
+	                    (byte)' ', (byte)' ',
+	                    (byte)' ', (byte)' ',
+	                    (byte)' ', (byte)' ',
+	                    (byte)' ', (byte)' ',
+                            }, 0, 20);
+            Utils.memcpy(ref hddInfo, 20 * 2, BitConverter.GetBytes((UInt16)/*3*/0), 0, 2); //??
+            Utils.memcpy(ref hddInfo, 21 * 2, BitConverter.GetBytes((UInt16)/*512*/ 0), 0, 2); //cache size in sectors
+            Utils.memcpy(ref hddInfo, 22 * 2, BitConverter.GetBytes((UInt16)/*4*/0), 0, 2); //ecc bytes
+            Utils.memcpy(ref hddInfo, 23 * 2,
+                new byte[] {
+	                    (byte)'F', (byte)'I', // firmware
+	                    (byte)'R', (byte)'M',
+	                    (byte)'1', (byte)'0',
+	                    (byte)'0', (byte)' ',
+                            }, 0, 8);
+            Utils.memcpy(ref hddInfo, 27 * 2,
+                new byte[] {
+                        (byte)'C', (byte)'L', // model
+                        (byte)'R', (byte)'-',
+                        (byte)'D', (byte)'E',
+                        (byte)'V', (byte)'9',
+                        (byte)' ', (byte)'H',
+                        (byte)'D', (byte)'D',
+                        (byte)' ', (byte)'A',
+                        (byte)'I', (byte)'R',
+                        (byte)' ', (byte)' ',
+                        (byte)' ', (byte)' ',
+                        (byte)' ', (byte)' ',
+                        (byte)' ', (byte)' ',
+                        (byte)' ', (byte)' ',
+                        (byte)' ', (byte)' ',
+                        (byte)' ', (byte)' ',
+                        (byte)' ', (byte)' ',
+                        (byte)' ', (byte)' ',
+                        (byte)' ', (byte)' ',
+                        (byte)' ', (byte)' ',
+                        (byte)' ', (byte)' ',
+                            }, 0, 40);
+            //??
+            Utils.memcpy(ref hddInfo, 48 * 2, BitConverter.GetBytes((UInt16)1), 0, 2); //dword IO
+            Utils.memcpy(ref hddInfo, 49 * 2, BitConverter.GetBytes((UInt16)((1 << 11) | (1 << 9) | (1 << 8))), 0, 2); //DMA and LBA supported
+            //
+            Utils.memcpy(ref hddInfo, 51 * 2, BitConverter.GetBytes((UInt16)0x200), 0, 2); //PIO transfer cycle
+            Utils.memcpy(ref hddInfo, 52 * 2, BitConverter.GetBytes((UInt16)0x200), 0, 2); //DMA transfer cycle
+            Utils.memcpy(ref hddInfo, 53 * 2, BitConverter.GetBytes((UInt16)(1 | (1 << 1) | (1 << 2))), 0, 2); // words 54-58,64-70,88 are valid (??)
+            Utils.memcpy(ref hddInfo, 54 * 2, BitConverter.GetBytes((UInt16)cylinders), 0, 2);
+            Utils.memcpy(ref hddInfo, 55 * 2, BitConverter.GetBytes((UInt16)heads), 0, 2);
+            Utils.memcpy(ref hddInfo, 56 * 2, BitConverter.GetBytes((UInt16)sectors), 0, 2);
+            Utils.memcpy(ref hddInfo, 57 * 2, BitConverter.GetBytes((UInt16)oldsize), 0, 2);
+            Utils.memcpy(ref hddInfo, 58 * 2, BitConverter.GetBytes((UInt16)(oldsize >> 16)), 0, 2);
+            //??
+            Utils.memcpy(ref hddInfo, 60 * 2, BitConverter.GetBytes((UInt16)nbSectors), 0, 2);
+            Utils.memcpy(ref hddInfo, 61 * 2, BitConverter.GetBytes((UInt16)(nbSectors >> 16)), 0, 2);
+            Utils.memcpy(ref hddInfo, 62 * 2, BitConverter.GetBytes((UInt16)0x07), 0, 2); //single word dma0-2 supported
+            Utils.memcpy(ref hddInfo, 63 * 2, BitConverter.GetBytes((UInt16)0x07), 0, 2); //mdma0-2 supported
+            Utils.memcpy(ref hddInfo, 64 * 2, BitConverter.GetBytes((UInt16)0x03), 0, 2); //pio3-4 supported
+            Utils.memcpy(ref hddInfo, 65 * 2, BitConverter.GetBytes((UInt16)120), 0, 2);
+            Utils.memcpy(ref hddInfo, 66 * 2, BitConverter.GetBytes((UInt16)120), 0, 2);
+            Utils.memcpy(ref hddInfo, 67 * 2, BitConverter.GetBytes((UInt16)120), 0, 2);
+            Utils.memcpy(ref hddInfo, 68 * 2, BitConverter.GetBytes((UInt16)120), 0, 2);
+            //??
+            //Many ??s
+            Utils.memcpy(ref hddInfo, 80 * 2, BitConverter.GetBytes((UInt16)0xf0), 0, 2);
+            Utils.memcpy(ref hddInfo, 81 * 2, BitConverter.GetBytes((UInt16)0x16), 0, 2);
+            Utils.memcpy(ref hddInfo, 82 * 2, BitConverter.GetBytes((UInt16)((1 << 14) | (1 << 5) | 1)), 0, 2);
+            Utils.memcpy(ref hddInfo, 83 * 2, BitConverter.GetBytes((UInt16)((1 << 14) | (1 << 13) | (1 << 12) /*| (1 << 10)*/)), 0, 2); //48bit
+            Utils.memcpy(ref hddInfo, 84 * 2, BitConverter.GetBytes((UInt16)((1 << 14) | 0)), 0, 2); //no WWN
+            Utils.memcpy(ref hddInfo, 85 * 2, BitConverter.GetBytes((UInt16)((1 << 14) | 1)), 0, 2); //no WCACHE 
+            Utils.memcpy(ref hddInfo, 86 * 2, BitConverter.GetBytes((UInt16)((1 << 13) | (1 << 12) /*| (1 << 10)*/)), 0, 2); //48bit
+            Utils.memcpy(ref hddInfo, 87 * 2, BitConverter.GetBytes((UInt16)((1 << 14) | 0)), 0, 2); //no WWN
+            Utils.memcpy(ref hddInfo, 88 * 2, BitConverter.GetBytes((UInt16)(0x3f | (1 << 13))), 0, 2); //udma5 set and supported
+            //
+            Utils.memcpy(ref hddInfo, 93 * 2, BitConverter.GetBytes((UInt16)(1 | (1 << 14) | 0x2000)), 0, 2);
+            //
+            Utils.memcpy(ref hddInfo, 100 * 2, BitConverter.GetBytes((UInt16)nbSectors), 0, 2);
+            Utils.memcpy(ref hddInfo, 101 * 2, BitConverter.GetBytes((UInt16)(nbSectors >> 16)), 0, 2);
+            Utils.memcpy(ref hddInfo, 102 * 2, BitConverter.GetBytes((UInt16)(nbSectors >> 32)), 0, 2);
+            Utils.memcpy(ref hddInfo, 103 * 2, BitConverter.GetBytes((UInt16)(nbSectors >> 48)), 0, 2);
+            //Many ??s
+        }
+
         public void _ATAirqHandler()
         {
             //	dev9.intr_stat |= dev9.irq_cause;
             dev9.dev9Wu16((int)DEV9Header.SPD_R_INTR_STAT, (UInt16)dev9.irqcause);//dev9.intr_stat = dev9.irqcause;
-            
-            //	dev9.intr_stat = 0;
-            UInt16 status = dev9.dev9Ru16((int)DEV9Header.ATA_R_STATUS);
-
-            //if (/*dev9.intr_stat*/(dev9.irqcause & 0x0001) != 0)				// ATA command completion
-            //{
-            //    status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_BUSY));
-            //    status |= DEV9Header.ATA_STAT_READY;
-            //}
-
-            //if (/*dev9.intr_stat*/(dev9.irqcause & 0x0002) != 0)				// DMA transfer completion (no DRQ)
-            //{
-            //    status &= unchecked((UInt16)~DEV9Header.ATA_STAT_BUSY);
-            //    status |= DEV9Header.ATA_STAT_READY;
-            //}
-
-            //dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
-
-            ////if ((/*dev9.intr_stat*/(dev9.irqcause & dev9.intr_mask) != 0) && (!((dev9.ata_regs.control & 2) != 0)))
-            ////{
-            ////    //	dev9.intr_stat &= ~(dev9.irq_cause);
-            ////    //	dev9.intr_stat = dev9.irq_cause;
-            ////    //	dev9.intr_stat = 0;
-            ////    //Log("_DEV9irqHandler = 1\n");
-
-            ////    return 1;
-            ////}
-
-            ////Log("_DEV9irqHandler = 0\n");
-
-            ////return 0;
         }
 
         private void Log_Error(string str)

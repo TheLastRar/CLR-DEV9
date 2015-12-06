@@ -80,14 +80,18 @@ namespace PSE
             if (mySource == null) return;
             if ((enabledLogLevels.ContainsKey(logSource) && enabledLogLevels[logSource].ShouldTrace(eType)) ||
                     defualtSwicth.ShouldTrace(eType))
+            {
                 mySource.TraceEvent(eType, logSource, "[" + prefix + "] " + str);
+            }
         }
         public static void WriteLine(TraceEventType eType, int logSource, string prefix, string str)
         {
             if (mySource == null) return;
             if ((enabledLogLevels.ContainsKey(logSource) && enabledLogLevels[logSource].ShouldTrace(eType)) ||
                     defualtSwicth.ShouldTrace(eType))
+            {
                 mySource.TraceEvent(eType, logSource, "[" + prefix + "] " + str);
+            }
         }
     }
 }

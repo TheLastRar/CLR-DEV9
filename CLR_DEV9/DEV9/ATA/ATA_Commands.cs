@@ -26,6 +26,54 @@ namespace CLRDEV9.DEV9.ATA
             dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
         }
 
+        //TODO multi-Sector read support
+        byte[] piosectorbuffer;
+        int piobufferindex = -1;
+        void HDDreadPIO()
+        {
+            Log_Verb("HDDreadPIO");
+            dev9.dev9Wu16((int)DEV9Header.ATA_R_ERROR, 0);
+            UInt16 status = dev9.dev9Ru16((int)DEV9Header.ATA_R_STATUS);
+            status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_ERR | DEV9Header.ATA_STAT_READY));
+            status |= DEV9Header.ATA_STAT_BUSY;
+
+            UInt16 sectorCount = dev9.dev9Ru16((int)DEV9Header.ATA_R_NSECTOR);
+            if (sectorCount == 0) sectorCount = 256;
+
+            if (piobufferindex == -1)
+            {
+                if (HDDseek() == -1)
+                {
+                    status = DEV9Header.ATA_STAT_ERR;
+                    dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
+                    return;
+                }
+                piosectorbuffer = new byte[512 * sectorCount];
+                piobufferindex = 0;
+
+                hddimage.Read(piosectorbuffer, 0, piosectorbuffer.Length);
+                
+            }
+            //Sector size is 512b
+            Utils.memcpy(ref pio_buf, 0, piosectorbuffer, piobufferindex, pio_buf.Length);
+            
+            pio_count = 0;
+            pio_size = 256;
+
+            piobufferindex = -1;
+
+            status |= (DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_READY);
+            status &= unchecked((UInt16)~DEV9Header.ATA_STAT_BUSY);
+            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
+
+            if (sendIRQ) dev9.DEV9irq(1, 0x6C);
+
+            //Differs from MegaDev9
+            status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_BUSY));
+            status |= DEV9Header.ATA_STAT_READY;
+            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
+        }
+        
         void HDDsmart()
         {
             Log_Verb("HDDSmart");
@@ -49,7 +97,7 @@ namespace CLRDEV9.DEV9.ATA
             status &= unchecked((UInt16)~DEV9Header.ATA_STAT_BUSY);
             dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
 
-            dev9.DEV9irq(1, 1);
+            if (sendIRQ) dev9.DEV9irq(1, 0x6C);
 
             //Differs from MegaDev9
             status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_BUSY));
@@ -66,6 +114,12 @@ namespace CLRDEV9.DEV9.ATA
             status |= DEV9Header.ATA_STAT_BUSY;
 
             // here do stuffs
+            if (HDDseek() != 0)
+            {
+                status = DEV9Header.ATA_STAT_ERR;
+                dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
+                return;
+            }
 
             status &= unchecked((UInt16)~DEV9Header.ATA_STAT_BUSY);
             dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
@@ -78,6 +132,27 @@ namespace CLRDEV9.DEV9.ATA
             dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
         }
 
+        //void HDDreadDMA48()
+        //{
+        //    Log_Verb("HDDreadDMA48");
+        //    dev9.dev9Wu16((int)DEV9Header.ATA_R_ERROR, 0);
+        //    UInt16 status = dev9.dev9Ru16((int)DEV9Header.ATA_R_STATUS);
+        //    status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_ERR | DEV9Header.ATA_STAT_READY));
+        //    status |= DEV9Header.ATA_STAT_BUSY;
+
+        //    // here do stuffs
+
+        //    status &= unchecked((UInt16)~DEV9Header.ATA_STAT_BUSY);
+        //    dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
+
+        //    //	triggerIRQ(1, 0x1000);
+
+        //    //Differs from MegaDev9 (How did it work in MegaDev9?)
+        //    status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_BUSY));
+        //    status |= DEV9Header.ATA_STAT_READY;
+        //    dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
+        //}
+
         void HDDwriteDMA()
         {
             Log_Verb("HDDwriteDMA");
@@ -87,6 +162,12 @@ namespace CLRDEV9.DEV9.ATA
             status |= DEV9Header.ATA_STAT_BUSY;
 
             // here do stuffs
+            if (HDDseek() != 0)
+            {
+                status = DEV9Header.ATA_STAT_ERR;
+                dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
+                return;
+            }
 
             status &= unchecked((UInt16)~DEV9Header.ATA_STAT_BUSY);
             dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
@@ -111,7 +192,7 @@ namespace CLRDEV9.DEV9.ATA
             status &= unchecked((UInt16)~DEV9Header.ATA_STAT_BUSY);
             dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
 
-            dev9.DEV9irq(1, 1);
+            if (sendIRQ) dev9.DEV9irq(1, 0x6C);
 
             //Differs from MegaDev9
             status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_BUSY));
@@ -132,7 +213,7 @@ namespace CLRDEV9.DEV9.ATA
             status &= unchecked((UInt16)~DEV9Header.ATA_STAT_BUSY);
             dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
 
-            dev9.DEV9irq(1, 1);
+            if (sendIRQ) dev9.DEV9irq(1, 0x6C);
 
             //Differs from MegaDev9
             status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_BUSY));
@@ -153,7 +234,7 @@ namespace CLRDEV9.DEV9.ATA
             status &= unchecked((UInt16)~DEV9Header.ATA_STAT_BUSY);
             dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
 
-            dev9.DEV9irq(1, 1);
+            if (sendIRQ) dev9.DEV9irq(1, 0x6C);
 
             //Differs from MegaDev9
             status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_BUSY));
@@ -178,7 +259,7 @@ namespace CLRDEV9.DEV9.ATA
             dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
 
             //dev9.DEV9irq(2, 0x6C); //Changed from MegaDev9
-            dev9.DEV9irq(1, 1);
+            if (sendIRQ) dev9.DEV9irq(1, 0x6C);
 
             //Differs from MegaDev9
             status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_BUSY));
@@ -204,7 +285,7 @@ namespace CLRDEV9.DEV9.ATA
             status &= unchecked((UInt16)~DEV9Header.ATA_STAT_BUSY);
             dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
 
-            dev9.DEV9irq(1, 1);
+            if (sendIRQ) dev9.DEV9irq(1, 0x6C);
 
             //Differs from MegaDev9
             status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_BUSY));
@@ -230,7 +311,7 @@ namespace CLRDEV9.DEV9.ATA
             dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
 
             //dev9.DEV9irq(2, 0x6C);  //Changed from MegaDev9
-            dev9.DEV9irq(1, 1);
+            if (sendIRQ) dev9.DEV9irq(1, 0x6C);
 
             //Differs from MegaDev9
             status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_BUSY));

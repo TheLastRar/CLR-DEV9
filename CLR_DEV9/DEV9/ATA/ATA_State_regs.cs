@@ -9,6 +9,8 @@ namespace CLRDEV9.DEV9.ATA
         UInt16 xfer_mode;
         int smart_on;
 
+        bool sendIRQ = true;
+
         UInt16 pio_count;
         UInt16 pio_size;
         byte[] pio_buf = new byte[256*2];
