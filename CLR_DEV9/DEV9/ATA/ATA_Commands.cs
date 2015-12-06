@@ -99,11 +99,10 @@ namespace CLRDEV9.DEV9.ATA
                     //ide_rw_error
                     return;
                 }
-                piosectorbuffer = new byte[512 * n];
+                piosectorbuffer = new byte[512 * nsector];
                 piobufferindex = 0;
-            }
-
-            hddimage.Read(piosectorbuffer, 0, piosectorbuffer.Length);
+                hddimage.Read(piosectorbuffer, 0, piosectorbuffer.Length);
+            } 
 
             //IDE sector read cb
             status &= unchecked((byte)(~DEV9Header.ATA_STAT_BUSY));
