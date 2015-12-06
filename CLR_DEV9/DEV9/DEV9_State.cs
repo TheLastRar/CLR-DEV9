@@ -410,7 +410,7 @@ namespace CLRDEV9.DEV9
                     }
                     dev9Wu16((int)DEV9Header.SPD_R_INTR_MASK, value);
                     return;
-                case DEV9Header.SPD_R_XFR_CTRL: //??
+                case DEV9Header.SPD_R_XFR_CTRL:
                     Log_Verb("SPD_R_XFR_CTRL=0x" + value.ToString("X"));
                     dev9Wu16((int)DEV9Header.SPD_R_XFR_CTRL, value);
                     break;
@@ -425,6 +425,10 @@ namespace CLRDEV9.DEV9
                 case DEV9Header.SPD_R_PIO_MODE: //??
                     Log_Verb("SPD_R_PIO_MODE=0x" + value.ToString("X"));
                     dev9Wu16((int)DEV9Header.SPD_R_PIO_MODE, value);
+                    break;
+                case DEV9Header.SPD_R_UDMA_MODE:
+                    Log_Verb("SPD_R_UDMA_MODE=0x" + value.ToString("X"));
+                    dev9Wu16((int)DEV9Header.SPD_R_UDMA_MODE, value);
                     break;
                 default:
 

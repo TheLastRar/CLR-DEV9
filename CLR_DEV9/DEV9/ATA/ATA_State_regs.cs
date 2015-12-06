@@ -54,7 +54,7 @@ namespace CLRDEV9.DEV9.ATA
         byte status;
 
         /* set for lba48 access */
-        byte lba48;
+        bool lba48 = false;
         //BlockBackend *blk;
         //char version[9];
         /* ATAPI specific */

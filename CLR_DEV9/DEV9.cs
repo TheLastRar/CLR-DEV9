@@ -322,7 +322,7 @@ namespace CLRDEV9
         public static void Configure()
         {
             Config.LoadConf(IniFolderPath, "CLR_DEV9.ini");
-            Config.DoConfig();
+            Config.DoConfig(IniFolderPath, "CLR_DEV9.ini");
             Config.SaveConf(IniFolderPath, "CLR_DEV9.ini");
         }
 

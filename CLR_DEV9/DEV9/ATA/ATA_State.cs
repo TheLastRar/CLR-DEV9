@@ -297,7 +297,12 @@ namespace CLRDEV9.DEV9.ATA
                 rd_transferred += size;
                 if (rd_transferred >= nsector * 512)
                 {
-                    //nsector = 0;
+                    //Set Sector
+                    long currSect = HDDgetLBA();
+                    currSect += nsector;
+                    HDDsetLBA(currSect);
+
+                    nsector = 0;
                     status = DEV9Header.ATA_STAT_READY | DEV9Header.ATA_STAT_SEEK;
                     if (sendIRQ) dev9.DEV9irq(3, 1); //0x6c
                     rd_transferred = 0;
@@ -321,6 +326,12 @@ namespace CLRDEV9.DEV9.ATA
                 if (wr_transferred >= nsector * 512)
                 {
                     hddimage.Flush();
+
+                    //Set Sector
+                    long currSect = HDDgetLBA();
+                    currSect += nsector;
+                    HDDsetLBA(currSect);
+
                     nsector = 0;
                     status = DEV9Header.ATA_STAT_READY | DEV9Header.ATA_STAT_SEEK;
                     if (sendIRQ) dev9.DEV9irq(3, 1); //0x6C
@@ -329,14 +340,25 @@ namespace CLRDEV9.DEV9.ATA
             }
         }
 
-        int HDDgetLBA()
+        long HDDgetLBA()
         {
             if ((select & 0x40) != 0)
             {
-                return (sector |
-                        (lcyl << 8) |
-                        (hcyl << 16) |
-                        ((select & 0x0f) << 24));
+                if (!lba48)
+                {
+                    return (sector |
+                            (lcyl << 8) |
+                            (hcyl << 16) |
+                            ((select & 0x0f) << 24));
+                }
+                else
+                {
+                    return ((long)hob_hcyl << 40) |
+                            ((long)hob_lcyl << 32) |
+                            ((long)hob_sector << 24) |
+                            ((long)hcyl << 16) |
+                            ((long)lcyl << 8) | sector;
+                }
             }
             else
             {
@@ -350,9 +372,39 @@ namespace CLRDEV9.DEV9.ATA
             //return -1;
         }
 
+        void HDDsetLBA(long sector_num)
+        {
+            if ((select & 0x40) != 0)
+            {
+                if (!lba48)
+                {
+                    select = (byte)((select & 0xf0) | ((int)sector_num >> 24));
+                    hcyl = (byte)(sector_num >> 16);
+                    lcyl = (byte)(sector_num >> 8);
+                    sector = (byte)(sector_num);
+                }
+                else
+                {
+                    sector = (byte)sector_num;
+                    lcyl = (byte)(sector_num >> 8);
+                    hcyl = (byte)(sector_num >> 16);
+                    hob_sector = (byte)(sector_num >> 24);
+                    hob_lcyl = (byte)(sector_num >> 32);
+                    hob_hcyl = (byte)(sector_num >> 40);
+                }
+            }
+            else
+            {
+                status |= (byte)DEV9Header.ATA_STAT_ERR;
+                error |= (byte)DEV9Header.ATA_ERR_ABORT;
+
+                Log_Error("DEV9 ERROR : tried to get LBA address while LBA mode disabled\n");
+            }
+        }
+
         int HDDseek()
         {
-            int lba;
+            long lba;
             long pos;
 
             lba = HDDgetLBA();
@@ -360,7 +412,6 @@ namespace CLRDEV9.DEV9.ATA
                 return -1;
             Log_Verb("LBA :" + lba);
             pos = ((long)lba * 512);
-            //fsetpos(hddImage, &pos);
             hddimage.Seek(pos, SeekOrigin.Begin);
 
             return 0;

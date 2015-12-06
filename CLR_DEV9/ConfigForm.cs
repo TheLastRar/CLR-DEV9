@@ -16,6 +16,8 @@ namespace CLRDEV9
             InitializeComponent();
         }
 
+        public string iniFolder = "";
+
         private void ConfigForm_Load(object sender, EventArgs e)
         {
             cbEth.Checked = DEV9Header.config.EthEnable;
@@ -31,6 +33,7 @@ namespace CLRDEV9
         {
             ConfigFormHdd hdd = new ConfigFormHdd();
 
+            hdd.iniFolder = iniFolder;
             hdd.ShowDialog();
             hdd.Dispose();
         }

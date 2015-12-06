@@ -19,9 +19,10 @@ namespace CLRDEV9
         [DataMember]
         public bool EthEnable;
 
-        public static void DoConfig()
+        public static void DoConfig(string iniFolderPath, string iniFileName)
         {
             ConfigForm cfgF = new ConfigForm();
+            cfgF.iniFolder = iniFolderPath;
             cfgF.ShowDialog();
             cfgF.Dispose();
         }

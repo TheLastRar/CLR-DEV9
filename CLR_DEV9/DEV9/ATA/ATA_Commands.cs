@@ -71,7 +71,6 @@ namespace CLRDEV9.DEV9.ATA
             //IDE sector read
             
             status = (byte)DEV9Header.ATA_STAT_READY | (byte)DEV9Header.ATA_STAT_SEEK; //Set Ready
-            Log_Verb(status.ToString("X"));
             error = 0;
 
             uint n = nsector;
@@ -84,7 +83,7 @@ namespace CLRDEV9.DEV9.ATA
             }
 
             status |= (byte)DEV9Header.ATA_STAT_BUSY;
-            Log_Verb(status.ToString());
+
             if (n > req_nb_sectors)
             {
                 n = (uint)req_nb_sectors;
@@ -108,10 +107,10 @@ namespace CLRDEV9.DEV9.ATA
 
             //IDE sector read cb
             status &= unchecked((byte)(~DEV9Header.ATA_STAT_BUSY));
-            Log_Verb(status.ToString());
+
             nsector -= n;
 
-            //Set Next Sector
+            //Set Next Sector (TODO)
 
             //Start Transfer
             //Sector size is 512b
@@ -124,7 +123,6 @@ namespace CLRDEV9.DEV9.ATA
             {
                 status |= (byte)DEV9Header.ATA_STAT_DRQ;
             }
-            Log_Verb(status.ToString());
 
             if (sendIRQ) dev9.DEV9irq(1, 1);
             //end sector read

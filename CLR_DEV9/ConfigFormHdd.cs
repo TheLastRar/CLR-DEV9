@@ -17,6 +17,8 @@ namespace CLRDEV9
             InitializeComponent();
         }
 
+        public string iniFolder = "";
+
         private void ConfigFormHdd_Load(object sender, EventArgs e)
         {
             tbPath.Text = DEV9Header.config.Hdd;
@@ -25,9 +27,16 @@ namespace CLRDEV9
 
         private void tbPath_TextChanged(object sender, EventArgs e)
         {
-            if (File.Exists(tbPath.Text))
+            string path = "";
+
+            if (tbPath.Text.Contains("\\") || tbPath.Text.Contains("/"))
+                path = tbPath.Text;
+            else
+                path = iniFolder + "\\" + tbPath.Text;
+
+            if (File.Exists(path))
             {
-                FileInfo f = new FileInfo(tbPath.Text);
+                FileInfo f = new FileInfo(path);
                 long Size = f.Length / (1014 * 1024 * 1024);
                 comboSize.Text = Size.ToString();
             }
@@ -36,6 +45,8 @@ namespace CLRDEV9
         private void btnBrowse_Click(object sender, EventArgs e)
         {
             ofHdd.ShowDialog();
+            ofHdd.InitialDirectory = iniFolder;
+            ofHdd.FileName = DEV9Header.config.Hdd;
         }
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -45,11 +56,18 @@ namespace CLRDEV9
 
         private void ofHdd_FileOk(object sender, CancelEventArgs e)
         {
-            tbPath.Text = Path.GetFullPath(ofHdd.FileName);
+            tbPath.Text = Path.GetFullPath(ofHdd.FileName); //Working directory (PCSX2)
 
-            if (File.Exists(tbPath.Text))
+            string path = "";
+
+            if (tbPath.Text.Contains("\\") || tbPath.Text.Contains("/"))
+                path = tbPath.Text;
+            else
+                path = iniFolder + "\\" + tbPath.Text;
+
+            if (File.Exists(path))
             {
-                FileInfo f = new FileInfo(tbPath.Text);
+                FileInfo f = new FileInfo(path);
                 long Size = f.Length / (1014 * 1024 * 1024);
                 comboSize.Text = Size.ToString();
             }
@@ -65,14 +83,35 @@ namespace CLRDEV9
             }
             DEV9Header.config.HddSize = size * 1024;
 
-            DEV9Header.config.Hdd = tbPath.Text;
+            if (!(iniFolder.EndsWith("\\") || iniFolder.EndsWith("/")))
+            {
+                iniFolder = iniFolder + Path.DirectorySeparatorChar;
+            }
 
-            if (!File.Exists(tbPath.Text))
+            if (tbPath.Text.StartsWith(iniFolder) && 
+                !(tbPath.Text.Substring(iniFolder.Length).Contains("\\") || tbPath.Text.Substring(iniFolder.Length).Contains("/")))
+            {
+                //Path is in ini folder
+                DEV9Header.config.Hdd = tbPath.Text.Substring(iniFolder.Length);
+            }
+            else
+            {
+                DEV9Header.config.Hdd = tbPath.Text;
+            }
+
+            string path = "";
+
+            if (DEV9Header.config.Hdd.Contains("\\") || DEV9Header.config.Hdd.Contains("/"))
+                path = DEV9Header.config.Hdd;
+            else
+                path = iniFolder + DEV9Header.config.Hdd;
+
+            if (!File.Exists(path))
             {
                 //Need to Zero fill the hdd image
                 HddCreate hddcreator = new HddCreate();
                 hddcreator.neededSize = DEV9Header.config.HddSize;
-                hddcreator.filePath = tbPath.Text;
+                hddcreator.filePath = path;
 
                 hddcreator.ShowDialog();
                 hddcreator.Dispose();
