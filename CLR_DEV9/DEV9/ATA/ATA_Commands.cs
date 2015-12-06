@@ -69,11 +69,11 @@ namespace CLRDEV9.DEV9.ATA
         {
             Log_Verb("SectorRead");
             //IDE sector read
-            
+
             status = (byte)DEV9Header.ATA_STAT_READY | (byte)DEV9Header.ATA_STAT_SEEK; //Set Ready
             error = 0;
 
-            uint n = nsector;
+            int n = nsector;
 
             if (n == 0)
             {
@@ -86,12 +86,12 @@ namespace CLRDEV9.DEV9.ATA
 
             if (n > req_nb_sectors)
             {
-                n = (uint)req_nb_sectors;
+                n = req_nb_sectors;
             }
 
             //QEMU Dose async read here
 
-            
+
             if (piobufferindex == -1)
             {
                 if (HDDseek() == -1)
@@ -102,7 +102,7 @@ namespace CLRDEV9.DEV9.ATA
                 piosectorbuffer = new byte[512 * nsector];
                 piobufferindex = 0;
                 hddimage.Read(piosectorbuffer, 0, piosectorbuffer.Length);
-            } 
+            }
 
             //IDE sector read cb
             status &= unchecked((byte)(~DEV9Header.ATA_STAT_BUSY));

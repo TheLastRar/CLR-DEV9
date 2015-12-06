@@ -294,6 +294,12 @@ namespace CLRDEV9.DEV9.SMAP
         {
             switch (addr)
             {
+                case DEV9Header.SMAP_R_TXFIFO_CTRL:
+                    Log_Verb("SMAP_R_TXFIFO_CTRL 8bit read value " + dev9.dev9Ru8((int)addr).ToString("X"));
+                    return dev9.dev9Ru8((int)addr);
+                case DEV9Header.SMAP_R_RXFIFO_CTRL:
+                    Log_Verb("SMAP_R_RXFIFO_CTRL 8bit read value " + dev9.dev9Ru8((int)addr).ToString("X"));
+                    return dev9.dev9Ru8((int)addr);
                 case DEV9Header.SMAP_R_TXFIFO_FRAME_CNT:
                     //printf("SMAP_R_TXFIFO_FRAME_CNT read 8\n");
                     break;
@@ -576,6 +582,15 @@ namespace CLRDEV9.DEV9.SMAP
 
             switch (addr)
             {
+
+                case DEV9Header.SMAP_R_RXFIFO_RD_PTR:
+                    Log_Verb("SMAP: SMAP_R_RXFIFO_RD_PTR 16bit write " + value.ToString("X"));
+                    dev9.dev9Wu16((int)addr, value);
+                    break;
+                case DEV9Header.SMAP_R_RXFIFO_SIZE:
+                    Log_Verb("SMAP: SMAP_R_34 16bit write " + value.ToString("X"));
+                    dev9.dev9Wu16((int)addr, value);
+                    break;
                 case DEV9Header.SMAP_R_INTR_CLR:
                     Log_Verb("SMAP: SMAP_R_INTR_CLR 16bit write " + value.ToString("X"));
                     dev9.irqcause &= ~value;
@@ -585,7 +600,10 @@ namespace CLRDEV9.DEV9.SMAP
                     Log_Verb("SMAP: SMAP_R_TXFIFO_WR_PTR 16bit write " + value.ToString("X"));
                     dev9.dev9Wu16((int)addr, value);
                     return;
-
+                case DEV9Header.SMAP_R_TXFIFO_SIZE:
+                    Log_Verb("SMAP: SMAP_R_TXFIFO_SIZE 16bit write " + value.ToString("X"));
+                    dev9.dev9Wu16((int)addr, value);
+                    break;
                 //handle L writes
                 //#define EMAC3_L_WRITE(name) \
                 //    case name: \

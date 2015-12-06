@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 
 namespace PSE
 {
@@ -36,6 +37,16 @@ namespace PSE
             if (currentLogPath != logFolderPath + "\\" + logFileName)
             {
                 Close();
+
+                if (File.Exists(logFolderPath + "\\" + logFileName))
+                {
+                    try
+                    {
+                        File.Delete(logFolderPath + "\\" + logFileName);
+                    } catch
+                    {
+                    }
+                }
 
                 mySource = new TraceSource("CLR_DEV9");
                 mySource.Switch = new SourceSwitch("Accept All");

@@ -39,7 +39,7 @@ namespace CLRDEV9.DEV9.ATA
         //
         byte feature;
         byte error;
-        UInt32 nsector;
+        Int32 nsector;
         byte sector;
         byte lcyl;
         byte hcyl;

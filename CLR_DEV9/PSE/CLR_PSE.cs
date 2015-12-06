@@ -43,7 +43,7 @@ namespace PSE
         //major
         public const byte revision = 0;
         //minor
-        public const byte build = 3;
+        public const byte build = 4;
 
 #if DEBUG
         private const string libraryName = "CLR DEV9 DEBUG Test";

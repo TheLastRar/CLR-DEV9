@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
 using System.IO;
+using System.Windows.Forms;
 
 namespace CLRDEV9
 {
@@ -88,7 +84,7 @@ namespace CLRDEV9
                 iniFolder = iniFolder + Path.DirectorySeparatorChar;
             }
 
-            if (tbPath.Text.StartsWith(iniFolder) && 
+            if (tbPath.Text.StartsWith(iniFolder) &&
                 !(tbPath.Text.Substring(iniFolder.Length).Contains("\\") || tbPath.Text.Substring(iniFolder.Length).Contains("/")))
             {
                 //Path is in ini folder

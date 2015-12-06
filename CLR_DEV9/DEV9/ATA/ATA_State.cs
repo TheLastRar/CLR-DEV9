@@ -421,7 +421,7 @@ namespace CLRDEV9.DEV9.ATA
         {
             int sectorSize = 512;
             Log_Verb("HddSize : " + DEV9Header.config.HddSize);
-            int nbSectors = (((sizeMb) / sectorSize) * 1024 * 1024);
+            long nbSectors = (((long)sizeMb / (long)sectorSize) * 1024L * 1024L);
             Log_Verb("nbSectors : " + nbSectors);
 
             identify_data = new byte[512];
