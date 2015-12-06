@@ -4,83 +4,135 @@ namespace CLRDEV9.DEV9.ATA
 {
     partial class ATA_State
     {
-        void HDDunk()
+        void ide_exec_cmd(UInt16 value)
+        {
+            bool compleate;
+
+            //Check if CMD valid
+
+            status = DEV9Header.ATA_STAT_READY | DEV9Header.ATA_STAT_BUSY;
+            error = 0;
+            //io_buffer_offset = 0;
+
+            compleate = HDDcmds[value]();
+            if (compleate)
+            {
+                status &= unchecked((byte)(~DEV9Header.ATA_STAT_BUSY));
+                //assert(!!s->error == !!(s->status & ERR_STAT));
+
+                if ((HDDcmdDoesSeek[value]) && !(error != 0))
+                {
+                    status |= (byte)DEV9Header.ATA_STAT_SEEK;
+                }
+
+                //ide_cmd_done(s);
+                if (sendIRQ) dev9.DEV9irq(1, 1);
+            }
+        }
+
+        void ide_transfer_stop()
+        {
+            end_transfer_func = ide_transfer_stop;
+            data_ptr = 0;
+            data_end = 0;
+            status &= unchecked((byte)(~DEV9Header.ATA_STAT_DRQ));
+        }
+
+        bool HDDunk()
         {
             Log_Error("DEV9 HDD error : unknown cmd " + command.ToString("X"));
 
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_ERROR, 0);
-            UInt16 status = dev9.dev9Ru16((int)DEV9Header.ATA_R_STATUS);
-            status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_READY));
-            status |= DEV9Header.ATA_STAT_ERR;
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_ERROR, DEV9Header.ATA_ERR_ABORT);
+            status |= (byte)DEV9Header.ATA_STAT_ERR;
+            return true;
         }
 
-        void HDDnop()
+        bool HDDnop()
         {
             Log_Error("HDDnop");
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_ERROR, 0);
-            UInt16 status = dev9.dev9Ru16((int)DEV9Header.ATA_R_STATUS);
-            status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_BUSY | DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_ERR));
-            status |= DEV9Header.ATA_STAT_READY;
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
+            return true;
         }
 
         //TODO multi-Sector read support
         byte[] piosectorbuffer;
         int piobufferindex = -1;
-        void HDDreadPIO()
+
+        bool HDDreadPIO()
         {
             Log_Verb("HDDreadPIO");
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_ERROR, 0);
-            UInt16 status = dev9.dev9Ru16((int)DEV9Header.ATA_R_STATUS);
-            status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_ERR | DEV9Header.ATA_STAT_READY));
-            status |= DEV9Header.ATA_STAT_BUSY;
 
-            UInt16 sectorCount = dev9.dev9Ru16((int)DEV9Header.ATA_R_NSECTOR);
-            if (sectorCount == 0) sectorCount = 256;
+            req_nb_sectors = 1;
+            SectorRead();
 
+            return false;
+        }
+        void SectorRead()
+        {
+            Log_Verb("SectorRead");
+            //IDE sector read
+            
+            status = (byte)DEV9Header.ATA_STAT_READY | (byte)DEV9Header.ATA_STAT_SEEK; //Set Ready
+            Log_Verb(status.ToString("X"));
+            error = 0;
+
+            uint n = nsector;
+
+            if (n == 0)
+            {
+                ide_transfer_stop();
+                piobufferindex = -1;
+                return;
+            }
+
+            status |= (byte)DEV9Header.ATA_STAT_BUSY;
+            Log_Verb(status.ToString());
+            if (n > req_nb_sectors)
+            {
+                n = (uint)req_nb_sectors;
+            }
+
+            //QEMU Dose async read here
+
+            
             if (piobufferindex == -1)
             {
                 if (HDDseek() == -1)
                 {
-                    status = DEV9Header.ATA_STAT_ERR;
-                    dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
+                    //ide_rw_error
                     return;
                 }
-                piosectorbuffer = new byte[512 * sectorCount];
+                piosectorbuffer = new byte[512 * n];
                 piobufferindex = 0;
-
-                hddimage.Read(piosectorbuffer, 0, piosectorbuffer.Length);
-                
             }
+
+            hddimage.Read(piosectorbuffer, 0, piosectorbuffer.Length);
+
+            //IDE sector read cb
+            status &= unchecked((byte)(~DEV9Header.ATA_STAT_BUSY));
+            Log_Verb(status.ToString());
+            nsector -= n;
+
+            //Set Next Sector
+
+            //Start Transfer
             //Sector size is 512b
-            Utils.memcpy(ref pio_buf, 0, piosectorbuffer, piobufferindex, pio_buf.Length);
-            
-            pio_count = 0;
-            pio_size = 256;
+            Utils.memcpy(ref pio_buffer, 0, piosectorbuffer, piobufferindex * 512, pio_buffer.Length);
+            piobufferindex += 1;
+            end_transfer_func = SectorRead;
+            data_ptr = 0;
+            data_end = 256;
+            if ((status & DEV9Header.ATA_STAT_ERR) == 0)
+            {
+                status |= (byte)DEV9Header.ATA_STAT_DRQ;
+            }
+            Log_Verb(status.ToString());
 
-            piobufferindex = -1;
-
-            status |= (DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_READY);
-            status &= unchecked((UInt16)~DEV9Header.ATA_STAT_BUSY);
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
-
-            if (sendIRQ) dev9.DEV9irq(1, 0x6C);
-
-            //Differs from MegaDev9
-            status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_BUSY));
-            status |= DEV9Header.ATA_STAT_READY;
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
+            if (sendIRQ) dev9.DEV9irq(1, 1);
+            //end sector read
         }
-        
-        void HDDsmart()
+
+        bool HDDsmart()
         {
             Log_Verb("HDDSmart");
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_ERROR, 0);
-            UInt16 status = dev9.dev9Ru16((int)DEV9Header.ATA_R_STATUS);
-            status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_ERR | DEV9Header.ATA_STAT_READY));
-            status |= DEV9Header.ATA_STAT_BUSY;
 
             switch (feature)
             {
@@ -94,229 +146,137 @@ namespace CLRDEV9.DEV9.ATA
                     break;
             }
 
-            status &= unchecked((UInt16)~DEV9Header.ATA_STAT_BUSY);
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
-
-            if (sendIRQ) dev9.DEV9irq(1, 0x6C);
-
-            //Differs from MegaDev9
-            status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_BUSY));
-            status |= DEV9Header.ATA_STAT_READY;
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
+            return true;
         }
 
-        void HDDreadDMA()
+        bool HDDreadDMA()
         {
             Log_Verb("HDDreadDMA");
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_ERROR, 0);
-            UInt16 status = dev9.dev9Ru16((int)DEV9Header.ATA_R_STATUS);
-            status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_ERR | DEV9Header.ATA_STAT_READY));
-            status |= DEV9Header.ATA_STAT_BUSY;
 
+            status = DEV9Header.ATA_STAT_READY | DEV9Header.ATA_STAT_SEEK | DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_BUSY;
+            //Ready set after DMA compleation
             // here do stuffs
             if (HDDseek() != 0)
             {
-                status = DEV9Header.ATA_STAT_ERR;
-                dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
-                return;
+                return false;
             }
 
-            status &= unchecked((UInt16)~DEV9Header.ATA_STAT_BUSY);
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
-
-            //	triggerIRQ(1, 0x1000);
-
-            //Differs from MegaDev9 (How did it work in MegaDev9?)
-            status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_BUSY));
-            status |= DEV9Header.ATA_STAT_READY;
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
+            return false;
         }
 
-        //void HDDreadDMA48()
-        //{
-        //    Log_Verb("HDDreadDMA48");
-        //    dev9.dev9Wu16((int)DEV9Header.ATA_R_ERROR, 0);
-        //    UInt16 status = dev9.dev9Ru16((int)DEV9Header.ATA_R_STATUS);
-        //    status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_ERR | DEV9Header.ATA_STAT_READY));
-        //    status |= DEV9Header.ATA_STAT_BUSY;
-
-        //    // here do stuffs
-
-        //    status &= unchecked((UInt16)~DEV9Header.ATA_STAT_BUSY);
-        //    dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
-
-        //    //	triggerIRQ(1, 0x1000);
-
-        //    //Differs from MegaDev9 (How did it work in MegaDev9?)
-        //    status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_BUSY));
-        //    status |= DEV9Header.ATA_STAT_READY;
-        //    dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
-        //}
-
-        void HDDwriteDMA()
+        bool HDDwriteDMA()
         {
             Log_Verb("HDDwriteDMA");
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_ERROR, 0);
-            UInt16 status = dev9.dev9Ru16((int)DEV9Header.ATA_R_STATUS);
-            status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_ERR | DEV9Header.ATA_STAT_READY));
-            status |= DEV9Header.ATA_STAT_BUSY;
 
+            status = DEV9Header.ATA_STAT_READY | DEV9Header.ATA_STAT_SEEK | DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_BUSY;
+            //Ready set after DMA compleation
             // here do stuffs
             if (HDDseek() != 0)
             {
-                status = DEV9Header.ATA_STAT_ERR;
-                dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
-                return;
+                return false;
             }
 
-            status &= unchecked((UInt16)~DEV9Header.ATA_STAT_BUSY);
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
-
-            //	triggerIRQ(1, 0x1000);
-            //Differs from MegaDev9 (How did it work in MegaDev9?)
-            status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_BUSY));
-            status |= DEV9Header.ATA_STAT_READY;
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
+            return false;
         }
 
-        void HDDidle()
+        bool HDDidle()
         {
             Log_Verb("HDDidle");
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_ERROR, 0);
-            UInt16 status = dev9.dev9Ru16((int)DEV9Header.ATA_R_STATUS);
-            status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_ERR | DEV9Header.ATA_STAT_READY));
-            status |= DEV9Header.ATA_STAT_BUSY;
 
             // Very simple implementation, nothing ATM :P
+            nsector = 0xff;
 
-            status &= unchecked((UInt16)~DEV9Header.ATA_STAT_BUSY);
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
-
-            if (sendIRQ) dev9.DEV9irq(1, 0x6C);
-
-            //Differs from MegaDev9
-            status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_BUSY));
-            status |= DEV9Header.ATA_STAT_READY;
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
+            return true;
         }
 
-        void HDDflushCache()
+        bool HDDflushCache()
         {
             Log_Verb("HDDflushCache");
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_ERROR, 0);
-            UInt16 status = dev9.dev9Ru16((int)DEV9Header.ATA_R_STATUS);
-            status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_ERR | DEV9Header.ATA_STAT_READY));
-            status |= DEV9Header.ATA_STAT_BUSY;
+            status |= (byte)DEV9Header.ATA_STAT_BUSY;
 
             // Write cache not supported yet
 
-            status &= unchecked((UInt16)~DEV9Header.ATA_STAT_BUSY);
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
+            status &= unchecked((byte)~DEV9Header.ATA_STAT_BUSY);
 
-            if (sendIRQ) dev9.DEV9irq(1, 0x6C);
+            if (sendIRQ) dev9.DEV9irq(1, 1);
 
-            //Differs from MegaDev9
-            status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_BUSY));
-            status |= DEV9Header.ATA_STAT_READY;
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
+            status |= (byte)DEV9Header.ATA_STAT_READY | (byte)DEV9Header.ATA_STAT_SEEK;
+
+            return false;
         }
 
-        void HDDflushCacheExt()
+        bool HDDflushCacheExt()
         {
             Log_Verb("HDDflushCacheExt");
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_ERROR, 0);
-            UInt16 status = dev9.dev9Ru16((int)DEV9Header.ATA_R_STATUS);
-            status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_ERR | DEV9Header.ATA_STAT_READY));
-            status |= DEV9Header.ATA_STAT_BUSY;
-
-            // Write cache not supported yet
-
-            status &= unchecked((UInt16)~DEV9Header.ATA_STAT_BUSY);
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
-
-            if (sendIRQ) dev9.DEV9irq(1, 0x6C);
-
-            //Differs from MegaDev9
-            status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_BUSY));
-            status |= DEV9Header.ATA_STAT_READY;
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
+            return HDDflushCache();
         }
 
-        void HDDidentifyDevice()
+        bool HDDidentifyDevice()
         {
             Log_Verb("HddidentifyDevice");
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_ERROR, 0);
-            UInt16 status = dev9.dev9Ru16((int)DEV9Header.ATA_R_STATUS);
-            status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_ERR | DEV9Header.ATA_STAT_READY));
-            status |= DEV9Header.ATA_STAT_BUSY;
 
-            Utils.memcpy(ref pio_buf, 0, hddInfo, 0, Math.Min(pio_buf.Length, hddInfo.Length));
-            pio_count = 0;
-            pio_size = 256;
+            status = DEV9Header.ATA_STAT_READY | DEV9Header.ATA_STAT_SEEK; //Set Ready
+            error = 0;
 
-            status |= (DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_READY);
-            status &= unchecked((UInt16)~DEV9Header.ATA_STAT_BUSY);
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
+            //IDE transfer start
+            Utils.memcpy(ref pio_buffer, 0, identify_data, 0, Math.Min(pio_buffer.Length, identify_data.Length));
+            end_transfer_func = ide_transfer_stop;
+            data_ptr = 0;
+            data_end = 256;
+            if ((status & DEV9Header.ATA_STAT_ERR) == 0)
+            {
+                status |= (byte)DEV9Header.ATA_STAT_DRQ;
+            }
 
-            //dev9.DEV9irq(2, 0x6C); //Changed from MegaDev9
             if (sendIRQ) dev9.DEV9irq(1, 0x6C);
 
-            //Differs from MegaDev9
-            status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_BUSY));
-            status |= DEV9Header.ATA_STAT_READY;
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
+            return false;
         }
 
-        void HDDsetFeatures()
+        bool HDDsetFeatures()
         {
             Log_Verb("HddsetFeatures");
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_ERROR, 0);
-            UInt16 status = dev9.dev9Ru16((int)DEV9Header.ATA_R_STATUS);
-            status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_ERR | DEV9Header.ATA_STAT_READY));
-            status |= DEV9Header.ATA_STAT_BUSY;
+
 
             switch (feature)
             {
                 case 0x03:
-                    xfer_mode = dev9.dev9Ru16((int)DEV9Header.ATA_R_NSECTOR);
+                    xfer_mode = (UInt16)nsector; //Set Transfer mode
+                    switch ((xfer_mode & 0x07) >> 3)
+                    {
+                        case 0x00:
+                        case 0x01:
+                        case 0x02:
+                        case 0x04:
+                        case 0x08:
+                            break;
+                    }
                     break;
             }
 
-            status &= unchecked((UInt16)~DEV9Header.ATA_STAT_BUSY);
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
-
-            if (sendIRQ) dev9.DEV9irq(1, 0x6C);
-
-            //Differs from MegaDev9
-            status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_BUSY));
-            status |= DEV9Header.ATA_STAT_READY;
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
+            return true;
         }
 
-        void HDDsceSecCtrl()
+        bool HDDsceSecCtrl()
         {
             Log_Info("DEV9 : SONY-SPECIFIC SECURITY CONTROL COMMAND " + feature.ToString("X"));
 
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_ERROR, 0);
-            UInt16 status = dev9.dev9Ru16((int)DEV9Header.ATA_R_STATUS);
-            status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_ERR | DEV9Header.ATA_STAT_READY));
-            status |= DEV9Header.ATA_STAT_BUSY;
+            status = DEV9Header.ATA_STAT_READY | DEV9Header.ATA_STAT_SEEK; //Set Ready
+            error = 0;
 
-            Utils.memset(ref pio_buf, 0, 0, pio_buf.Length);
-            pio_count = 0;
-            pio_size = 256;
+            Utils.memset(ref pio_buffer, 0, 0, pio_buffer.Length);
+            end_transfer_func = ide_transfer_stop;
+            data_ptr = 0;
+            data_end = 256;
 
-            status |= DEV9Header.ATA_STAT_DRQ;
-            status &= unchecked((UInt16)~DEV9Header.ATA_STAT_BUSY);
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
+            if ((status & DEV9Header.ATA_STAT_ERR) == 0)
+            {
+                status |= (byte)DEV9Header.ATA_STAT_DRQ;
+            }
 
-            //dev9.DEV9irq(2, 0x6C);  //Changed from MegaDev9
             if (sendIRQ) dev9.DEV9irq(1, 0x6C);
 
-            //Differs from MegaDev9
-            status &= unchecked((UInt16)~(DEV9Header.ATA_STAT_BUSY));
-            status |= DEV9Header.ATA_STAT_READY;
-            dev9.dev9Wu16((int)DEV9Header.ATA_R_STATUS, status);
+            return false;
         }
     }
 }
