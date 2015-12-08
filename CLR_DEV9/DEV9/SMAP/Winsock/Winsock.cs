@@ -100,6 +100,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
         public override bool recv(ref NetPacket pkt)
         {
             //return false;
+            Log_Verb("Reciving NetPacket");
             bool result = false;
 
             if (ps2_mac == null)
@@ -180,6 +181,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
         //sends the packet and deletes it when done (if successful).rv :true success
         public override bool send(NetPacket pkt)
         {
+            Log_Verb("Sending NetPacket");
             bool result = false;
 
             PacketReader.EthernetFrame ef = new PacketReader.EthernetFrame(pkt);
@@ -403,15 +405,15 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
 
         protected void Log_Error(string str)
         {
-            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.Winsock, "UDPSession", str);
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.Winsock, "Winsock", str);
         }
         protected void Log_Info(string str)
         {
-            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.Winsock, "UDPSession", str);
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.Winsock, "Winsock", str);
         }
         protected void Log_Verb(string str)
         {
-            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.Winsock, "UDPSession", str);
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.Winsock, "Winsock", str);
         }
     }
 }

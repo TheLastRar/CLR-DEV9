@@ -45,7 +45,19 @@ namespace CLRDEV9
 
             FileStream newImage = new FileStream(hddPath, FileMode.CreateNew, FileAccess.ReadWrite);
 
-            newImage.SetLength(((long)reqSizeMiB) * 1024L * 1024L);
+            try
+            {
+                newImage.SetLength(((long)reqSizeMiB) * 1024L * 1024L);
+            }
+            catch
+            {
+                SetError();
+                newImage.Close();
+                newImage.Dispose();
+                File.Delete(filePath);
+                return;
+            }
+            
 
             for (int iMiB = 0; iMiB < reqSizeMiB; iMiB++)
             {
@@ -77,6 +89,24 @@ namespace CLRDEV9
             {
                 pbFile.Value = currentSize;
                 lbProgress.Text = currentSize + "//" + neededSize + "MiB";
+            }
+        }
+
+        private void SetError()
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke((Action)delegate()
+                {
+                    this.SetError();
+                });
+            }
+            else
+            {
+                MessageBox.Show("Unable to create file");
+                DEV9Header.config.HddEnable = false;
+                compleated.Set();
+                SetClose();
             }
         }
 
