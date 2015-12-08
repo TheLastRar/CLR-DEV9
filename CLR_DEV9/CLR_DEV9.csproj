@@ -115,6 +115,7 @@
     <Compile Include="DEV9\ATA\ATA_Constants.cs" />
     <Compile Include="DEV9\ATA\ATA_State.cs" />
     <Compile Include="DEV9\ATA\ATA_State_regs.cs" />
+    <Compile Include="DEV9\ATA\ATA_Transfer.cs" />
     <Compile Include="DEV9\DEV9_State.cs" />
     <Compile Include="DEV9\DEV9_State_Regs.cs" />
     <Compile Include="DEV9\FLASH\FLASH_Constants.cs" />

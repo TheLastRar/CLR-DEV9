@@ -8,11 +8,8 @@ namespace CLRDEV9.DEV9.ATA
         {
             bool compleate;
 
-            //Check if CMD valid
-
             status = DEV9Header.ATA_STAT_READY | DEV9Header.ATA_STAT_BUSY;
             error = 0;
-            //io_buffer_offset = 0;
 
             compleate = HDDcmds[value]();
             if (compleate)
@@ -30,19 +27,49 @@ namespace CLRDEV9.DEV9.ATA
             }
         }
 
-        void ide_transfer_stop()
+        void ide_cmd_lba48_transform(bool islba48)
         {
-            end_transfer_func = ide_transfer_stop;
-            data_ptr = 0;
-            data_end = 0;
-            status &= unchecked((byte)(~DEV9Header.ATA_STAT_DRQ));
+            lba48 = islba48;
+            //TODO
+            /* handle the 'magic' 0 nsector count conversion here. to avoid
+             * fiddling with the rest of the read logic, we just store the
+             * full sector count in ->nsector and ignore ->hob_nsector from now
+             */
+            if (!lba48)
+            {
+                if (nsector == 0)
+                {
+                    nsector = 256;
+                }
+            }
+            else
+            {
+                if (nsector == 0 && hob_nsector == 0)
+                {
+                    nsector = 65536;
+                }
+                else
+                {
+                    int lo = nsector;
+                    int hi = hob_nsector;
+
+                    nsector = (hi << 8) | lo;
+                }
+            }
+        }
+
+        void ide_abort_command()
+        {
+            ide_transfer_stop();
+            status = (byte)DEV9Header.ATA_STAT_READY | (byte)DEV9Header.ATA_STAT_ERR;
+            error = (byte)DEV9Header.ATA_ERR_ABORT;
         }
 
         bool HDDunk()
         {
             Log_Error("DEV9 HDD error : unknown cmd " + command.ToString("X"));
 
-            status |= (byte)DEV9Header.ATA_STAT_ERR;
+            ide_abort_command();
             return true;
         }
 
@@ -52,126 +79,137 @@ namespace CLRDEV9.DEV9.ATA
             return true;
         }
 
-        //TODO multi-Sector read support
-        byte[] piosectorbuffer;
-        int piobufferindex = -1;
-
-        bool HDDreadPIO()
+        bool HDDreadPIO(bool islba48)
         {
             Log_Verb("HDDreadPIO");
 
+            ide_cmd_lba48_transform(islba48);
             req_nb_sectors = 1;
-            SectorRead();
+            ide_sector_read();
 
             return false;
-        }
-        void SectorRead()
-        {
-            Log_Verb("SectorRead");
-            //IDE sector read
-
-            status = (byte)DEV9Header.ATA_STAT_READY | (byte)DEV9Header.ATA_STAT_SEEK; //Set Ready
-            error = 0;
-
-            int n = nsector;
-
-            if (n == 0)
-            {
-                ide_transfer_stop();
-                piobufferindex = -1;
-                return;
-            }
-
-            status |= (byte)DEV9Header.ATA_STAT_BUSY;
-
-            if (n > req_nb_sectors)
-            {
-                n = req_nb_sectors;
-            }
-
-            //QEMU Dose async read here
-
-
-            if (piobufferindex == -1)
-            {
-                if (HDDseek() == -1)
-                {
-                    //ide_rw_error
-                    return;
-                }
-                piosectorbuffer = new byte[512 * nsector];
-                piobufferindex = 0;
-                hddimage.Read(piosectorbuffer, 0, piosectorbuffer.Length);
-            }
-
-            //IDE sector read cb
-            status &= unchecked((byte)(~DEV9Header.ATA_STAT_BUSY));
-
-            nsector -= n;
-
-            //Set Next Sector (TODO)
-
-            //Start Transfer
-            //Sector size is 512b
-            Utils.memcpy(ref pio_buffer, 0, piosectorbuffer, piobufferindex * 512, pio_buffer.Length);
-            piobufferindex += 1;
-            end_transfer_func = SectorRead;
-            data_ptr = 0;
-            data_end = 256;
-            if ((status & DEV9Header.ATA_STAT_ERR) == 0)
-            {
-                status |= (byte)DEV9Header.ATA_STAT_DRQ;
-            }
-
-            if (sendIRQ) dev9.DEV9irq(1, 1);
-            //end sector read
         }
 
         bool HDDsmart()
         {
             Log_Verb("HDDSmart");
 
-            switch (feature)
+            if (hcyl != 0xC2 || lcyl != 0x4F)
             {
-                case 0xD8:
-                    smart_on = 1;
-                    break;
-                case 0xDA: //return status (change a reg if fault in disk)
-                    break;
-                default:
-                    Log_Error("DEV9 : Unknown SMART command " + feature.ToString("X"));
-                    break;
+                HDDsmartFail();
+                return true;
             }
 
-            return true;
+            if (smart_enabled && feature != 0xD8)
+            {
+                HDDsmartFail();
+                return true;
+            }
+
+            switch (feature)
+            {
+                case 0xD9: //SMART_DISABLE
+                    smart_enabled = false;
+                    return true;
+                case 0xD8: //SMART_ENABLE
+                    smart_enabled = true;
+                    return true;
+                case 0xD2: //SMART_ATTR_AUTOSAVE
+                    switch (sector)
+                    {
+                        case 0x00:
+                            smart_autosave = false;
+                            break;
+                        case 0xF1:
+                            smart_autosave = true;
+                            break;
+                        default:
+                            Log_Error("DEV9 : Unknown SMART_ATTR_AUTOSAVE command " + sector.ToString("X"));
+                            HDDsmartFail();
+                            return true;
+                    }
+                    return true;
+                case 0xDA: //SMART_STATUS (is fault in disk?)
+                    if (smart_errors)
+                    {
+                        hcyl = 0xC2;
+                        lcyl = 0x4F;
+                    }
+                    else
+                    {
+                        hcyl = 0x2C;
+                        lcyl = 0xF4;
+                    }
+                    return true;
+                case 0xD1: //SMART_READ_THRESH
+                    Log_Error("DEV9 : SMART_READ_THRESH Not Impemented");
+                    HDDsmartFail();
+                    return true;
+                case 0xD0: //SMART_READ_DATA
+                    Log_Error("DEV9 : SMART_READ_DATA Not Impemented");
+                    HDDsmartFail();
+                    return true;
+                case 0xD5: //SMART_READ_LOG
+                    Log_Error("DEV9 : SMART_READ_LOG Not Impemented");
+                    HDDsmartFail();
+                    return true;
+                case 0xD4: //SMART_EXECUTE_OFFLINE
+                    switch (sector)
+                    {
+                        case 0: /* off-line routine */
+                        case 1: /* short self test */
+                        case 2: /* extended self test */
+                            smart_selftest_count++;
+                            if (smart_selftest_count > 21)
+                            {
+                                smart_selftest_count = 1;
+                            }
+                            int n = 2 + (smart_selftest_count - 1) * 24;
+                            //s->smart_selftest_data[n] = s->sector;
+                            //s->smart_selftest_data[n + 1] = 0x00; /* OK and finished */
+                            //s->smart_selftest_data[n + 2] = 0x34; /* hour count lsb */
+                            //s->smart_selftest_data[n + 3] = 0x12; /* hour count msb */
+                            break;
+                        default:
+                            HDDsmartFail();
+                            return true;
+                    }
+                    return true;
+                default:
+                    Log_Error("DEV9 : Unknown SMART command " + feature.ToString("X"));
+                    HDDsmartFail();
+                    return true;
+            }
         }
 
-        bool HDDreadDMA()
+        void HDDsmartFail()
+        {
+            ide_transfer_stop();
+        }
+
+        bool HDDreadDMA(bool islba48)
         {
             Log_Verb("HDDreadDMA");
 
-            status = DEV9Header.ATA_STAT_READY | DEV9Header.ATA_STAT_SEEK | DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_BUSY;
-            //Ready set after DMA compleation
-            // here do stuffs
-            if (HDDseek() != 0)
-            {
-                return false;
-            }
+            ide_cmd_lba48_transform(islba48);
+            ide_sector_start_dma(true);
 
             return false;
         }
 
-        bool HDDwriteDMA()
+        bool HDDwriteDMA(bool islba48)
         {
             Log_Verb("HDDwriteDMA");
 
-            status = DEV9Header.ATA_STAT_READY | DEV9Header.ATA_STAT_SEEK | DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_BUSY;
-            //Ready set after DMA compleation
-            // here do stuffs
-            if (HDDseek() != 0)
-            {
-                return false;
-            }
+            ide_cmd_lba48_transform(islba48);
+            ide_sector_start_dma(false);
+            //status = DEV9Header.ATA_STAT_READY | DEV9Header.ATA_STAT_SEEK | DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_BUSY;
+            ////Ready set after DMA compleation
+            //// here do stuffs
+            //if (HDDseek() != 0)
+            //{
+            //    return false;
+            //}
 
             return false;
         }
@@ -189,15 +227,8 @@ namespace CLRDEV9.DEV9.ATA
         bool HDDflushCache()
         {
             Log_Verb("HDDflushCache");
-            status |= (byte)DEV9Header.ATA_STAT_BUSY;
 
-            // Write cache not supported yet
-
-            status &= unchecked((byte)~DEV9Header.ATA_STAT_BUSY);
-
-            if (sendIRQ) dev9.DEV9irq(1, 1);
-
-            status |= (byte)DEV9Header.ATA_STAT_READY | (byte)DEV9Header.ATA_STAT_SEEK;
+            ide_flush_cache();
 
             return false;
         }
@@ -213,17 +244,9 @@ namespace CLRDEV9.DEV9.ATA
             Log_Verb("HddidentifyDevice");
 
             status = DEV9Header.ATA_STAT_READY | DEV9Header.ATA_STAT_SEEK; //Set Ready
-            error = 0;
 
             //IDE transfer start
-            Utils.memcpy(ref pio_buffer, 0, identify_data, 0, Math.Min(pio_buffer.Length, identify_data.Length));
-            end_transfer_func = ide_transfer_stop;
-            data_ptr = 0;
-            data_end = 256;
-            if ((status & DEV9Header.ATA_STAT_ERR) == 0)
-            {
-                status |= (byte)DEV9Header.ATA_STAT_DRQ;
-            }
+            ide_transfer_start(identify_data, 0, 256 * 2, ide_transfer_stop);
 
             if (sendIRQ) dev9.DEV9irq(1, 0x6C);
 
@@ -254,22 +277,15 @@ namespace CLRDEV9.DEV9.ATA
             return true;
         }
 
+        byte[] sceSec = new byte[256 * 2];
+
         bool HDDsceSecCtrl()
         {
             Log_Info("DEV9 : SONY-SPECIFIC SECURITY CONTROL COMMAND " + feature.ToString("X"));
 
             status = DEV9Header.ATA_STAT_READY | DEV9Header.ATA_STAT_SEEK; //Set Ready
-            error = 0;
 
-            Utils.memset(ref pio_buffer, 0, 0, pio_buffer.Length);
-            end_transfer_func = ide_transfer_stop;
-            data_ptr = 0;
-            data_end = 256;
-
-            if ((status & DEV9Header.ATA_STAT_ERR) == 0)
-            {
-                status |= (byte)DEV9Header.ATA_STAT_DRQ;
-            }
+            ide_transfer_start(sceSec, 0, 256 * 2, ide_transfer_stop);
 
             if (sendIRQ) dev9.DEV9irq(1, 0x6C);
 

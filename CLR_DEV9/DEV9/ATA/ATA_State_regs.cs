@@ -8,7 +8,6 @@ namespace CLRDEV9.DEV9.ATA
         delegate void EndTransfer();
 
         UInt16 xfer_mode;
-        int smart_on;
 
         bool sendIRQ = true;
 
@@ -100,10 +99,10 @@ namespace CLRDEV9.DEV9.ATA
         //int media_changed;
         //enum ide_dma_cmd dma_cmd;
         /* SMART */
-        //byte smart_enabled;
-        //byte smart_autosave;
-        //int smart_errors;
-        //byte smart_selftest_count;
+        bool smart_enabled;
+        bool smart_autosave;
+        bool smart_errors = false;
+        byte smart_selftest_count;
         //uint8_t *smart_selftest_data;
         /* AHCI */
         //int ncq_queues;

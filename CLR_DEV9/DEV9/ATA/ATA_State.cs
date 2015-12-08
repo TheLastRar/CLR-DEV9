@@ -23,12 +23,12 @@ namespace CLRDEV9.DEV9.ATA
 
             HDDcmds[0x00] = HDDnop;
 
-            HDDcmds[0x20] = HDDreadPIO;
+            HDDcmds[0x20] = () => HDDreadPIO(false);
 
             HDDcmds[0xB0] = HDDsmart; HDDcmdDoesSeek[0xB0] = true;
 
-            HDDcmds[0xC8] = HDDreadDMA;
-            HDDcmds[0xCA] = HDDwriteDMA;
+            HDDcmds[0xC8] = () => HDDreadDMA(false);
+            HDDcmds[0xCA] = () => HDDwriteDMA(false);
             //HDDcmds[0x25] = HDDreadDMA48;
             /*	HDDcmds[0x35] = HDDwriteDMA_ext;*/
             //HDDcmdNames[0x35] = "DMA write (48-bit)";		// 48-bit
@@ -67,16 +67,6 @@ namespace CLRDEV9.DEV9.ATA
             sector = 1;
             status = 0x40;
 
-            // Set the number of sectors
-
-            //Int32 nbSectors = (((DEV9Header.config.HddSize) / 512) * 1024 * 1024);
-            //Log_Verb("HddSize : " + DEV9Header.config.HddSize);
-            //Log_Verb("HddSector 1: " + nbSectors);
-            //Log_Verb("HddSector 2: " + (nbSectors >> 16));
-            //hddInfo[60 * 2] = BitConverter.GetBytes((UInt16)(nbSectors & 0xFFFF))[0];
-            //hddInfo[60 * 2 + 1] = BitConverter.GetBytes((UInt16)(nbSectors & 0xFFFF))[1];
-            //hddInfo[61 * 2] = BitConverter.GetBytes((UInt16)((nbSectors >> 16)))[0];
-            //hddInfo[61 * 2 + 1] = BitConverter.GetBytes((UInt16)((nbSectors >> 16)))[1];
             CreateHDDid(DEV9Header.config.HddSize);
 
             //Open File
@@ -178,8 +168,12 @@ namespace CLRDEV9.DEV9.ATA
                     //    return 0;
                     return select;
                 case DEV9Header.ATA_R_STATUS:
+                    Log_Verb("*ATA_R_STATUS (redirecting to ATA_R_ALT_STATUS)");
+                    //Clear irqcause
+                    dev9.irqcause &= ~(1 | 3);
+                    return ATAread16(DEV9Header.ATA_R_ALT_STATUS);
                 case DEV9Header.ATA_R_ALT_STATUS:
-                    Log_Verb("*ATA_R_STATUS 16bit read at address " + addr.ToString("x") + " value " + status.ToString("x") + " Active " + ((select & 0x10) == 0));
+                    Log_Verb("*ATA_R_ALT_STATUS 16bit read at address " + addr.ToString("x") + " value " + status.ToString("x") + " Active " + ((select & 0x10) == 0));
                     //raise IRQ?
                     if ((select & 0x10) != 0)
                         return 0;
@@ -239,6 +233,7 @@ namespace CLRDEV9.DEV9.ATA
                     //bus->ifs[0].select = (val & ~0x10) | 0xa0;
                     //bus->ifs[1].select = (val | 0x10) | 0xa0;
                     /* select drive */
+                    //Also have LBA bit
                     unit = (uint)((value >> 4) & 1);
                     break;
                 case DEV9Header.ATA_R_CONTROL:
@@ -530,7 +525,7 @@ namespace CLRDEV9.DEV9.ATA
         public void _ATAirqHandler()
         {
             //	dev9.intr_stat |= dev9.irq_cause;
-            dev9.dev9Wu16((int)DEV9Header.SPD_R_INTR_STAT, (UInt16)dev9.irqcause);//dev9.intr_stat = dev9.irqcause;
+            //dev9.dev9Wu16((int)DEV9Header.SPD_R_INTR_STAT, (UInt16)dev9.irqcause);//dev9.intr_stat = dev9.irqcause;
         }
 
         //QEMU stuff
