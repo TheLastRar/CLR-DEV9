@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Management;
 using System.Runtime.InteropServices;
+using Microsoft.Win32.SafeHandles;
 
 namespace CLRDEV9.DEV9.SMAP.Tap
 {
@@ -17,7 +20,7 @@ namespace CLRDEV9.DEV9.SMAP.Tap
 
         #region 'PInvoke mess'
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        static extern Microsoft.Win32.SafeHandles.SafeFileHandle CreateFile(string lpFileName, System.UInt32 dwDesiredAccess, System.UInt32 dwShareMode, IntPtr pSecurityAttributes, System.UInt32 dwCreationDisposition, System.UInt32 dwFlagsAndAttributes, IntPtr hTemplateFile);
+        static extern Microsoft.Win32.SafeHandles.SafeFileHandle CreateFile(string lpFileName, UInt32 dwDesiredAccess, UInt32 dwShareMode, IntPtr pSecurityAttributes, UInt32 dwCreationDisposition, UInt32 dwFlagsAndAttributes, IntPtr hTemplateFile);
         const UInt32 GENERIC_READ = (0x80000000);
         const UInt32 GENERIC_WRITE = (0x40000000);
         const UInt32 OPEN_EXISTING = 3;
@@ -25,9 +28,9 @@ namespace CLRDEV9.DEV9.SMAP.Tap
         const UInt32 FILE_FLAG_OVERLAPPED = 0x40000000;
 
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        static extern bool DeviceIoControl(Microsoft.Win32.SafeHandles.SafeFileHandle hDevice, UInt32 dwIoControlCode, ref version lpInBuffer, UInt32 nInBufferSize, ref version lpOutBuffer, UInt32 nOutBufferSize, ref UInt32 lpBytesReturned, IntPtr lpOverlapped);
+        static extern bool DeviceIoControl(SafeFileHandle hDevice, UInt32 dwIoControlCode, ref version lpInBuffer, UInt32 nInBufferSize, ref version lpOutBuffer, UInt32 nOutBufferSize, ref UInt32 lpBytesReturned, IntPtr lpOverlapped);
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        static extern bool DeviceIoControl(Microsoft.Win32.SafeHandles.SafeFileHandle hDevice, UInt32 dwIoControlCode, ref bool lpInBuffer, UInt32 nInBufferSize, out bool lpOutBuffer, UInt32 nOutBufferSize, out UInt32 lpBytesReturned, IntPtr lpOverlapped);
+        static extern bool DeviceIoControl(SafeFileHandle hDevice, UInt32 dwIoControlCode, ref bool lpInBuffer, UInt32 nInBufferSize, out bool lpOutBuffer, UInt32 nOutBufferSize, out UInt32 lpBytesReturned, IntPtr lpOverlapped);
 
         const UInt32 FILE_DEVICE_UNKNOWN = 0x00000022;
         const UInt32 FILE_ANY_ACCESS = 0;
@@ -37,7 +40,7 @@ namespace CLRDEV9.DEV9.SMAP.Tap
         const UInt32 TAP_IOCTL_SET_MEDIA_STATUS = ((FILE_DEVICE_UNKNOWN) << 16) | ((FILE_ANY_ACCESS) << 14) | ((6) << 2) | (METHOD_BUFFERED);//TAP_CONTROL_CODE(6, METHOD_BUFFERED);
         #endregion
         //Set the connection status
-        bool TAPSetStatus(Microsoft.Win32.SafeHandles.SafeFileHandle handle, bool status)
+        bool TAPSetStatus(SafeFileHandle handle, bool status)
         {
             UInt32 len = 0;
 
@@ -48,7 +51,7 @@ namespace CLRDEV9.DEV9.SMAP.Tap
         }
 
         //Open the TAP adapter and set the connection to enabled :)
-        Microsoft.Win32.SafeHandles.SafeFileHandle TAPOpen(string device_guid)
+        SafeFileHandle TAPOpen(string device_guid)
         {
             string device_path;
 
@@ -95,6 +98,51 @@ namespace CLRDEV9.DEV9.SMAP.Tap
             }
 
             return handle;
+        }
+
+        List<string[]> TAPGetAdaptersWMI()
+        {
+            List<string[]> names = new List<string[]>();
+
+            ManagementScope scope = new ManagementScope("\\\\.\\ROOT\\cimv2");
+
+            ObjectQuery query = new ObjectQuery("SELECT * FROM Win32_NetworkAdapter");
+            using (ManagementObjectSearcher netSearcher = new ManagementObjectSearcher(scope, query))
+            {
+                using (ManagementObjectCollection netQueryCollection = netSearcher.Get())
+                {
+                    foreach (ManagementObject netMO in netQueryCollection)
+                    {
+                        Console.Error.WriteLine("Name {0}, PNPDevID {1} En {2}", netMO["Description"], netMO["PNPDeviceID"], netMO["GUID"]);
+
+                        if (netMO["PNPDeviceID"] == null)
+                            continue;
+
+                        if (netMO["NetEnabled"] == null || ((bool)netMO["NetEnabled"]) == false)
+                            continue;
+
+                        // make sure you escape the device string
+                        query = new ObjectQuery("SELECT * FROM win32_PNPEntity where DeviceID='" + ((string)netMO["PNPDeviceID"]).Replace("\\", "\\\\") + "'");
+                        ManagementObjectSearcher pnpSearcher = new ManagementObjectSearcher(scope, query);
+                        using (ManagementObjectCollection pnpQueryCollection = pnpSearcher.Get())
+                        {
+                            foreach (ManagementObject pnpMO in pnpQueryCollection)
+                            {
+                                string[] hardwareIds = (string[])pnpMO["HardWareID"];
+                                if ((hardwareIds != null) && (hardwareIds.Length > 0))
+                                {
+                                    Console.Error.WriteLine(" HardWareID: {0}", hardwareIds[0]);
+                                    if (hardwareIds[0].StartsWith("tap"))
+                                    {
+                                        names.Add(new string[] { (string)netMO["Name"], (string)netMO["Description"], (string)netMO["GUID"] });
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return names;
         }
     }
 }

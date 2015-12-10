@@ -2,13 +2,15 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.IO;
+using Microsoft.Win32.SafeHandles;
 
 namespace CLRDEV9.DEV9.SMAP.Tap
 {
     partial class TAPAdapter : NetAdapter
     {
-        Microsoft.Win32.SafeHandles.SafeFileHandle htap;
-        System.IO.FileStream htapstream;
+        SafeFileHandle htap;
+        FileStream htapstream;
 
         DEV9_State dev9 = null;
 
@@ -18,7 +20,7 @@ namespace CLRDEV9.DEV9.SMAP.Tap
 
             htap = TAPOpen(DEV9Header.config.Eth.Substring(4, DEV9Header.config.Eth.Length - 4));
 
-            htapstream = new System.IO.FileStream(htap, System.IO.FileAccess.ReadWrite, 16 * 1024, true);
+            htapstream = new FileStream(htap, FileAccess.ReadWrite, 16 * 1024, true);
         }
 
         public override bool blocks()

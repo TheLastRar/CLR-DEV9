@@ -288,6 +288,7 @@ namespace CLRDEV9.DEV9
                     irqcause = 0xff;
                     return;
                 case DEV9Header.SPD_R_INTR_STAT:
+                    Log_Error("SPD_R_INTR_STAT	, WTFH");
                     //emu_printf("SPD_R_INTR_STAT	, WTFH ?\n");
                     irqcause = value;
                     return;
