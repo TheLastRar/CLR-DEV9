@@ -4,7 +4,7 @@ namespace CLRDEV9
 {
     static class DEV9Header
     {
-        public const string ETH_DEF = "winsock";//"eth0";
+        public const string ETH_DEF = "Auto";//"eth0";
         public const string HDD_DEF = "DEV9hdd.raw";
 
         public static Config config;

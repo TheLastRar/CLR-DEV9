@@ -6,6 +6,8 @@ using CLRDEV9.DEV9.SMAP.Winsock.Sessions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
 
 namespace CLRDEV9.DEV9.SMAP.Winsock
 {
@@ -68,12 +70,42 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
         Object sentry = new Object();
         Dictionary<ConnectionKey, Session> Connections = new Dictionary<ConnectionKey, Session>();
 
-        DEV9_State dev9 = null;
-        
-        public Winsock(DEV9_State pardev9)
+        static public List<string[]> GetAdapters()
         {
-            dev9 = pardev9;
+            //Add Auto
+            List<string[]> names = new List<string[]>();
+            names.Add(new string[] { "Auto", "Autoselected adapter", "Auto" });
 
+            NetworkInterface[] Interfaces = NetworkInterface.GetAllNetworkInterfaces();
+
+            foreach (NetworkInterface adapter in Interfaces)
+            {
+                if (adapter.NetworkInterfaceType == NetworkInterfaceType.Loopback)
+                {
+                    continue;
+                }
+                if (adapter.OperationalStatus == OperationalStatus.Up)
+                {
+                    UnicastIPAddressInformationCollection IPInfo = adapter.GetIPProperties().UnicastAddresses;
+                    IPInterfaceProperties properties = adapter.GetIPProperties();
+
+                    foreach (UnicastIPAddressInformation IPAddressInfo in IPInfo)
+                    {
+                        if (IPAddressInfo.Address.AddressFamily == AddressFamily.InterNetwork)
+                        {
+                            //return adapter
+                            names.Add(new string[] { adapter.Name, adapter.Description, adapter.Id });
+                            break;
+                        }
+                    }
+                }
+            }
+            return names;
+        }
+
+        public Winsock(DEV9_State pardev9) 
+            : base(pardev9)
+        {
             //Add allways on connections
             DCHP_server.SourceIP = new byte[] { 255, 255, 255, 255 };
             DCHP_server.DestIP = UDP_DHCPsession.DHCP_IP;
@@ -84,36 +116,22 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             Connections.Add(DHCP_Key, DCHP_server);
         }
 
-        public override bool blocks()
+        public override bool Blocks()
         {
             return false;	//we use blocking io
         }
-        public override bool isInitialised()
+        public override bool IsInitialised()
         {
             return true;
         }
 
         byte[] gateway_mac = { 0x76, 0x6D, 0xF4, 0x63, 0x30, 0x31 };
-        byte[] ps2_mac;
-        byte[] broadcast_adddrrrr = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
         //gets a packet.rv :true success
-        public override bool recv(ref NetPacket pkt)
+        public override bool Recv(ref NetPacket pkt)
         {
             //return false;
             Log_Verb("Reciving NetPacket");
             bool result = false;
-
-            if (ps2_mac == null)
-            {
-                ps2_mac = new byte[6];
-                byte[] eeprombytes = new byte[6];
-                for (int i = 0; i < 3; i++)
-                {
-                    byte[] tmp = BitConverter.GetBytes(dev9.eeprom[i]);
-                    Utils.memcpy(ref eeprombytes, i * 2, tmp, 0, 2);
-                }
-                Utils.memcpy(ref ps2_mac, 0, eeprombytes, 0, 6);
-            }
 
             if (vRecBuffer.Count == 0)
             {
@@ -158,28 +176,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
 
             if (result)
             {
-                //TODO? Boost with pointers instead of converting?
-                byte[] eeprombytes = new byte[6];
-                for (int i = 0; i < 3; i++)
-                {
-                    byte[] tmp = BitConverter.GetBytes(dev9.eeprom[i]);
-                    Utils.memcpy(ref eeprombytes, i * 2, tmp, 0, 2);
-                }
-                //original memcmp returns 0 on perfect match
-                //the if statment check if !=0
-                if ((Utils.memcmp(pkt.buffer, 0, eeprombytes, 0, 6) == false) & (Utils.memcmp(pkt.buffer, 0, broadcast_adddrrrr, 0, 6) == false))
-                {
-                    //ignore strange packets
-                    Log_Error("Dropping Strange Packet");
-                    return false;
-                }
                 return true;
             }
             else
                 return false;
         }
         //sends the packet and deletes it when done (if successful).rv :true success
-        public override bool send(NetPacket pkt)
+        public override bool Send(NetPacket pkt)
         {
             Log_Verb("Sending NetPacket");
             bool result = false;
@@ -403,15 +406,15 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             }
         }
 
-        protected void Log_Error(string str)
+        protected override void Log_Error(string str)
         {
             PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.Winsock, "Winsock", str);
         }
-        protected void Log_Info(string str)
+        protected override void Log_Info(string str)
         {
             PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.Winsock, "Winsock", str);
         }
-        protected void Log_Verb(string str)
+        protected override void Log_Verb(string str)
         {
             PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.Winsock, "Winsock", str);
         }

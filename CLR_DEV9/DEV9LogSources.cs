@@ -10,6 +10,7 @@ namespace CLRDEV9
         SMAP = 4,
         FLASH = 9,
         Tap = 6,
+        WinPcap = 9,
         Winsock = 7,
         TCP = 8
     }

@@ -25,7 +25,7 @@ namespace CLRDEV9.DEV9.SMAP
             NetPacket tmp = new NetPacket();
             while (RxRunning)
             {
-                while (smap.rx_fifo_can_rx() && nif.recv(ref tmp))
+                while (smap.rx_fifo_can_rx() && nif.Recv(ref tmp))
                 {
                     smap.rx_process(ref tmp);
                 }
@@ -39,7 +39,7 @@ namespace CLRDEV9.DEV9.SMAP
         public void tx_put(ref NetPacket pkt)
         {
             if (nif != null)
-                nif.send(pkt);
+                nif.Send(pkt);
             //pkt must be copied if its not processed by here, since it can be allocated on the callers stack
         }
 

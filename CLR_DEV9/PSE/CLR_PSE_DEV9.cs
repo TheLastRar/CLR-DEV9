@@ -21,13 +21,13 @@ namespace PSE
         private static void nat_DEV9setLogDir(string dir) { DEV9setLogDir(dir); }
 
         [DllExport("DEV9read8", CallingConvention = CallingConvention.StdCall)]
-        private static Byte nat_DEV9read8(UInt32 addr) { return DEV9read8(addr); }
+        private static byte nat_DEV9read8(UInt32 addr) { return DEV9read8(addr); }
         [DllExport("DEV9read16", CallingConvention = CallingConvention.StdCall)]
         private static UInt16 nat_DEV9read16(UInt32 addr) { return DEV9read16(addr); }
         [DllExport("DEV9read32", CallingConvention = CallingConvention.StdCall)]
         private static UInt32 nat_DEV9read32(UInt32 addr) { return DEV9read32(addr); }
         [DllExport("DEV9write8", CallingConvention = CallingConvention.StdCall)]
-        private static void nat_DEV9write8(UInt32 addr, Byte value) { DEV9write8(addr, value); }
+        private static void nat_DEV9write8(UInt32 addr, byte value) { DEV9write8(addr, value); }
         [DllExport("DEV9write16", CallingConvention = CallingConvention.StdCall)]
         private static void nat_DEV9write16(UInt32 addr, UInt16 value) { DEV9write16(addr, value); }
         [DllExport("DEV9write32", CallingConvention = CallingConvention.StdCall)]
@@ -88,7 +88,7 @@ namespace PSE
             CLRDEV9.CLR_DEV9.SetLogDir(dir);
         }
 
-        public static Byte DEV9read8(UInt32 addr)
+        public static byte DEV9read8(UInt32 addr)
         {
             return CLRDEV9.CLR_DEV9.DEV9read8(addr);
         }
@@ -100,7 +100,7 @@ namespace PSE
         {
             return CLRDEV9.CLR_DEV9.DEV9read32(addr);
         }
-        public static void DEV9write8(UInt32 addr, Byte value)
+        public static void DEV9write8(UInt32 addr, byte value)
         {
             CLRDEV9.CLR_DEV9.DEV9write8(addr, value);
         }

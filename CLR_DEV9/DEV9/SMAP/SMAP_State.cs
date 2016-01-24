@@ -542,13 +542,13 @@ namespace CLRDEV9.DEV9.SMAP
                     if ((value & DEV9Header.SMAP_BD_SWAP) != 0)
                     {
                         Log_Verb("SMAP_R_BD_MODE: byteswapped.");
-                        Log_Info("BD Byteswapping enabled");
+                        Log_Info("BD byteswapping enabled");
                         dev9.bd_swap = 1;
                     }
                     else
                     {
                         Log_Verb("SMAP_R_BD_MODE: NOT byteswapped");
-                        Log_Info("BD Byteswapping disabled");
+                        Log_Info("BD byteswapping disabled");
                         dev9.bd_swap = 0;
                     }
                     return;

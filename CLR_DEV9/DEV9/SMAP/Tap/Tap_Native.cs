@@ -1,8 +1,9 @@
-﻿using System;
+﻿using Microsoft.Win32.SafeHandles;
+using System;
 using System.Collections.Generic;
 using System.Management;
+using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
-using Microsoft.Win32.SafeHandles;
 
 namespace CLRDEV9.DEV9.SMAP.Tap
 {
@@ -11,11 +12,12 @@ namespace CLRDEV9.DEV9.SMAP.Tap
         const string USERMODEDEVICEDIR = "\\\\.\\Global\\";
         const string TAPSUFFIX = ".tap";
 
+        [StructLayout(LayoutKind.Sequential)]
         struct version
         {
-            ulong major;
-            ulong minor;
-            ulong debug;
+            UInt32 major;
+            UInt32 minor;
+            UInt32 debug;
         }
 
         #region 'PInvoke mess'
@@ -28,9 +30,9 @@ namespace CLRDEV9.DEV9.SMAP.Tap
         const UInt32 FILE_FLAG_OVERLAPPED = 0x40000000;
 
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        static extern bool DeviceIoControl(SafeFileHandle hDevice, UInt32 dwIoControlCode, ref version lpInBuffer, UInt32 nInBufferSize, ref version lpOutBuffer, UInt32 nOutBufferSize, ref UInt32 lpBytesReturned, IntPtr lpOverlapped);
+        static extern bool DeviceIoControl(SafeFileHandle hDevice, UInt32 dwIoControlCode, ref version lpInBuffer, UInt32 nInBufferSize, ref version lpOutBuffer, UInt32 nOutBufferSize, ref UInt32 lpbytesReturned, IntPtr lpOverlapped);
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        static extern bool DeviceIoControl(SafeFileHandle hDevice, UInt32 dwIoControlCode, ref bool lpInBuffer, UInt32 nInBufferSize, out bool lpOutBuffer, UInt32 nOutBufferSize, out UInt32 lpBytesReturned, IntPtr lpOverlapped);
+        static extern bool DeviceIoControl(SafeFileHandle hDevice, UInt32 dwIoControlCode, ref bool lpInBuffer, UInt32 nInBufferSize, out bool lpOutBuffer, UInt32 nOutBufferSize, out UInt32 lpbytesReturned, IntPtr lpOverlapped);
 
         const UInt32 FILE_DEVICE_UNKNOWN = 0x00000022;
         const UInt32 FILE_ANY_ACCESS = 0;
@@ -100,13 +102,13 @@ namespace CLRDEV9.DEV9.SMAP.Tap
             return handle;
         }
 
-        List<string[]> TAPGetAdaptersWMI()
+        private static List<string[]> TAPGetAdaptersWMI()
         {
             List<string[]> names = new List<string[]>();
 
             ManagementScope scope = new ManagementScope("\\\\.\\ROOT\\cimv2");
 
-            ObjectQuery query = new ObjectQuery("SELECT * FROM Win32_NetworkAdapter");
+            ObjectQuery query = new ObjectQuery("SELECT Name,Description,ServiceName,PNPDeviceID,GUID FROM Win32_NetworkAdapter");
             using (ManagementObjectSearcher netSearcher = new ManagementObjectSearcher(scope, query))
             {
                 using (ManagementObjectCollection netQueryCollection = netSearcher.Get())
@@ -118,27 +120,40 @@ namespace CLRDEV9.DEV9.SMAP.Tap
                         if (netMO["PNPDeviceID"] == null)
                             continue;
 
-                        if (netMO["NetEnabled"] == null || ((bool)netMO["NetEnabled"]) == false)
+                        if (netMO["ServiceName"] == null)
                             continue;
 
-                        // make sure you escape the device string
-                        query = new ObjectQuery("SELECT * FROM win32_PNPEntity where DeviceID='" + ((string)netMO["PNPDeviceID"]).Replace("\\", "\\\\") + "'");
-                        ManagementObjectSearcher pnpSearcher = new ManagementObjectSearcher(scope, query);
-                        using (ManagementObjectCollection pnpQueryCollection = pnpSearcher.Get())
+                        //ServiceName == hardwareID?
+                        if (((string)netMO["ServiceName"]).StartsWith("tap"))
                         {
-                            foreach (ManagementObject pnpMO in pnpQueryCollection)
-                            {
-                                string[] hardwareIds = (string[])pnpMO["HardWareID"];
-                                if ((hardwareIds != null) && (hardwareIds.Length > 0))
-                                {
-                                    Console.Error.WriteLine(" HardWareID: {0}", hardwareIds[0]);
-                                    if (hardwareIds[0].StartsWith("tap"))
-                                    {
-                                        names.Add(new string[] { (string)netMO["Name"], (string)netMO["Description"], (string)netMO["GUID"] });
-                                    }
-                                }
-                            }
+                            //Get Actural Name
+                            NetworkInterface netAdapter = GetAdapterFromGuid((string)netMO["GUID"]);
+                            //(string)netMO["Name"] (Seems to return the description instead)
+                            names.Add(new string[] { netAdapter.Name, (string)netMO["Description"], (string)netMO["GUID"] });
                         }
+
+                        //if (netMO["NetEnabled"] == null || ((bool)netMO["NetEnabled"]) == false)
+                        //    continue;
+
+                        //// make sure you escape the device string
+                        //query = new ObjectQuery("SELECT * FROM win32_PNPEntity where DeviceID='" + ((string)netMO["PNPDeviceID"]).Replace("\\", "\\\\") + "'");
+                        //ManagementObjectSearcher pnpSearcher = new ManagementObjectSearcher(scope, query);
+                        //using (ManagementObjectCollection pnpQueryCollection = pnpSearcher.Get())
+                        //{
+                        //    foreach (ManagementObject pnpMO in pnpQueryCollection)
+                        //    {
+                        //        string[] hardwareIds = (string[])pnpMO["HardWareID"];
+                        //        if ((hardwareIds != null) && (hardwareIds.Length > 0))
+                        //        {
+                        //            Console.Error.WriteLine(" HardWareID: {0}", hardwareIds[0]);
+                        //            if (hardwareIds[0].StartsWith("tap"))
+                        //            {
+                        //                names.Add(new string[] { (string)netMO["ServiceName"], (string)netMO["Description"], (string)netMO["GUID"] });
+                        //            }
+                        //        }
+                        //    }
+                        //}
+
                     }
                 }
             }

@@ -63,7 +63,7 @@ namespace PSE
                 }
                 catch (Exception e)
                 {
-                    Console.Error.WriteLine("Failed to Open Log File");
+                    Console.Error.WriteLine("Failed to Open Log File :" + e.ToString());
                 }
                 //Console Normal
                 ConsoleTraceListener consoleLog = new ConsoleTraceListener(true);

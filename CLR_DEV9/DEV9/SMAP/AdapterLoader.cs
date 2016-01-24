@@ -19,7 +19,7 @@ namespace CLRDEV9.DEV9.SMAP
         NetAdapter GetNetAdapter()
         {
             NetAdapter na = null;
-
+            //TODO Make this use EthType
             if (DEV9Header.config.Eth.StartsWith("p"))
             {
                 //na = new PCAPAdapter(dev9);
@@ -36,7 +36,7 @@ namespace CLRDEV9.DEV9.SMAP
             else
                 return null;
 
-            if (!na.isInitialised())
+            if (!na.IsInitialised())
             {
                 na.Dispose();
                 return null;

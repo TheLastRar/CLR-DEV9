@@ -17,7 +17,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     client.EndConnect(res);
                 }
             }
-            catch (System.Net.Sockets.SocketException err)
+            catch (SocketException err)
             {
                 Log_Error("TCP Connection Error: " + err.Message);
                 Log_Error("ErrorCode: " + err.ErrorCode);
@@ -40,8 +40,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
                 open = true;
                 state = TCPState.SentSYN_ACK;
-                byte[] emptyByte = new byte[0];
-                TCP ret = new TCP(emptyByte);
+                TCP ret = new TCP(new byte[] { });
                 //Return the fact we connected
                 ret.SourcePort = tcp.DestinationPort;
                 ret.DestinationPort = tcp.SourcePort;

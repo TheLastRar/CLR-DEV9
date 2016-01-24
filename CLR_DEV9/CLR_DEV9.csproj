@@ -129,6 +129,8 @@
     <Compile Include="DEV9\SMAP\Data\SMAP_bd.cs" />
     <Compile Include="DEV9\SMAP\SMAP_State.cs" />
     <Compile Include="DEV9\SMAP\Tap\Tap_Native.cs" />
+    <Compile Include="DEV9\SMAP\WinPcap\WinPcap.cs" />
+    <Compile Include="DEV9\SMAP\WinPcap\WinPcap_Native.cs" />
     <Compile Include="DEV9\SMAP\Winsock\PacketReader\ARP\ARPPacket.cs" />
     <Compile Include="DEV9\SMAP\Winsock\PacketReader\EtherFrameType.cs" />
     <Compile Include="DEV9\SMAP\Winsock\PacketReader\EthernetFrame.cs" />
@@ -172,15 +174,18 @@
   <ItemGroup>
     <EmbeddedResource Include="ConfigForm.resx">
       <DependentUpon>ConfigForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="ConfigFormEth.resx">
       <DependentUpon>ConfigFormEth.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ConfigFormHdd.resx">
       <DependentUpon>ConfigFormHdd.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="HddCreate.resx">
       <DependentUpon>HddCreate.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

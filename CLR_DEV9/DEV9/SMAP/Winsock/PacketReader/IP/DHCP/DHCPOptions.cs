@@ -127,7 +127,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
         byte[] DomainNameBytes;
         public DHCPopDNSNAME(string name)
         {
-            DomainNameBytes = ASCIIEncoding.ASCII.GetBytes(name);
+            DomainNameBytes = Encoding.ASCII.GetBytes(name);
             len = (byte)DomainNameBytes.Length;
             if (DomainNameBytes.Length > len)
             {

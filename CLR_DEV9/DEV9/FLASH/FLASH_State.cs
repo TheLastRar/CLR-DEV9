@@ -181,7 +181,7 @@ namespace CLRDEV9.DEV9.FLASH
                             Log_Error("*FLASH CMD " + (size * 8).ToString() + "bit write " + getCmdName(value) + " ILLEGAL after WRITEDATA cmd - IGNORED");
                             unchecked
                             {
-                                ctrl &= (uint)(~DEV9Header.FLASH_PP_READY);//go busy, reset is needed
+                                ctrl &= ~DEV9Header.FLASH_PP_READY;//go busy, reset is needed
                             }
                             break;
                         }
@@ -230,7 +230,7 @@ namespace CLRDEV9.DEV9.FLASH
                         case DEV9Header.SM_CMD_ERASECONFIRM:
                             unchecked
                             {
-                                ctrl &= (uint)(~DEV9Header.FLASH_PP_READY);
+                                ctrl &= ~DEV9Header.FLASH_PP_READY;
                             }
                             calculateECC(data);
                             Utils.memcpy(ref file, (int)((address / FLASH_Constants.PAGE_SIZE) * FLASH_Constants.PAGE_SIZE_ECC), data, 0, FLASH_Constants.PAGE_SIZE_ECC);
@@ -242,7 +242,7 @@ namespace CLRDEV9.DEV9.FLASH
                         default:
                             unchecked
                             {
-                                ctrl &= (uint)~DEV9Header.FLASH_PP_READY;
+                                ctrl &= ~DEV9Header.FLASH_PP_READY;
                             }
                             return;//ignore any other command; go busy, reset is needed
                     }
@@ -260,7 +260,7 @@ namespace CLRDEV9.DEV9.FLASH
                         {
                             unchecked
                             {
-                                ctrl &= (uint)~DEV9Header.FLASH_PP_READY;
+                                ctrl &= ~DEV9Header.FLASH_PP_READY;
                             }
                             Utils.memcpy(ref data, 0, file,
                                 (int)((address >> FLASH_Constants.PAGE_SIZE_BITS) * FLASH_Constants.PAGE_SIZE_ECC),
@@ -283,7 +283,7 @@ namespace CLRDEV9.DEV9.FLASH
 
                 case DEV9Header.FLASH_R_CTRL:
                     Log_Verb("*FLASH CTRL " + (size * 8).ToString() + "bit write 0x" + value.ToString("X8"));
-                    ctrl = (uint)((ctrl & DEV9Header.FLASH_PP_READY) | (value & ~DEV9Header.FLASH_PP_READY));
+                    ctrl = (ctrl & DEV9Header.FLASH_PP_READY) | (value & ~DEV9Header.FLASH_PP_READY);
                     break;
 
                 case DEV9Header.FLASH_R_ID:

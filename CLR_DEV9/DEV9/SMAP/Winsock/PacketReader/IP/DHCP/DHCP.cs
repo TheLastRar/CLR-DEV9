@@ -19,7 +19,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
         public byte[] YourIP = new byte[4];
         public byte[] ServerIP = new byte[4];
         public byte[] GatewayIP = new byte[4]; //NOT the router IP
-        public byte[] ClientHardwareAddress = new byte[16]; //always 16 Bytes, regardless of HardwareAddressLength
+        public byte[] ClientHardwareAddress = new byte[16]; //always 16 bytes, regardless of HardwareAddressLength
         //192 bytes of padding
         public UInt32 MagicCookie;
         public List<TCPOption> Options = new List<TCPOption>();

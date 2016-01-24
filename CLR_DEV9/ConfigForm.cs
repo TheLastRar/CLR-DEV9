@@ -20,7 +20,11 @@ namespace CLRDEV9
 
         private void btnEthOp_Click(object sender, EventArgs e)
         {
-            //No Options Yet
+            ConfigFormEth eth = new ConfigFormEth();
+
+            //hdd.iniFolder = iniFolder;
+            eth.ShowDialog();
+            eth.Dispose();
         }
 
         private void btnHddOp_Click(object sender, EventArgs e)

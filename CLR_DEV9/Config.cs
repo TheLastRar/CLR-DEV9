@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.ComponentModel;
+using System.IO;
 using System.Runtime.Serialization;
 using System.Xml;
 
@@ -10,6 +11,8 @@ namespace CLRDEV9
         [DataMember]
         public string Eth;
         [DataMember]
+        public EthAPI EthType;
+        [DataMember]
         public string Hdd;
         [DataMember]
         public int HddSize;
@@ -17,6 +20,14 @@ namespace CLRDEV9
         public bool HddEnable;
         [DataMember]
         public bool EthEnable;
+
+        public enum EthAPI : int
+        {
+            Winsock = 0, //Sockets
+            Tap = 1,
+            WinPcapBridged = 2,
+            WinPcapSwitched = 3
+        }
 
         public static void DoConfig(string iniFolderPath, string iniFileName)
         {
@@ -57,6 +68,11 @@ namespace CLRDEV9
                 DEV9Header.config = (Config)ConfSerializer.ReadObject(Reader);
 
                 Reader.Close();
+
+                if (DEV9Header.config.Eth == "winsock")
+                {
+                    DEV9Header.config.Eth = DEV9Header.ETH_DEF;
+                }
                 return;
             }
 
@@ -64,6 +80,7 @@ namespace CLRDEV9
             DEV9Header.config.Hdd = DEV9Header.HDD_DEF;
             DEV9Header.config.HddSize = 8 * 1024;
             DEV9Header.config.Eth = DEV9Header.ETH_DEF;
+            DEV9Header.config.EthType = EthAPI.Winsock;
             DEV9Header.config.EthEnable = true;
             DEV9Header.config.HddEnable = false;
 
