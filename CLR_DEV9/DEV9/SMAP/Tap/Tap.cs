@@ -21,10 +21,10 @@ namespace CLRDEV9.DEV9.SMAP.Tap
             return ret;
         }
 
-        public TAPAdapter(DEV9_State pardev9)
+        public TAPAdapter(DEV9_State pardev9, string parDevice)
             : base(pardev9)
         {
-            htap = TAPOpen(DEV9Header.config.Eth.Substring(4, DEV9Header.config.Eth.Length - 4));
+            htap = TAPOpen(parDevice);
 
             htapstream = new FileStream(htap, FileAccess.ReadWrite, 16 * 1024, true);
         }

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
 
@@ -18,21 +16,21 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
         [return: MarshalAs(UnmanagedType.Bool)]
         static extern bool FreeLibrary(IntPtr hModule);
 
-        [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Auto)]
+        [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi)]
         static extern string pcap_lib_version();
-        [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Auto)]
+        [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi)]
         static extern IntPtr pcap_open_live(string device, int snaplen, int promisc, int to_ms, StringBuilder errbuf);
-        [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Auto)]
+        [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi)]
         static extern int pcap_datalink(IntPtr p);
-        [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Auto)]
-        static extern string pcap_datalink_val_to_name(int dlt);
-        [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Auto)]
+        [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi)]
+        static extern IntPtr pcap_datalink_val_to_name(int dlt);
+        [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi)]
         static extern int pcap_setnonblock(IntPtr p, int nonblock, StringBuilder errbuf);
-        [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Auto)]
+        [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi)]
         static extern int pcap_next_ex(IntPtr p, out IntPtr ptr_pkt_header, out IntPtr ptr_pkt_data);
-        [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Auto)]
+        [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi)]
         static extern int pcap_sendpacket(IntPtr p, byte[] buf, int size);
-        [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Auto)]
+        [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi)]
         static extern int pcap_close(IntPtr p);
         #endregion
 
@@ -69,7 +67,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
                                             65536,
                                             switched?1:0,
                                             1,
-                                            errbuf))==null)
+                                            errbuf))==IntPtr.Zero)
             {
                 Log_Error(errbuf.ToString());
                 Log_Error("Unable to open the adapter. " + adapter + "is not supported by WinPcap");
@@ -77,7 +75,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             }
 
             dlt = pcap_datalink(adhandle);
-            dlt_name = pcap_datalink_val_to_name(dlt);
+            dlt_name = Marshal.PtrToStringAnsi(pcap_datalink_val_to_name(dlt));
 
             Log_Info("Device uses DLT " + dlt + ": " + dlt_name);
             switch(dlt)
@@ -104,7 +102,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
         int pcap_io_recv(byte[] data, int max_len)
         {
             int res;
-            pcap_pkthdr header = new pcap_pkthdr();
+            pcap_pkthdr header;
             IntPtr headerPtr;
             IntPtr pkt_dataPtr;
 
@@ -115,7 +113,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
 
             if ((res = pcap_next_ex(adhandle, out headerPtr, out pkt_dataPtr)) > 0)
             {
-                Marshal.PtrToStructure(headerPtr, header);
+                header = (pcap_pkthdr)Marshal.PtrToStructure(headerPtr, typeof(pcap_pkthdr));
                 Marshal.Copy(pkt_dataPtr, data, 0, Math.Min((int)header.len,max_len));
                 return (int)header.len;
             }

@@ -68,20 +68,20 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             return names;
         }
 
-        public WinPcapAdapter(DEV9_State pardev9, bool isSwitch)
+        public WinPcapAdapter(DEV9_State pardev9, string parDevice, bool isSwitch)
             : base(pardev9)
         {
             switched = isSwitch;
 
             //DEV9Header.config.Eth.Substring(12, DEV9Header.config.Eth.Length - 12)
-            if (!pcap_io_init(DEV9Header.config.Eth.Substring(12, DEV9Header.config.Eth.Length - 12)))
-            {
+            if (!pcap_io_init(@"\Device\NPF_" + parDevice))
+                {
                 Log_Error("Can't Open Device " + DEV9Header.config.Eth);
                 System.Windows.Forms.MessageBox.Show("Can't Open Device " + DEV9Header.config.Eth);
                 return;
             }
 
-            NetworkInterface host_adapter = GetAdapterFromGuid(DEV9Header.config.Eth.Substring(12, DEV9Header.config.Eth.Length - 12));
+            NetworkInterface host_adapter = GetAdapterFromGuid(parDevice);
             host_mac = host_adapter.GetPhysicalAddress().GetAddressBytes();
         }
 
@@ -238,7 +238,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
         }
         private void set_src_eth_mac(byte[] buf, byte[] value)
         {
-            Array.Copy(value, 6, buf, 0, 6);
+            Array.Copy(value, 0, buf, 6, 6);
         }
         //IP Dest IP
         private byte[] get_dest_ip_ip(byte[] buf, int pktoffset)
@@ -259,7 +259,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
         }
         private void set_dest_arp_mac(byte[] buf, int pktoffset, byte[] value)
         {
-            Array.Copy(value, pktoffset + 18, buf, 0, 6);
+            Array.Copy(value, 0, buf, pktoffset + 18, 6);
         }
         //ARP Sender Mac
         private byte[] get_src_arp_mac(byte[] buf, int pktoffset)
@@ -271,7 +271,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
         }
         private void set_src_arp_mac(byte[] buf, int pktoffset, byte[] value)
         {
-            Array.Copy(value, pktoffset + 8, buf, 0, 6);
+            Array.Copy(value, 0, buf, pktoffset + 8, 6);
         }
         //ARP Dest IP
         private byte[] get_dest_arp_ip(byte[] buf, int pktoffset)

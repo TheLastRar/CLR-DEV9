@@ -110,20 +110,39 @@ namespace CLRDEV9
                     break;
             }
 
+            //Reselect adapter of same guid
             for (int i = 0; i < selectedAPIAdapters.Count; i++)
             {
                 cbAdapter.Items.Add(selectedAPIAdapters[i][0] + " - " + selectedAPIAdapters[i][1]);
+                if (selectedAPIAdapters[i][2] == targetID)
+                {
+                    cbAdapter.SelectedIndex = i;
+                }
             }
         }
 
         private void btnApply_Click(object sender, EventArgs e)
         {
-
+            //Get API selected
+            KeyValuePair<Config.EthAPI, int> ret = apiIndex.FirstOrDefault(x => x.Value == cbAPI.SelectedIndex + 1);
+            if (ret.Value == 0)
+            {
+                MessageBox.Show("Please select an API");
+                return;
+            }
+            if (cbAdapter.SelectedIndex == -1)
+            {
+                MessageBox.Show("Please select an adapter");
+                return;
+            }
+            DEV9Header.config.EthType = ret.Key;
+            DEV9Header.config.Eth = selectedAPIAdapters[cbAdapter.SelectedIndex][2];
+            Close();
         }
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
-
+            Close();
         }
     }
 }

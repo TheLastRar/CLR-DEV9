@@ -21,7 +21,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
         public ushort PS2Port;
         public ushort SRVPort;
 
-        public override bool Equals(Object obj)
+        public override bool Equals(object obj)
         {
             return obj is ConnectionKey && this == (ConnectionKey)obj;
         }
@@ -103,9 +103,14 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             return names;
         }
 
-        public Winsock(DEV9_State pardev9) 
+        public Winsock(DEV9_State pardev9, string parDevice) 
             : base(pardev9)
         {
+            if (parDevice != "Auto")
+            {
+                throw new NotImplementedException();
+            }
+
             //Add allways on connections
             DCHP_server.SourceIP = new byte[] { 255, 255, 255, 255 };
             DCHP_server.DestIP = UDP_DHCPsession.DHCP_IP;

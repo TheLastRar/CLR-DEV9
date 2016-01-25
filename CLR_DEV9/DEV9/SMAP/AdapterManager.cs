@@ -1,5 +1,4 @@
 ﻿using CLRDEV9.DEV9.SMAP.Data;
-using System;
 using System.Diagnostics;
 using LOG = PSE.CLR_PSE_PluginLog;
 

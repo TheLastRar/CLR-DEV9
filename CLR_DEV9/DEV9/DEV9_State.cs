@@ -171,7 +171,7 @@ namespace CLRDEV9.DEV9
             {
                 case DEV9Header.SPD_R_INTR_STAT:
                     //DEV9_LOG("DEV9read16");
-                    Log_Error("SPD_R_INTR_STAT read " + irqcause.ToString("X"));
+                    Log_Verb("SPD_R_INTR_STAT read " + irqcause.ToString("X"));
                     return (UInt16)irqcause;
 
                 case DEV9Header.SPD_R_INTR_MASK:

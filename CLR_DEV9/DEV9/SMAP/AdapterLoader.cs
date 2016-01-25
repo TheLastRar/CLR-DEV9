@@ -1,5 +1,4 @@
 ﻿using CLRDEV9.DEV9.SMAP.Data;
-using System;
 using System.Diagnostics;
 using LOG = PSE.CLR_PSE_PluginLog;
 
@@ -20,21 +19,23 @@ namespace CLRDEV9.DEV9.SMAP
         {
             NetAdapter na = null;
             //TODO Make this use EthType
-            if (DEV9Header.config.Eth.StartsWith("p"))
+            switch(DEV9Header.config.EthType)
             {
-                //na = new PCAPAdapter(dev9);
-                return null;
+                case Config.EthAPI.Winsock:
+                    na = new Winsock.Winsock(dev9, DEV9Header.config.Eth);
+                    break;
+                case Config.EthAPI.Tap:
+                    na = new Tap.TAPAdapter(dev9, DEV9Header.config.Eth);
+                    break;
+                case Config.EthAPI.WinPcapBridged:
+                    na = new WinPcap.WinPcapAdapter(dev9, DEV9Header.config.Eth, false);
+                    break;
+                case Config.EthAPI.WinPcapSwitched:
+                    na = new WinPcap.WinPcapAdapter(dev9, DEV9Header.config.Eth, true);
+                    break;
+                default:
+                    return null;
             }
-            else if (DEV9Header.config.Eth.StartsWith("t"))
-            {
-                na = new Tap.TAPAdapter(dev9);
-            }
-            else if (DEV9Header.config.Eth.StartsWith("w"))
-            {
-                na = new Winsock.Winsock(dev9);
-            }
-            else
-                return null;
 
             if (!na.IsInitialised())
             {
