@@ -91,6 +91,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
+    <Compile Include="ConfigDirectIP.cs" />
     <Compile Include="ConfigFormEth.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -109,6 +110,7 @@
     <Compile Include="ConfigFormHdd.Designer.cs">
       <DependentUpon>ConfigFormHdd.cs</DependentUpon>
     </Compile>
+    <Compile Include="ConfigSocketIP.cs" />
     <Compile Include="DEV9.cs" />
     <Compile Include="DEV9Header.cs" />
     <Compile Include="DEV9LogSources.cs" />

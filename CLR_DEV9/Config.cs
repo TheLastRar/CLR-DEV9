@@ -9,17 +9,53 @@ namespace CLRDEV9
     class Config
     {
         [DataMember]
+        public bool EthEnable;
+        [DataMember]
         public string Eth;
         [DataMember]
         public EthAPI EthType;
+        [DataMember(EmitDefaultValue = false)]
+        public ConfigDirectIP DirectConnectionSettings;
+        [DataMember(EmitDefaultValue = false)]
+        public ConfigSocketIP SocketConnectionSettings;
+
+        [DataMember]
+        public bool HddEnable;
         [DataMember]
         public string Hdd;
         [DataMember]
         public int HddSize;
-        [DataMember]
-        public bool HddEnable;
-        [DataMember]
-        public bool EthEnable;
+
+        [OnDeserializing]
+        void OnDeserializing(StreamingContext context)
+        {
+            Hdd = DEV9Header.HDD_DEF;
+            HddSize = 8 * 1024;
+            Eth = DEV9Header.ETH_DEF;
+            EthType = EthAPI.Winsock;
+            EthEnable = true;
+            HddEnable = false;
+
+            DirectConnectionSettings = new ConfigDirectIP();
+            SocketConnectionSettings = new ConfigSocketIP();
+        }
+
+        private void Init()
+        {
+            Hdd = DEV9Header.HDD_DEF;
+            HddSize = 8 * 1024;
+            Eth = DEV9Header.ETH_DEF;
+            EthType = EthAPI.Winsock;
+            EthEnable = true;
+            HddEnable = false;
+
+            DirectConnectionSettings = new ConfigDirectIP();
+        }
+
+        public Config()
+        {
+            Init();
+        }
 
         public enum EthAPI : int
         {
@@ -69,6 +105,7 @@ namespace CLRDEV9
 
                 Reader.Close();
 
+                //Update from old config
                 if (DEV9Header.config.Eth == "winsock")
                 {
                     DEV9Header.config.Eth = DEV9Header.ETH_DEF;
@@ -77,12 +114,6 @@ namespace CLRDEV9
             }
 
             DEV9Header.config = new Config();
-            DEV9Header.config.Hdd = DEV9Header.HDD_DEF;
-            DEV9Header.config.HddSize = 8 * 1024;
-            DEV9Header.config.Eth = DEV9Header.ETH_DEF;
-            DEV9Header.config.EthType = EthAPI.Winsock;
-            DEV9Header.config.EthEnable = true;
-            DEV9Header.config.HddEnable = false;
 
             SaveConf(iniFolderPath, iniFileName);
         }
