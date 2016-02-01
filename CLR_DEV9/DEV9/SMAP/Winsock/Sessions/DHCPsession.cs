@@ -9,13 +9,26 @@ using System.Net.Sockets;
 
 namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 {
-    class UDP_DHCPsession : Session
+    class DefaultDHCPConfig
     {
         public static byte[] DHCP_IP = { 192, 0, 2, 1 };
         public static byte[] GATEWAY_IP = DHCP_IP;
         public static byte[] PS2_IP = { 192, 0, 2, 100 };
         public static byte[] NETMASK = { 255, 255, 255, 0 };
-        public static byte[] BROADCAST = { 192, 0, 2, 255 };
+    }
+
+    class UDP_DHCPsession : Session
+    {
+        #region CurrentConfig
+        public byte[] PS2IP;
+        private byte[] NetMask;
+        private byte[] Gateway;
+
+        private byte[] DNS1;
+        private byte[] DNS2;
+        public byte[] Broadcast;
+        #endregion
+
 
         List<UDP> recvbuff = new List<UDP>();
         byte HType;
@@ -25,24 +38,94 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         UInt32 cookie = 0;
 
         UInt16 maMs = 576;
-        public override IPPayload recv()
-        {
-            if (recvbuff.Count == 0)
-                return null;
-            UDP ret = recvbuff[0];
-            recvbuff.RemoveAt(0);
-            return ret;
-        }
-        public override bool send(IPPayload payload)
-        {
-            #region "Get Network Info"
-            //Get comp IP
-            IPAddress IPaddress = null;
 
-            //IPAddress NetMask = null;
-            //IPAddress GatewayIP = null;
+        public UDP_DHCPsession(byte[] parDNS1, byte[] parDNS2)
+        {
+            //Socket Settings
+            //Fill Fixed Settings
+            PS2IP = DefaultDHCPConfig.PS2_IP;
+            NetMask = DefaultDHCPConfig.NETMASK;
+            Gateway = DefaultDHCPConfig.GATEWAY_IP;
+            //Load DNS from Adapter
+            #region "Handle DNS"
+
+            NetworkInterface adapter = AutoAdapter();
             List<IPAddress> DNS_IP = new List<IPAddress>();
-            //IPAddress BroadCastIP = null;
+            if (adapter != null)
+            {
+                IPInterfaceProperties properties = adapter.GetIPProperties();
+                foreach (IPAddress DNSaddress in properties.DnsAddresses) //allow more than one DNS address?
+                {
+                    if (!(DNSaddress.AddressFamily == AddressFamily.InterNetworkV6))
+                    {
+                        DNS_IP.Add(DNSaddress);
+                    }
+                }
+            }
+            DNS1 = parDNS1;
+            DNS2 = parDNS2;
+
+            if (DNS1 == null)
+            {
+                //DNS1 is null
+                //If Adapter has DNS, add 1st entry
+                if (DNS_IP.Count >= 1)
+                {
+                    DNS1 = DNS_IP[0].GetAddressBytes();
+                }
+                //If adapter dosn't have 1st entry
+                //And we have been given a value for DNS2
+                //(but not 1) then set DNS1 to 0.0.0.0
+                else if (DNS2 != null)
+                {
+                    DNS1 = new byte[] { 0, 0, 0, 0 };
+                }
+
+                //Is both DNS1 and 2 null?
+                if (DNS2 == null)
+                {
+                    //If so, add adapter's second DNS record
+                    //if present.
+                    if (DNS_IP.Count >= 2)
+                    {
+                        DNS2 = DNS_IP[1].GetAddressBytes();
+                    }
+                }
+            }
+
+            else
+            {
+                //DNS1 is not null
+                if (DNS2 == null)
+                {
+                    //DNS2 is null
+                    //If Adapter has DNS, add entry to DNS2.
+                    //if adapter has 2+ entries, we add the
+                    //second entry to DNS2.
+                    //If not, add the 1st entry
+                    if (DNS_IP.Count >= 2)
+                    {
+                        DNS2 = DNS_IP[1].GetAddressBytes();
+                    }
+                    else if (DNS_IP.Count >= 1)
+                    {
+                        DNS2 = DNS_IP[0].GetAddressBytes();
+                    }
+                }
+            }
+            #endregion
+            //Broadcast Address
+            for (int i2 = 0; i2 < 4; i2++)
+            {
+                Broadcast[i2] = (byte)((PS2IP[i2]) | (~NetMask[i2]));
+            }
+        }
+
+        private NetworkInterface AutoAdapter()
+        {
+            IPAddress IPaddress = null;
+            List<IPAddress> DNS_IP = new List<IPAddress>();
+
             NetworkInterface[] Interfaces = NetworkInterface.GetAllNetworkInterfaces();
 
             bool FoundAdapter = false;
@@ -69,7 +152,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                             IPAddressInfo.Address.AddressFamily == AddressFamily.InterNetwork)
                         {
                             Log_Info("Matched Adapter");
-                            IPaddress = IPAddressInfo.Address; ;
+                            //IPaddress = IPAddressInfo.Address; ;
                             FoundAdapter = true;
                             break;
                         }
@@ -108,10 +191,22 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     //Error.WriteLine("Subnet Mask :" + NetMask.ToString());
                     //Error.WriteLine("Gateway IP :" + GatewayIP.ToString());
                     Log_Verb("DNS 1 : " + DNS_IP[0].ToString());
-                    break;
+                    return adapter;
                 }
             }
-            #endregion
+            return null;
+        }
+
+        public override IPPayload recv()
+        {
+            if (recvbuff.Count == 0)
+                return null;
+            UDP ret = recvbuff[0];
+            recvbuff.RemoveAt(0);
+            return ret;
+        }
+        public override bool send(IPPayload payload)
+        {
 
             DHCP dhcp = new DHCP(payload.GetPayload());
             HType = dhcp.HardwareType;
@@ -134,7 +229,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                         continue;
                     case 50:
                         Log_Info("Got Request IP");
-                        if (Utils.memcmp(PS2_IP, 0, ((DHCPopREQIP)dhcp.Options[i]).IPaddress, 0, 4) == false)
+                        if (Utils.memcmp(PS2IP, 0, ((DHCPopREQIP)dhcp.Options[i]).IPaddress, 0, 4) == false)
                             throw new Exception("ReqIP missmatch");
                         break;
                     case 53:
@@ -143,7 +238,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                         break;
                     case 54:
                         Log_Info("Got Server IP");
-                        if (Utils.memcmp(DHCP_IP, 0, ((DHCPopSERVIP)dhcp.Options[i]).IPaddress, 0, 4) == false)
+                        if (Utils.memcmp(DefaultDHCPConfig.DHCP_IP, 0, ((DHCPopSERVIP)dhcp.Options[i]).IPaddress, 0, 4) == false)
                             throw new Exception("ServIP missmatch");
                         break;
                     case 55:
@@ -172,7 +267,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     default:
                         Log_Error("Got Unknown Option " + dhcp.Options[i].Code);
                         throw new Exception();
-                    //break;
+                        //break;
                 }
             }
             DHCP retPay = new DHCP();
@@ -181,8 +276,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             retPay.HardwareAddressLength = Hlen;
             retPay.TransactionID = xID;
 
-            retPay.YourIP = PS2_IP;//IPaddress.GetAddressBytes();
-            retPay.ServerIP = DHCP_IP;
+            retPay.YourIP = PS2IP;//IPaddress.GetAddressBytes();
+            retPay.ServerIP = DefaultDHCPConfig.DHCP_IP;
 
             retPay.ClientHardwareAddress = cMac;
             retPay.MagicCookie = cookie;
@@ -207,16 +302,16 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                             case 1:
                                 Log_Verb("Sending Subnet");
                                 //retPay.Options.Add(new DHCPopSubnet(NetMask.GetAddressBytes()));
-                                retPay.Options.Add(new DHCPopSubnet(NETMASK));
+                                retPay.Options.Add(new DHCPopSubnet(NetMask));
                                 break;
                             case 3:
                                 Log_Verb("Sending Router");
-                                retPay.Options.Add(new DHCPopRouter(GATEWAY_IP));
+                                retPay.Options.Add(new DHCPopRouter(Gateway));
                                 break;
                             case 6:
                                 Log_Verb("Sending DNS"); //TODO support more than 1
-                                //
-                                retPay.Options.Add(new DHCPopDNS(DNS_IP[0]));
+                                //TODO Support DNS2
+                                retPay.Options.Add(new DHCPopDNS(DNS1));
                                 //retPay.Options.Add(new DHCPopDNS(IPAddress.Parse("1.1.1.1")));
                                 break;
                             case 15:
@@ -226,11 +321,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                                 break;
                             case 28:
                                 Log_Verb("Sending Broadcast Addr");
-                                for (int i2 = 0; i2 < 4; i2++)
-                                {
-                                    BROADCAST[i2] = (byte)((PS2_IP[i2]) | (~NETMASK[i2]));
-                                }
-                                retPay.Options.Add(new DHCPopBCIP(BROADCAST));
+                                //byte[] Broadcast = new byte[4];
+                                //for (int i2 = 0; i2 < 4; i2++)
+                                //{
+                                //    Broadcast[i2] = (byte)((PS2IP[i2]) | (~NetMask[i2]));
+                                //}
+                                retPay.Options.Add(new DHCPopBCIP(Broadcast));
                                 break;
                             default:
                                 Log_Error("Got Unknown Option " + reqList[i]);
@@ -248,7 +344,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 return true;
             }
 
-            retPay.Options.Add(new DHCPopSERVIP(DHCP_IP));
+            retPay.Options.Add(new DHCPopSERVIP(DefaultDHCPConfig.DHCP_IP));
             retPay.Options.Add(new DHCPopEND());
 
             byte[] udpPayload = retPay.GetBytes((UInt16)(maMs - (8 + 20)));

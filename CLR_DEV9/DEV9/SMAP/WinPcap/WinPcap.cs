@@ -75,7 +75,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
 
             //DEV9Header.config.Eth.Substring(12, DEV9Header.config.Eth.Length - 12)
             if (!pcap_io_init(@"\Device\NPF_" + parDevice))
-                {
+            {
                 Log_Error("Can't Open Device " + DEV9Header.config.Eth);
                 System.Windows.Forms.MessageBox.Show("Can't Open Device " + DEV9Header.config.Eth);
                 return;
@@ -83,7 +83,20 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
 
             NetworkInterface host_adapter = GetAdapterFromGuid(parDevice);
             host_mac = host_adapter.GetPhysicalAddress().GetAddressBytes();
+
+            if (DEV9Header.config.DirectConnectionSettings.InterceptDHCP)
+            {
+                InitDHCP(host_adapter);
+            }
         }
+
+        #region DHCP
+        private bool DHCP_Active = false;
+        private void InitDHCP(NetworkInterface parAdapter)
+        {
+            DHCP_Active = true;
+        }
+        #endregion
 
         public override bool Blocks()
         {
@@ -149,18 +162,33 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
 
         public override bool Send(NetPacket pkt)
         {
-            get_eth_protocol_hi(pkt.buffer);
-            get_eth_protocol_lo(pkt.buffer);
-            get_dest_eth_mac(pkt.buffer);
-            get_src_eth_mac(pkt.buffer);
-            get_dest_arp_mac(pkt.buffer,14);
-            get_src_arp_mac(pkt.buffer,14);
-            get_dest_arp_ip(pkt.buffer, 14);
-            get_dest_ip_ip(pkt.buffer, 14);
-            EthernetFrame ethTest = new EthernetFrame(pkt);
+            //get_eth_protocol_hi(pkt.buffer);
+            //get_eth_protocol_lo(pkt.buffer);
+            //get_dest_eth_mac(pkt.buffer);
+            //get_src_eth_mac(pkt.buffer);
+            //get_dest_arp_mac(pkt.buffer,14);
+            //get_src_arp_mac(pkt.buffer,14);
+            //get_dest_arp_ip(pkt.buffer, 14);
+            //get_dest_ip_ip(pkt.buffer, 14);
+
+            EthernetFrame eth = null;
+
+            if (DEV9Header.config.DirectConnectionSettings.InterceptDHCP)
+            {
+                eth = new EthernetFrame(pkt);
+                if (eth.Protocol == (UInt16)EtherFrameType.IPv4)
+                {
+                    IPPacket ipp = (IPPacket)eth.Payload;
+                    if (ipp.Protocol == (byte)IPType.UDP)
+                    {
+
+                    }
+                }
+            }
+
             if (!switched /* or intercept DHCP */)
             {
-                EthernetFrame eth = new EthernetFrame(pkt);
+                eth = new EthernetFrame(pkt);
 
                 //If intercept DHCP, then get IP from DHCP process
                 if (eth.Protocol == (UInt16)EtherFrameType.IPv4)

@@ -16,6 +16,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         UInt16 SrcPort = 0;
         UInt16 DestPort = 0;
         //Broadcast
+        byte[] broadcastAddr;
         bool isBroadcast = false;
         byte[] broadcastResponseData = null;
         byte[] broadcastResponseIP = null;
@@ -23,8 +24,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         Stopwatch DeathClock = new Stopwatch();
         const double MaxIdle = 72;
-        public UDPSession()
+        public UDPSession(byte[] parBroadcastIP)
         {
+            broadcastAddr = parBroadcastIP;
             DeathClock.Start();
         }
         public override IPPayload recv()
@@ -91,7 +93,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 DestPort = udp.DestinationPort;
                 SrcPort = udp.SourcePort;
 
-                if (Utils.memcmp(DestIP, 0, UDP_DHCPsession.BROADCAST, 0, 4))
+                if (Utils.memcmp(DestIP, 0, broadcastAddr, 0, 4))
                 {
                     isBroadcast = true;
                 }

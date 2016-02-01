@@ -65,7 +65,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
     class Winsock : NetAdapter
     {
         List<NetPacket> vRecBuffer = new List<NetPacket>(); //Non IP packets
-        UDP_DHCPsession DCHP_server = new UDP_DHCPsession();
+        UDP_DHCPsession DHCP_server = new UDP_DHCPsession(null,null);
         //List<Session> Connections = new List<Session>();
         Object sentry = new Object();
         Dictionary<ConnectionKey, Session> Connections = new Dictionary<ConnectionKey, Session>();
@@ -112,13 +112,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             }
 
             //Add allways on connections
-            DCHP_server.SourceIP = new byte[] { 255, 255, 255, 255 };
-            DCHP_server.DestIP = UDP_DHCPsession.DHCP_IP;
+            DHCP_server.SourceIP = new byte[] { 255, 255, 255, 255 };
+            DHCP_server.DestIP = DefaultDHCPConfig.DHCP_IP;
 
             ConnectionKey DHCP_Key = new ConnectionKey();
             DHCP_Key.Protocol = (byte)IPType.UDP;
             DHCP_Key.SRVPort = 67;
-            Connections.Add(DHCP_Key, DCHP_server);
+            Connections.Add(DHCP_Key, DHCP_server);
         }
 
         public override bool Blocks()
@@ -314,7 +314,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     Log_Verb("Creating New Connection with key " + Key);
                     ICMPSession s = new ICMPSession(Connections);
                     s.DestIP = ippkt.DestinationIP;
-                    s.SourceIP = UDP_DHCPsession.PS2_IP;
+                    s.SourceIP = DHCP_server.PS2IP;
                     Connections.Add(Key, s);
                     return s.send(ippkt.Payload);
                 }
@@ -340,7 +340,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     Log_Info("Creating New TCP Connection with Dest Port " + tcp.DestinationPort);
                     TCPSession s = new TCPSession();
                     s.DestIP = ippkt.DestinationIP;
-                    s.SourceIP = UDP_DHCPsession.PS2_IP;
+                    s.SourceIP = DHCP_server.PS2IP;
                     Connections.Add(Key, s);
                     return s.send(ippkt.Payload);
                 }
@@ -355,7 +355,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
 
             if (udp.DestinationPort == 67)
             { //DHCP
-                return DCHP_server.send(ippkt.Payload);
+                return DHCP_server.send(ippkt.Payload);
             }
             lock (sentry)
             {
@@ -369,9 +369,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
 
                     Log_Verb("Creating New Connection with key " + Key);
                     Log_Info("Creating New UDP Connection with Dest Port " + udp.DestinationPort);
-                    UDPSession s = new UDPSession();
+                    UDPSession s = new UDPSession(DHCP_server.Broadcast);
                     s.DestIP = ippkt.DestinationIP;
-                    s.SourceIP = UDP_DHCPsession.PS2_IP;
+                    s.SourceIP = DHCP_server.PS2IP;
                     Connections.Add(Key, s);
                     return s.send(ippkt.Payload);
                 }
@@ -407,7 +407,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 vRecBuffer.Clear();
                 Connections.Clear();
                 //Connections.Add("DHCP", DCHP_server);
-                DCHP_server.Dispose();
+                DHCP_server.Dispose();
             }
         }
 

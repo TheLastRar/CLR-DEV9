@@ -74,9 +74,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
     class DHCPopDNS : TCPOption //can be longer then 1 address (not supported)
     {
         byte[] dnsip = new byte[4];
-        public DHCPopDNS(IPAddress parIP)
+        public DHCPopDNS(byte[] parIP)
         {
-            dnsip = parIP.GetAddressBytes();
+            dnsip = parIP;
         }
         public DHCPopDNS(byte[] data, int offset) //Offset will include Kind and Len
         {
