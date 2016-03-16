@@ -144,7 +144,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
         {
             if (DHCP_Active)
             {
-                IPPayload retDHCP = DHCP.recv();
+                IPPayload retDHCP = DHCP.Recv();
                 if (retDHCP != null)
                 {
                     IPPacket retIP = new IPPacket(retDHCP);
@@ -235,7 +235,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
                         UDP udppkt = (UDP)ipp.Payload;
                         if (udppkt.DestinationPort == 67)
                         {
-                            DHCP.send(udppkt);
+                            DHCP.Send(udppkt);
                             return true;
                         }
                     }
@@ -367,14 +367,12 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
         }
         #endregion
 
-        public override void Dispose()
+        public override void Dispose(bool disposing)
         {
-            pcap_io_close();
-            if (DHCP_Active)
+            base.Dispose(disposing);
+            if (disposing)
             {
-                DHCP_Active = false;
-                DHCP.Dispose();
-                DHCP = null;
+                pcap_io_close();
             }
         }
 

@@ -6,7 +6,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 {
     partial class TCPSession
     {
-        public override IPPayload recv()
+        public override IPPayload Recv()
         {
             TCP ret = PopRecvBuff();
             if (ret != null)

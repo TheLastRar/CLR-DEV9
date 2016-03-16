@@ -42,8 +42,12 @@ namespace CLRDEV9.DEV9.SMAP.Data
         }
         public abstract bool Recv(ref NetPacket pkt); //gets a packet
         public abstract bool Send(NetPacket pkt);	//sends the packet and deletes it when done
-        public abstract void Dispose();
-
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+        public virtual void Dispose(bool disposing) { }
         //Shared functions
 
         protected bool Verify(NetPacket pkt, int read_size)

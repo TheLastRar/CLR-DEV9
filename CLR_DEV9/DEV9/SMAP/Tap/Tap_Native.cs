@@ -108,14 +108,14 @@ namespace CLRDEV9.DEV9.SMAP.Tap
 
             ManagementScope scope = new ManagementScope("\\\\.\\ROOT\\cimv2");
 
-            ObjectQuery query = new ObjectQuery("SELECT Name,Description,ServiceName,PNPDeviceID,GUID FROM Win32_NetworkAdapter");
+            ObjectQuery query = new ObjectQuery("SELECT NetConnectionID,Description,ServiceName,PNPDeviceID,GUID FROM Win32_NetworkAdapter");
             using (ManagementObjectSearcher netSearcher = new ManagementObjectSearcher(scope, query))
             {
                 using (ManagementObjectCollection netQueryCollection = netSearcher.Get())
                 {
                     foreach (ManagementObject netMO in netQueryCollection)
                     {
-                        Console.Error.WriteLine("Name {0}, PNPDevID {1} En {2}", netMO["Description"], netMO["PNPDeviceID"], netMO["GUID"]);
+                        //Console.Error.WriteLine("Name {0}, PNPDevID {1} En {2}", netMO["Description"], netMO["PNPDeviceID"], netMO["GUID"]);
 
                         if (netMO["PNPDeviceID"] == null)
                             continue;
@@ -126,34 +126,9 @@ namespace CLRDEV9.DEV9.SMAP.Tap
                         //ServiceName == hardwareID?
                         if (((string)netMO["ServiceName"]).StartsWith("tap"))
                         {
-                            //Get Actural Name
-                            NetworkInterface netAdapter = GetAdapterFromGuid((string)netMO["GUID"]);
-                            //(string)netMO["Name"] (Seems to return the description instead)
-                            names.Add(new string[] { netAdapter.Name, (string)netMO["Description"], (string)netMO["GUID"] });
+                            //NetConnectionID is what the user has named the connection
+                            names.Add(new string[] { (string)netMO["NetConnectionID"] , (string)netMO["Description"], (string)netMO["GUID"] });
                         }
-
-                        //if (netMO["NetEnabled"] == null || ((bool)netMO["NetEnabled"]) == false)
-                        //    continue;
-
-                        //// make sure you escape the device string
-                        //query = new ObjectQuery("SELECT * FROM win32_PNPEntity where DeviceID='" + ((string)netMO["PNPDeviceID"]).Replace("\\", "\\\\") + "'");
-                        //ManagementObjectSearcher pnpSearcher = new ManagementObjectSearcher(scope, query);
-                        //using (ManagementObjectCollection pnpQueryCollection = pnpSearcher.Get())
-                        //{
-                        //    foreach (ManagementObject pnpMO in pnpQueryCollection)
-                        //    {
-                        //        string[] hardwareIds = (string[])pnpMO["HardWareID"];
-                        //        if ((hardwareIds != null) && (hardwareIds.Length > 0))
-                        //        {
-                        //            Console.Error.WriteLine(" HardWareID: {0}", hardwareIds[0]);
-                        //            if (hardwareIds[0].StartsWith("tap"))
-                        //            {
-                        //                names.Add(new string[] { (string)netMO["ServiceName"], (string)netMO["Description"], (string)netMO["GUID"] });
-                        //            }
-                        //        }
-                        //    }
-                        //}
-
                     }
                 }
             }

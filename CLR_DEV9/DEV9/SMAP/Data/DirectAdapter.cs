@@ -14,13 +14,11 @@ namespace CLRDEV9.DEV9.SMAP.Data
     {
         public DirectAdapter(DEV9_State pardev9)
             : base(pardev9)
-        {
+        {}
 
-        }
-
-        #region DHCP
         private bool DHCP_Active = false;
         private UDP_DHCPsession DHCP = null;
+
         protected void InitDHCP(NetworkInterface parAdapter)
         {
             //Cleanup to pass options as paramaters instead of accessing the config directly?
@@ -54,20 +52,12 @@ namespace CLRDEV9.DEV9.SMAP.Data
             DHCP = new UDP_DHCPsession(parAdapter, PS2IP, NetMask, Gateway, DNS1, DNS2);
             DHCP_Active = true;
         }
-        protected void KillDHCP()
+
+        public override bool Recv(ref NetPacket pkt)
         {
             if (DHCP_Active)
             {
-                DHCP_Active = false;
-                DHCP.Dispose();
-                DHCP = null;
-            }
-        }
-        protected bool ReceiveDHCP(ref NetPacket pkt)
-        {
-            if (DHCP_Active)
-            {
-                IPPayload retDHCP = DHCP.recv();
+                IPPayload retDHCP = DHCP.Recv();
                 if (retDHCP != null)
                 {
                     IPPacket retIP = new IPPacket(retDHCP);
@@ -85,19 +75,20 @@ namespace CLRDEV9.DEV9.SMAP.Data
             return false;
         }
 
-        protected bool SendDHCP(EthernetFrame parEthF)
+        public override bool Send(NetPacket pkt)
         {
             if (DHCP_Active)
             {
-                if (parEthF.Protocol == (UInt16)EtherFrameType.IPv4)
+                EthernetFrame eth = new EthernetFrame(pkt);
+                if (eth.Protocol == (UInt16)EtherFrameType.IPv4)
                 {
-                    IPPacket ipp = (IPPacket)parEthF.Payload;
+                    IPPacket ipp = (IPPacket)eth.Payload;
                     if (ipp.Protocol == (byte)IPType.UDP)
                     {
                         UDP udppkt = (UDP)ipp.Payload;
                         if (udppkt.DestinationPort == 67)
                         {
-                            DHCP.send(udppkt);
+                            DHCP.Send(udppkt);
                             return true;
                         }
                     }
@@ -105,10 +96,16 @@ namespace CLRDEV9.DEV9.SMAP.Data
             }
             return false;
         }
-        #endregion
 
-        //TODO, dispose/creation?
-        //Or instead go with a helper class logic?
-
+        public override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            if (DHCP_Active & disposing)
+            {
+                DHCP_Active = false;
+                DHCP.Dispose();
+                DHCP = null;
+            }
+        }
     }
 }

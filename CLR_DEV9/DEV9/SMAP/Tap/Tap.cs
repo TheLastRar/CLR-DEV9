@@ -106,12 +106,15 @@ namespace CLRDEV9.DEV9.SMAP.Tap
             PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.Tap, "TAP", str);
         }
 
-        public override void Dispose()
+        public override void Dispose(bool disposing)
         {
-            TAPSetStatus(htap, false);
-            Console.Error.WriteLine("Shutdown Tap");
-            htapstream.Close();
-            htap.Close();
+            if (disposing)
+            {
+                TAPSetStatus(htap, false);
+                Log_Info("Shutdown Tap");
+                htapstream.Close();
+                htap.Close();
+            }
         }
     };
 }

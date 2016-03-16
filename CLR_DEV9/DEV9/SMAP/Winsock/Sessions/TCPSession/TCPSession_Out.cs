@@ -73,7 +73,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             }
         }
 
-        public override bool send(IPPayload payload)
+        public override bool Send(IPPayload payload)
         {
             TCP tcp = (TCP)payload;
             if (DestPort != 0)

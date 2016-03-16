@@ -145,7 +145,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     foreach (ConnectionKey key in Connections.Keys) //ToDo: better multi-connection stuff?
                     {
                         IPPayload PL;
-                        PL = Connections[key].recv();
+                        PL = Connections[key].Recv();
                         if (!(PL == null))
                         {
                             IPPacket ippkt = new IPPacket(PL);
@@ -315,7 +315,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     s.DestIP = ippkt.DestinationIP;
                     s.SourceIP = DHCP_server.PS2IP;
                     Connections.Add(Key, s);
-                    return s.send(ippkt.Payload);
+                    return s.Send(ippkt.Payload);
                 }
             }
         }
@@ -341,7 +341,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     s.DestIP = ippkt.DestinationIP;
                     s.SourceIP = DHCP_server.PS2IP;
                     Connections.Add(Key, s);
-                    return s.send(ippkt.Payload);
+                    return s.Send(ippkt.Payload);
                 }
             }
         }
@@ -354,7 +354,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
 
             if (udp.DestinationPort == 67)
             { //DHCP
-                return DHCP_server.send(ippkt.Payload);
+                return DHCP_server.Send(ippkt.Payload);
             }
             lock (sentry)
             {
@@ -372,7 +372,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     s.DestIP = ippkt.DestinationIP;
                     s.SourceIP = DHCP_server.PS2IP;
                     Connections.Add(Key, s);
-                    return s.send(ippkt.Payload);
+                    return s.Send(ippkt.Payload);
                 }
             }
         }
@@ -387,26 +387,29 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     throw new Exception("Attempt to send on Closed Connection");
                 }
                 //Error.WriteLine("Found Open Connection");
-                return Connections[Key].send(ippkt.Payload) ? 1 : 0;
+                return Connections[Key].Send(ippkt.Payload) ? 1 : 0;
             }
             else
                 return -1;
         }
 
-        public override void Dispose()
+        public override void Dispose(bool disposing)
         {
             //TODO close all open connections
-            lock (sentry)
+            if (disposing)
             {
-                Log_Verb("Closing " + Connections.Count + " Connections");
-                foreach (ConnectionKey key in Connections.Keys) //ToDo better multi-connection stuff
+                lock (sentry)
                 {
-                    Connections[key].Dispose(); //replace with dispose?
+                    Log_Verb("Closing " + Connections.Count + " Connections");
+                    foreach (ConnectionKey key in Connections.Keys) //ToDo better multi-connection stuff
+                    {
+                        Connections[key].Dispose(); //replace with dispose?
+                    }
+                    vRecBuffer.Clear();
+                    Connections.Clear();
+                    //Connections.Add("DHCP", DCHP_server);
+                    DHCP_server.Dispose();
                 }
-                vRecBuffer.Clear();
-                Connections.Clear();
-                //Connections.Add("DHCP", DCHP_server);
-                DHCP_server.Dispose();
             }
         }
 

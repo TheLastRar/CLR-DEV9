@@ -29,7 +29,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             broadcastAddr = parBroadcastIP;
             DeathClock.Start();
         }
-        public override IPPayload recv()
+        public override IPPayload Recv()
         {
             if (recvbuff.Count != 0)
             {
@@ -75,7 +75,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             }
             return null;
         }
-        public override bool send(IPPayload payload)
+        public override bool Send(IPPayload payload)
         {
             DeathClock.Restart();
             UDP udp = (UDP)payload;
@@ -152,6 +152,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             byte[] bytes = client.EndReceive(ar, ref ip);
             broadcastResponseData = bytes;
             broadcastResponseIP = ip.Address.GetAddressBytes();
+        }
+        public override void Reset()
+        {
+            Dispose();
         }
 
         bool open = false;

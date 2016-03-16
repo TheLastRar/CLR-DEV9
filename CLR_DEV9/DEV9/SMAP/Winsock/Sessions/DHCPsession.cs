@@ -271,7 +271,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             return null;
         }
 
-        public override IPPayload recv()
+        public override IPPayload Recv()
         {
             if (recvbuff.Count == 0)
                 return null;
@@ -279,7 +279,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             recvbuff.RemoveAt(0);
             return ret;
         }
-        public override bool send(IPPayload payload)
+        public override bool Send(IPPayload payload)
         {
 
             DHCP dhcp = new DHCP(payload.GetPayload());
@@ -427,6 +427,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             retudp.DestinationPort = 68;
             recvbuff.Add(retudp);
             return true;
+        }
+        public override void Reset()
+        {
+            throw new NotImplementedException();
         }
 
         public override bool isOpen() { return true; }

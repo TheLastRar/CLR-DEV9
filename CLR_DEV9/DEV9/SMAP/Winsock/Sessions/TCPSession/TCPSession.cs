@@ -105,13 +105,16 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         ManualResetEvent MyNumberACKed = new ManualResetEvent(true);
         #endregion
 
-        //Object sentry = new Object();
-
         //recv
 
         //Async connect
 
         //send
+
+        public override void Reset()
+        {
+            Dispose();
+        }
 
         bool open = false;
         public override bool isOpen()

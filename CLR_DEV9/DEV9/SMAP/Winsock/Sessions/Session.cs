@@ -8,11 +8,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         public byte[] SourceIP;
         public byte[] DestIP;
 
-        public abstract IPPayload recv();
-        public abstract bool send(IPPayload payload);
+        public abstract IPPayload Recv();
+        public abstract bool Send(IPPayload payload);
+        public abstract void Reset();
         public abstract bool isOpen();
         public abstract void Dispose();
-
-        //public abstract void Dispose();
+        
     }
 }

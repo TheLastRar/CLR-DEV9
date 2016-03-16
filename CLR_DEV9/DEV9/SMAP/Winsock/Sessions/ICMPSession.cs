@@ -28,7 +28,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             public byte[] Data;
         }
 
-        public void PingCompleate(object sender, System.Net.NetworkInformation.PingCompletedEventArgs e)
+        public void PingCompleate(object sender, PingCompletedEventArgs e)
         {
             Log_Verb("Ping Complete");
             PingData Seq = (PingData)e.UserState;
@@ -55,7 +55,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             }
         }
 
-        public override IPPayload recv()
+        public override IPPayload Recv()
         {
             //Error.WriteLine("UDP Recive");
             lock (sentry)
@@ -72,7 +72,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
             return null;
         }
-        public override bool send(IPPayload payload)
+        public override bool Send(IPPayload payload)
         {
             ICMP icmp = (ICMP)payload;
 
@@ -125,14 +125,14 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                             Key.Protocol = prot;
                             Key.PS2Port = ps2Port;
                             Key.SRVPort = srvPort;
-                            if (Connections.Remove(Key)) //TODO, Prevent this from removing permanent sessions
-                                //Also correctly cleanup session
+                            if (Connections.ContainsKey(Key)) //TODO, Prevent this from removing permanent sessions
                             {
-                                Log_Info("Closed Rejected Connection");
+                                Connections[Key].Reset();
+                                Log_Info("Reset Rejected Connection");
                             }
                             else
                             {
-                                Log_Error("Failed To Close Rejected Connection");
+                                Log_Error("Failed To Reset Rejected Connection");
                             }
                             break;
                         default:
@@ -145,13 +145,17 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
             return true;
         }
+        public override void Reset()
+        {
+            Dispose();
+        }
 
         int open = 0;
         public override bool isOpen()
         {
             lock (sentry)
             {
-                return (open != 0);
+                return (open > 0);
             }
         }
         public override void Dispose()
