@@ -133,6 +133,7 @@
             this.tbIP.Name = "tbIP";
             this.tbIP.Size = new System.Drawing.Size(176, 20);
             this.tbIP.TabIndex = 8;
+            this.tbIP.Text = "0.0.0.0";
             // 
             // tbMask
             // 

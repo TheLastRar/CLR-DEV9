@@ -126,6 +126,7 @@
     <Compile Include="DEV9\FLASH\FLASH_State_regs.cs" />
     <Compile Include="DEV9\SMAP\AdapterLoader.cs" />
     <Compile Include="DEV9\SMAP\AdapterManager.cs" />
+    <Compile Include="DEV9\SMAP\Data\DirectAdapter.cs" />
     <Compile Include="DEV9\SMAP\Data\NetAdapter.cs" />
     <Compile Include="DEV9\SMAP\Data\NetPacket.cs" />
     <Compile Include="DEV9\SMAP\Data\SMAP_bd.cs" />

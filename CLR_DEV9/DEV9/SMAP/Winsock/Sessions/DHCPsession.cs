@@ -29,7 +29,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         public byte[] Broadcast;
         #endregion
 
-
         List<UDP> recvbuff = new List<UDP>();
         byte HType;
         byte Hlen;
@@ -47,13 +46,99 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             NetMask = DefaultDHCPConfig.NETMASK;
             Gateway = DefaultDHCPConfig.GATEWAY_IP;
             //Load DNS from Adapter
-            #region "Handle DNS"
-
             NetworkInterface adapter = AutoAdapter();
-            List<IPAddress> DNS_IP = new List<IPAddress>();
-            if (adapter != null)
+            HandleDNS(adapter, parDNS1, parDNS2);
+            //Broadcast Address
+            HandleBroadcast(PS2IP, NetMask);
+        }
+
+        public UDP_DHCPsession(NetworkInterface parAdapter, byte[] parIP, byte[] parNetmask, byte[] parGateway,
+            byte[] parDNS1, byte[] parDNS2)
+        {
+            IPInterfaceProperties properties = parAdapter.GetIPProperties();
+            UnicastIPAddressInformationCollection IPInfoCollection = properties.UnicastAddresses;
+            GatewayIPAddressInformationCollection GatewayInfoCollection = properties.GatewayAddresses;
+
+            PS2IP = parIP;
+            //NetMask
+            NetMask = parNetmask;
+            if (NetMask == null)
             {
-                IPInterfaceProperties properties = adapter.GetIPProperties();
+                foreach (UnicastIPAddressInformation IPInfo in IPInfoCollection)
+                {
+                    if (IPInfo.Address.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        NetMask = IPInfo.IPv4Mask.GetAddressBytes();
+                        break;
+                    }
+                }
+            }
+            //Gateway
+            Gateway = parGateway;
+            if (Gateway == null)
+            {
+                foreach (GatewayIPAddressInformation GatewayInfo in GatewayInfoCollection)
+                {
+                    if (GatewayInfo.Address.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        Gateway = GatewayInfo.Address.GetAddressBytes();
+                        break;
+                    }
+                }
+            }
+            HandleDNS(parAdapter, parDNS1, parDNS2);
+            HandleBroadcast(PS2IP, NetMask);
+            //Special case for ICS
+            if (Gateway == null)
+            {
+                //Retrive ICS IP from Regs
+                byte[] icsIP;
+                try
+                {
+                    using (Microsoft.Win32.RegistryKey localKey = Microsoft.Win32.RegistryKey.OpenBaseKey(
+                                                                    Microsoft.Win32.RegistryHive.LocalMachine,
+                                                                    Microsoft.Win32.RegistryView.Registry64))
+                    {
+                        //if (localKey != null)
+                        //{
+                        using (Microsoft.Win32.RegistryKey icsKey = localKey.OpenSubKey("System\\CurrentControlSet\\Services\\SharedAccess\\Parameters"))
+                        {
+                            //    if (icsKey != null)
+                            //    {
+                            icsIP = IPAddress.Parse((string)icsKey.GetValue("ScopeAddress")).GetAddressBytes();
+                            //}
+                        }
+                        //}
+                    }
+                }
+                catch
+                {
+                    icsIP = new byte[] { 192, 168, 137, 1 };
+                }
+                foreach (UnicastIPAddressInformation IPInfo in IPInfoCollection)
+                {
+                    if (IPInfo.Address.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        byte[] addrB = IPInfo.Address.GetAddressBytes();
+                        if (Utils.memcmp(addrB, 0, icsIP, 0, 4))
+                        {
+                            Gateway = icsIP;
+                            if (parDNS1 == null)
+                            {
+                                parDNS1 = icsIP;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void HandleDNS(NetworkInterface parAdapter, byte[] parDNS1, byte[] parDNS2)
+        {
+            List<IPAddress> DNS_IP = new List<IPAddress>();
+            if (parAdapter != null)
+            {
+                IPInterfaceProperties properties = parAdapter.GetIPProperties();
                 foreach (IPAddress DNSaddress in properties.DnsAddresses) //allow more than one DNS address?
                 {
                     if (!(DNSaddress.AddressFamily == AddressFamily.InterNetworkV6))
@@ -92,7 +177,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     }
                 }
             }
-
             else
             {
                 //DNS1 is not null
@@ -113,11 +197,14 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     }
                 }
             }
-            #endregion
-            //Broadcast Address
+        }
+
+        private void HandleBroadcast(byte[] parPS2IP, byte[] parNetMask)
+        {
+            Broadcast = new byte[4];
             for (int i2 = 0; i2 < 4; i2++)
             {
-                Broadcast[i2] = (byte)((PS2IP[i2]) | (~NetMask[i2]));
+                Broadcast[i2] = (byte)((parPS2IP[i2]) | (~parNetMask[i2]));
             }
         }
 
@@ -138,14 +225,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 }
                 if (adapter.OperationalStatus == OperationalStatus.Up)
                 {
-                    UnicastIPAddressInformationCollection IPInfo = adapter.GetIPProperties().UnicastAddresses;
+                    UnicastIPAddressInformationCollection IPInfoCollection = adapter.GetIPProperties().UnicastAddresses;
                     IPInterfaceProperties properties = adapter.GetIPProperties();
-                    //GatewayIPAddressInformation myGateways = properties.GatewayAddresses.FirstOrDefault();
-                    //if (myGateways.Address.ToString().Equals("0.0.0.0"))
-                    //{
-                    //    continue;
-                    //}
-                    foreach (UnicastIPAddressInformation IPAddressInfo in IPInfo)
+
+                    foreach (UnicastIPAddressInformation IPAddressInfo in IPInfoCollection)
                     {
                         if (//IPAddressInfo.DuplicateAddressDetectionState == DuplicateAddressDetectionState.Preferred &
                             //IPAddressInfo.AddressPreferredLifetime != UInt32.MaxValue &
@@ -157,15 +240,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                             break;
                         }
                     }
-                    //foreach (GatewayIPAddressInformation Gateway in myGateways) //allow more than one gateway?
-                    //{
-                    //    if (FoundAdapter == true)
-                    //    {
-                    //        GatewayIP = Gateway.Address;
-                    //        GATEWAY_IP = GatewayIP.GetAddressBytes();
-                    //        break;
-                    //    }
-                    //}
                     foreach (IPAddress DNSaddress in properties.DnsAddresses) //allow more than one DNS address?
                     {
                         if (FoundAdapter == true)

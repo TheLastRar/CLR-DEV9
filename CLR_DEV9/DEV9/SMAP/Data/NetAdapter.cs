@@ -10,6 +10,9 @@ namespace CLRDEV9.DEV9.SMAP.Data
     {
         //Shared
         protected byte[] broadcast_mac = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+        //Hope this dosn't clash (Also used as DHCP server in intercept mode)
+        protected byte[] virtural_gateway_mac = { 0x76, 0x6D, 0xF4, 0x63, 0x30, 0x31 };
+
         protected byte[] ps2_mac;
 
         protected DEV9_State dev9 = null;
@@ -101,8 +104,13 @@ namespace CLRDEV9.DEV9.SMAP.Data
 
             foreach (NetworkInterface adapter in Interfaces)
             {
+                //Use WMI instead?
+                //if (Utils.memcmp(adapter.GetPhysicalAddress().GetAddressBytes(), 0, new byte[] { 0, 0, 0, 0, 0, 0 }, 0, 6))
+                //{
+                //    System.Windows.Forms.MessageBox.Show("Found Bridge");
+                //}
                 if (adapter.Id == parGUID)
-                {
+                { 
                     return adapter;
                 }
             }

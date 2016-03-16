@@ -130,7 +130,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             return true;
         }
 
-        byte[] gateway_mac = { 0x76, 0x6D, 0xF4, 0x63, 0x30, 0x31 };
         //gets a packet.rv :true success
         public override bool Recv(ref NetPacket pkt)
         {
@@ -153,7 +152,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                             ippkt.DestinationIP = Connections[key].SourceIP;
                             ippkt.SourceIP = Connections[key].DestIP;
                             EthernetFrame eF = new EthernetFrame(ippkt);
-                            eF.SourceMAC = gateway_mac;
+                            eF.SourceMAC = virtural_gateway_mac;
                             eF.DestinationMAC = ps2_mac;
                             eF.Protocol = (UInt16)EtherFrameType.IPv4;
                             pkt = eF.CreatePacket();
