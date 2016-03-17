@@ -390,7 +390,16 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                             case 6:
                                 Log_Verb("Sending DNS"); //TODO support more than 1
                                 //TODO Support DNS2
-                                retPay.Options.Add(new DHCPopDNS(DNS1));
+                                if (DNS1 != null)
+                                {
+                                    if (DNS2 != null)
+                                    {
+                                        retPay.Options.Add(new DHCPopDNS(DNS1,DNS2));
+                                    }
+                                    else { 
+                                        retPay.Options.Add(new DHCPopDNS(DNS1));
+                                    }
+                                }
                                 //retPay.Options.Add(new DHCPopDNS(IPAddress.Parse("1.1.1.1")));
                                 break;
                             case 15:

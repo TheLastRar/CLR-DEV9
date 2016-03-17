@@ -73,17 +73,38 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
     }
     class DHCPopDNS : TCPOption //can be longer then 1 address (not supported)
     {
-        byte[] dnsip = new byte[4];
+        byte[] dnsip1 = new byte[4];
+        byte[] dnsip2 = null;
         public DHCPopDNS(byte[] parIP)
         {
-            dnsip = parIP;
+            dnsip1 = parIP;
+        }
+        public DHCPopDNS(byte[] parIP1, byte[] parIP2)
+        {
+            dnsip1 = parIP1;
+            dnsip2 = parIP2;
         }
         public DHCPopDNS(byte[] data, int offset) //Offset will include Kind and Len
         {
-            offset += 2;
-            NetLib.ReadByteArray(data, ref offset, 4, out dnsip);
+            offset += 1;
+            byte len;
+            NetLib.ReadByte08(data, ref offset, out len);
+            NetLib.ReadByteArray(data, ref offset, 4, out dnsip1);
+            if (len == 10)
+            {
+                NetLib.ReadByteArray(data, ref offset, 4, out dnsip2);
+            }
         }
-        public override byte Length { get { return 6; } }
+        public override byte Length
+        {
+            get
+            {
+                if (dnsip2 == null)
+                    return 6;
+                else
+                    return 10;
+            }
+        }
         public override byte Code { get { return 6; } }
 
         public override byte[] GetBytes()
@@ -92,7 +113,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
             int counter = 0;
             NetLib.WriteByte08(ref ret, ref counter, Code);
             NetLib.WriteByte08(ref ret, ref counter, (byte)(Length - 2));
-            NetLib.WriteByteArray(ref ret, ref counter, dnsip);
+            NetLib.WriteByteArray(ref ret, ref counter, dnsip1);
+            if (dnsip2 == null)
+            {
+                NetLib.WriteByteArray(ref ret, ref counter, dnsip2);
+            }
             return ret;
         }
     }
@@ -311,7 +336,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
     //        Utils.memcpy(ref MsgBytes, 0, data, offset + 2, len);
     //        Encoding enc = Encoding.ASCII;
     //        //Error.WriteLine(enc.GetString(MsgBytes));
-            
+
     //    }
     //    public override byte Length { get { return (byte)(2 + len); } }
     //    public override byte Code { get { return 56; } }
