@@ -114,7 +114,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
             NetLib.WriteByte08(ref ret, ref counter, Code);
             NetLib.WriteByte08(ref ret, ref counter, (byte)(Length - 2));
             NetLib.WriteByteArray(ref ret, ref counter, dnsip1);
-            if (dnsip2 == null)
+            if (dnsip2 != null)
             {
                 NetLib.WriteByteArray(ref ret, ref counter, dnsip2);
             }

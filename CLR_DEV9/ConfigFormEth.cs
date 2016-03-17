@@ -298,13 +298,13 @@ namespace CLRDEV9
             {
                 case Config.EthAPI.Winsock:
                     DEV9Header.config.SocketConnectionSettings.AutoDNS1 = cbAutoDNS1.Checked;
-                    if (!cbAutoMask.Checked)
+                    if (!cbAutoDNS1.Checked)
                     {
                         DEV9Header.config.SocketConnectionSettings.DNS1 = tbDNS1.Text;
                     }
 
                     DEV9Header.config.SocketConnectionSettings.AutoDNS2 = cbAutoDNS2.Checked;
-                    if (!cbAutoMask.Checked)
+                    if (!cbAutoDNS2.Checked)
                     {
                         DEV9Header.config.SocketConnectionSettings.DNS2 = tbDNS2.Text;
                     }
@@ -324,19 +324,19 @@ namespace CLRDEV9
                         }
 
                         DEV9Header.config.DirectConnectionSettings.AutoGateway = cbAutoGate.Checked;
-                        if (!cbAutoMask.Checked)
+                        if (!cbAutoGate.Checked)
                         {
                             DEV9Header.config.DirectConnectionSettings.Gateway = tbGate.Text;
                         }
 
                         DEV9Header.config.DirectConnectionSettings.AutoDNS1 = cbAutoDNS1.Checked;
-                        if (!cbAutoMask.Checked)
+                        if (!cbAutoDNS1.Checked)
                         {
                             DEV9Header.config.DirectConnectionSettings.DNS1 = tbDNS1.Text;
                         }
 
                         DEV9Header.config.DirectConnectionSettings.AutoDNS2 = cbAutoDNS2.Checked;
-                        if (!cbAutoMask.Checked)
+                        if (!cbAutoDNS2.Checked)
                         {
                             DEV9Header.config.DirectConnectionSettings.DNS2 = tbDNS2.Text;
                         }

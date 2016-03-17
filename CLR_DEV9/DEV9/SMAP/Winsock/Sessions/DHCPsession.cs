@@ -240,7 +240,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                             IPAddressInfo.Address.AddressFamily == AddressFamily.InterNetwork)
                         {
                             Log_Info("Matched Adapter");
-                            //IPaddress = IPAddressInfo.Address; ;
+                            IPaddress = IPAddressInfo.Address;
                             FoundAdapter = true;
                             break;
                         }
