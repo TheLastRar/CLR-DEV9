@@ -2,11 +2,8 @@
 using CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP;
 using CLRDEV9.DEV9.SMAP.Winsock.Sessions;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Text;
 
 namespace CLRDEV9.DEV9.SMAP.Data
 {
@@ -14,7 +11,7 @@ namespace CLRDEV9.DEV9.SMAP.Data
     {
         public DirectAdapter(DEV9_State pardev9)
             : base(pardev9)
-        {}
+        { }
 
         private bool DHCP_Active = false;
         private UDP_DHCPsession DHCP = null;

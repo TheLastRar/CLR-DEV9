@@ -6,8 +6,10 @@ using CLRDEV9.DEV9.SMAP.Winsock.Sessions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Linq;
 
 namespace CLRDEV9.DEV9.SMAP.Winsock
 {
@@ -65,7 +67,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
     class Winsock : NetAdapter
     {
         List<NetPacket> vRecBuffer = new List<NetPacket>(); //Non IP packets
-        UDP_DHCPsession DHCP_server = new UDP_DHCPsession(null,null);
+        UDP_DHCPsession DHCP_server;
+        IPAddress adapterIP = IPAddress.Any;
         //List<Session> Connections = new List<Session>();
         Object sentry = new Object();
         Dictionary<ConnectionKey, Session> Connections = new Dictionary<ConnectionKey, Session>();
@@ -103,15 +106,36 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             return names;
         }
 
-        public Winsock(DEV9_State pardev9, string parDevice) 
+        public Winsock(DEV9_State pardev9, string parDevice)
             : base(pardev9)
         {
+            //Add allways on connections
+            byte[] DNS1 = null;
+            byte[] DNS2 = null;
+            NetworkInterface adapter = null;
+
             if (parDevice != "Auto")
             {
-                throw new NotImplementedException();
+                adapter = GetAdapterFromGuid(parDevice);
+                if (adapter == null)
+                {
+                    throw new NullReferenceException();
+                }
+                adapterIP = (from ip in adapter.GetIPProperties().UnicastAddresses
+                             where ip.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork
+                             select ip.Address).SingleOrDefault();
             }
 
-            //Add allways on connections
+            if (!DEV9Header.config.SocketConnectionSettings.AutoDNS1)
+            {
+                DNS1 = IPAddress.Parse(DEV9Header.config.SocketConnectionSettings.DNS1).GetAddressBytes();
+            }
+            if (!DEV9Header.config.SocketConnectionSettings.AutoDNS2)
+            {
+                DNS2 = IPAddress.Parse(DEV9Header.config.SocketConnectionSettings.DNS2).GetAddressBytes();
+            }
+            DHCP_server = new UDP_DHCPsession(adapter, DNS1, DNS2);
+
             DHCP_server.SourceIP = new byte[] { 255, 255, 255, 255 };
             DHCP_server.DestIP = DefaultDHCPConfig.DHCP_IP;
 
@@ -337,7 +361,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 {
                     Log_Verb("Creating New Connection with key " + Key);
                     Log_Info("Creating New TCP Connection with Dest Port " + tcp.DestinationPort);
-                    TCPSession s = new TCPSession();
+                    TCPSession s = new TCPSession(adapterIP);
                     s.DestIP = ippkt.DestinationIP;
                     s.SourceIP = DHCP_server.PS2IP;
                     Connections.Add(Key, s);
@@ -368,7 +392,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
 
                     Log_Verb("Creating New Connection with key " + Key);
                     Log_Info("Creating New UDP Connection with Dest Port " + udp.DestinationPort);
-                    UDPSession s = new UDPSession(DHCP_server.Broadcast);
+                    UDPSession s = new UDPSession(adapterIP, DHCP_server.Broadcast);
                     s.DestIP = ippkt.DestinationIP;
                     s.SourceIP = DHCP_server.PS2IP;
                     Connections.Add(Key, s);
@@ -395,6 +419,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
 
         public override void Dispose(bool disposing)
         {
+            base.Dispose(true);
             //TODO close all open connections
             if (disposing)
             {

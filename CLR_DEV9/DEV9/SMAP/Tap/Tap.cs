@@ -1,14 +1,15 @@
 ﻿using CLRDEV9.DEV9.SMAP.Data;
-using System;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System.IO;
 using Microsoft.Win32.SafeHandles;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Net.NetworkInformation;
 
 namespace CLRDEV9.DEV9.SMAP.Tap
 {
-    partial class TAPAdapter : NetAdapter
+    partial class TAPAdapter : DirectAdapter
     {
         SafeFileHandle htap;
         FileStream htapstream;
@@ -27,6 +28,21 @@ namespace CLRDEV9.DEV9.SMAP.Tap
             htap = TAPOpen(parDevice);
 
             htapstream = new FileStream(htap, FileAccess.ReadWrite, 16 * 1024, true);
+
+            if (DEV9Header.config.DirectConnectionSettings.InterceptDHCP)
+            {
+                NetworkInterface host_adapter = GetAdapterFromGuid(parDevice);
+                if (host_adapter == null)
+                {
+                    //TAP adapter is bridged
+                    //As such we can't find it in get all adapters
+                    throw new NotImplementedException();
+                }
+                else
+                {
+                    InitDHCP(host_adapter);
+                }
+            }
         }
 
         public override bool Blocks()
@@ -44,6 +60,8 @@ namespace CLRDEV9.DEV9.SMAP.Tap
         //gets a packet.rv :true success
         public override bool Recv(ref NetPacket pkt)
         {
+            if (base.Recv(ref pkt)) { return true; }
+
             int read_size = 0;
             //bool result = false;
             try
@@ -63,7 +81,7 @@ namespace CLRDEV9.DEV9.SMAP.Tap
 
             //if (result)
             //{
-            if (!Verify(pkt,read_size))
+            if (!Verify(pkt, read_size))
             {
                 return false;
             }
@@ -76,6 +94,8 @@ namespace CLRDEV9.DEV9.SMAP.Tap
         //sends the packet and deletes it when done (if successful).rv :true success
         public override bool Send(NetPacket pkt)
         {
+            if (base.Send(pkt)) { return true; }
+
             int writen = 0;
 
             htapstream.Write(pkt.buffer, 0, pkt.size);
@@ -108,6 +128,7 @@ namespace CLRDEV9.DEV9.SMAP.Tap
 
         public override void Dispose(bool disposing)
         {
+            base.Dispose(true);
             if (disposing)
             {
                 TAPSetStatus(htap, false);
@@ -116,5 +137,5 @@ namespace CLRDEV9.DEV9.SMAP.Tap
                 htap.Close();
             }
         }
-    };
+    }
 }

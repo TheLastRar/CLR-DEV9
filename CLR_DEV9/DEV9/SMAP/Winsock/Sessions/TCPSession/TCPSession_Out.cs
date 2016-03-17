@@ -187,7 +187,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 client = null;
             }
             netStream = null;
-            client = new TcpClient();
+            client = new TcpClient(new IPEndPoint(adapterIP,0));
             IPAddress address = new IPAddress(DestIP);
             client.BeginConnect(address, DestPort, new AsyncCallback(AsyncConnectComplete), tcp);
             state = TCPState.SendingSYN_ACK;

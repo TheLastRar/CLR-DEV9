@@ -24,7 +24,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         Stopwatch DeathClock = new Stopwatch();
         const double MaxIdle = 72;
-        public UDPSession(byte[] parBroadcastIP)
+        public UDPSession(IPAddress parAdapterIP, byte[] parBroadcastIP)
+            :base(parAdapterIP)
         {
             broadcastAddr = parBroadcastIP;
             DeathClock.Start();
@@ -102,7 +103,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 {
                     Log_Info("Is Broadcast");
 
-                    client = new UdpClient(SrcPort); //Assuming broadcast wants a return message
+                    client = new UdpClient(new IPEndPoint(adapterIP, SrcPort)); //Assuming broadcast wants a return message
                     client.EnableBroadcast = true;
 
                     //client.Close();
@@ -115,11 +116,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     IPAddress address = new IPAddress(DestIP);
                     if (SrcPort == DestPort)
                     {
-                        client = new UdpClient(SrcPort); //Needed for Crash TTR (and probable other games) LAN
+                        client = new UdpClient(new IPEndPoint(adapterIP, SrcPort)); //Needed for Crash TTR (and probable other games) LAN
                     }
                     else
                     {
-                        client = new UdpClient();
+                        client = new UdpClient(new IPEndPoint(adapterIP, 0));
                     }
 
                     client.Connect(address, DestPort); //address to send on

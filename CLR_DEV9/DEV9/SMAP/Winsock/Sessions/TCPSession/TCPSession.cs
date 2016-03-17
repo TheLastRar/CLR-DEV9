@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
@@ -104,6 +105,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         }
         ManualResetEvent MyNumberACKed = new ManualResetEvent(true);
         #endregion
+
+        public TCPSession(IPAddress parAdapterIP) : base(parAdapterIP) { }
 
         //recv
 

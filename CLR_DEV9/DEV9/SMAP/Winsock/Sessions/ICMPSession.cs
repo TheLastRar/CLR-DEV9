@@ -18,6 +18,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         Dictionary<ConnectionKey, Session> Connections;
 
         public ICMPSession(Dictionary<ConnectionKey, Session> parConnections)
+            :base(IPAddress.Any)
         {
             Connections = parConnections;
         }

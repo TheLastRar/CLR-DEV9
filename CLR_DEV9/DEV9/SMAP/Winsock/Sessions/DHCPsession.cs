@@ -38,7 +38,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         UInt16 maMs = 576;
 
-        public UDP_DHCPsession(byte[] parDNS1, byte[] parDNS2)
+        public UDP_DHCPsession(NetworkInterface parAdapter, byte[] parDNS1, byte[] parDNS2)
+            :base(IPAddress.Any)
         {
             //Socket Settings
             //Fill Fixed Settings
@@ -46,14 +47,18 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             NetMask = DefaultDHCPConfig.NETMASK;
             Gateway = DefaultDHCPConfig.GATEWAY_IP;
             //Load DNS from Adapter
-            NetworkInterface adapter = AutoAdapter();
-            HandleDNS(adapter, parDNS1, parDNS2);
+            if (parAdapter == null)
+            {
+                parAdapter = AutoAdapter();
+            }
+            HandleDNS(parAdapter, parDNS1, parDNS2);
             //Broadcast Address
             HandleBroadcast(PS2IP, NetMask);
         }
 
         public UDP_DHCPsession(NetworkInterface parAdapter, byte[] parIP, byte[] parNetmask, byte[] parGateway,
             byte[] parDNS1, byte[] parDNS2)
+            :base(IPAddress.Any)
         {
             IPInterfaceProperties properties = parAdapter.GetIPProperties();
             UnicastIPAddressInformationCollection IPInfoCollection = properties.UnicastAddresses;

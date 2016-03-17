@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Management;
-using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 
 namespace CLRDEV9.DEV9.SMAP.Tap
@@ -22,7 +21,7 @@ namespace CLRDEV9.DEV9.SMAP.Tap
 
         #region 'PInvoke mess'
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        static extern Microsoft.Win32.SafeHandles.SafeFileHandle CreateFile(string lpFileName, UInt32 dwDesiredAccess, UInt32 dwShareMode, IntPtr pSecurityAttributes, UInt32 dwCreationDisposition, UInt32 dwFlagsAndAttributes, IntPtr hTemplateFile);
+        static extern SafeFileHandle CreateFile(string lpFileName, UInt32 dwDesiredAccess, UInt32 dwShareMode, IntPtr pSecurityAttributes, UInt32 dwCreationDisposition, UInt32 dwFlagsAndAttributes, IntPtr hTemplateFile);
         const UInt32 GENERIC_READ = (0x80000000);
         const UInt32 GENERIC_WRITE = (0x40000000);
         const UInt32 OPEN_EXISTING = 3;
@@ -65,7 +64,7 @@ namespace CLRDEV9.DEV9.SMAP.Tap
             //          TAPSUFFIX);
             device_path = USERMODEDEVICEDIR + device_guid + TAPSUFFIX;
 
-            Microsoft.Win32.SafeHandles.SafeFileHandle handle = CreateFile(
+            SafeFileHandle handle = CreateFile(
                 device_path,
                 GENERIC_READ | GENERIC_WRITE,
                 0,
@@ -78,7 +77,7 @@ namespace CLRDEV9.DEV9.SMAP.Tap
             {
                 Log_Error("Error @ CF " + Marshal.GetLastWin32Error());
                 //return INVALID_HANDLE_VALUE;
-                return new Microsoft.Win32.SafeHandles.SafeFileHandle(new IntPtr(-1), true);
+                return new SafeFileHandle(new IntPtr(-1), true);
             }
             version ver = new version();
 
@@ -90,13 +89,13 @@ namespace CLRDEV9.DEV9.SMAP.Tap
             {
                 Log_Error("Error @ DIOC " + Marshal.GetLastWin32Error());
                 handle.Close();
-                return new Microsoft.Win32.SafeHandles.SafeFileHandle(new IntPtr(-1), true);
+                return new SafeFileHandle(new IntPtr(-1), true);
             }
 
             if (!TAPSetStatus(handle, true))
             {
                 Log_Error("Error @ TAPSETSTAT " + Marshal.GetLastWin32Error());
-                return new Microsoft.Win32.SafeHandles.SafeFileHandle(new IntPtr(-1), true);
+                return new SafeFileHandle(new IntPtr(-1), true);
             }
 
             return handle;
