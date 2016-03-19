@@ -45,6 +45,9 @@ namespace CLRDEV9
                 Log_Info("Init");
                 dev9 = new DEV9.DEV9_State();
                 Log_Info("Init ok");
+
+                //DEV9.SMAP.Tap.TAPAdapter.FindBridge("{F51AD931-7B1D-40CB-856A-959035390C7D}");
+
                 return 0;
 #if DEBUG
             }
@@ -119,12 +122,36 @@ namespace CLRDEV9
         }
         public static void SetSettingsDir(string dir)
         {
-            IniFolderPath = dir;
+#if DEBUG
+            try
+            {
+#endif
+                IniFolderPath = dir;
+#if DEBUG
+            }
+            catch (Exception e)
+            {
+                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                throw e;
+            }
+#endif
         }
         public static void SetLogDir(string dir)
         {
-            LogFolderPath = dir;
-            //LogInit();
+#if DEBUG
+            try
+            {
+#endif
+                LogFolderPath = dir;
+                //LogInit();
+#if DEBUG
+            }
+            catch (Exception e)
+            {
+                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                throw e;
+            }
+#endif
         }
 
         public static byte DEV9read8(uint addr)
@@ -279,16 +306,28 @@ namespace CLRDEV9
 
         public static void DEV9irqCallback(PSE.CLR_PSE_Callbacks.CLR_CyclesCallback callback)
         {
-            DEV9Header.DEV9irq = callback;
+#if DEBUG
+            try
+            {
+#endif
+                DEV9Header.DEV9irq = callback;
+#if DEBUG
+            }
+            catch (Exception e)
+            {
+                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                throw e;
+            }
+#endif
         }
         static GCHandle irqHandle;
         public static int _DEV9irqHandler()
         {
-            #if DEBUG
+#if DEBUG
             try
             {
 #endif
-            return dev9._DEV9irqHandler();
+                return dev9._DEV9irqHandler();
 #if DEBUG
             }
             catch (Exception e)
@@ -300,15 +339,27 @@ namespace CLRDEV9
         }
         public static PSE.CLR_PSE_Callbacks.CLR_IRQHandler DEV9irqHandler()
         {
-            // Pass our handler to pcsx2.
-            if (irqHandle.IsAllocated)
+#if DEBUG
+            try
             {
-                irqHandle.Free(); //allow garbage collection
+#endif
+                // Pass our handler to pcsx2.
+                if (irqHandle.IsAllocated)
+                {
+                    irqHandle.Free(); //allow garbage collection
+                }
+                Log_Info("Get IRQ");
+                PSE.CLR_PSE_Callbacks.CLR_IRQHandler fp = new PSE.CLR_PSE_Callbacks.CLR_IRQHandler(_DEV9irqHandler);
+                irqHandle = GCHandle.Alloc(fp); //prevent GC
+                return fp;
+#if DEBUG
             }
-            Log_Info("Get IRQ");
-            PSE.CLR_PSE_Callbacks.CLR_IRQHandler fp = new PSE.CLR_PSE_Callbacks.CLR_IRQHandler(_DEV9irqHandler);
-            irqHandle = GCHandle.Alloc(fp); //prevent GC
-            return fp;
+            catch (Exception e)
+            {
+                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                throw e;
+            }
+#endif
         }
 
         //freeze
@@ -317,15 +368,38 @@ namespace CLRDEV9
         //test
         public static int Test()
         {
-            return 0;
+#if DEBUG
+            try
+            {
+#endif
+                return 0;
+#if DEBUG
+            }
+            catch (Exception e)
+            {
+                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                return 1;
+            }
+#endif
         }
         public static void Configure()
         {
-            Config.LoadConf(IniFolderPath, "CLR_DEV9.ini");
-            Config.DoConfig(IniFolderPath, "CLR_DEV9.ini");
-            Config.SaveConf(IniFolderPath, "CLR_DEV9.ini");
+#if DEBUG
+            try
+            {
+#endif
+                Config.LoadConf(IniFolderPath, "CLR_DEV9.ini");
+                Config.DoConfig(IniFolderPath, "CLR_DEV9.ini");
+                Config.SaveConf(IniFolderPath, "CLR_DEV9.ini");
+#if DEBUG
+            }
+            catch (Exception e)
+            {
+                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                throw e;
+            }
+#endif
         }
-
 
         private static void Log_Error(string str)
         {

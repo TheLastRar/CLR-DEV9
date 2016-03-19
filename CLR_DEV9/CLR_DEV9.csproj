@@ -131,6 +131,8 @@
     <Compile Include="DEV9\SMAP\Data\NetPacket.cs" />
     <Compile Include="DEV9\SMAP\Data\SMAP_bd.cs" />
     <Compile Include="DEV9\SMAP\SMAP_State.cs" />
+    <Compile Include="DEV9\SMAP\Tap\Bridge.cs" />
+    <Compile Include="DEV9\SMAP\Tap\INetCfg\INetCfg.cs" />
     <Compile Include="DEV9\SMAP\Tap\Tap_Native.cs" />
     <Compile Include="DEV9\SMAP\WinPcap\WinPcap.cs" />
     <Compile Include="DEV9\SMAP\WinPcap\WinPcap_Native.cs" />

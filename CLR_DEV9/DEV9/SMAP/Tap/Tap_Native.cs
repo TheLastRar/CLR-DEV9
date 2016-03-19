@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Management;
 using System.Runtime.InteropServices;
+//using CLRDEV9.DEV9.SMAP.Tap.INetCfgCOM;
 
 namespace CLRDEV9.DEV9.SMAP.Tap
 {
@@ -101,6 +102,25 @@ namespace CLRDEV9.DEV9.SMAP.Tap
             return handle;
         }
 
+        //public static void FindBridge(string device_guid)
+        //{
+        //    INetCfg netCfg;
+        //    INetCfgLock netCfgLock;
+
+        //    if (Bridge.GetInstance(out netCfg, out netCfgLock) == 0)
+        //    {
+        //        netCfg.Initialize(IntPtr.Zero);
+        //        if (Bridge.IsAdapterInstalled(netCfg))
+        //        {
+        //            //Bridge Installed
+        //            //use index of PNPid
+        //            Bridge.IsBridgedToAdapterById(netCfg, @"ROOT\NET\0000", false);
+        //        }
+        //        netCfg.Uninitialize();
+        //        Marshal.ReleaseComObject(netCfg);
+        //    }
+        //}
+
         private static List<string[]> TAPGetAdaptersWMI()
         {
             List<string[]> names = new List<string[]>();
@@ -126,7 +146,7 @@ namespace CLRDEV9.DEV9.SMAP.Tap
                         if (((string)netMO["ServiceName"]).StartsWith("tap"))
                         {
                             //NetConnectionID is what the user has named the connection
-                            names.Add(new string[] { (string)netMO["NetConnectionID"] , (string)netMO["Description"], (string)netMO["GUID"] });
+                            names.Add(new string[] { (string)netMO["NetConnectionID"], (string)netMO["Description"], (string)netMO["GUID"] });
                         }
                     }
                 }

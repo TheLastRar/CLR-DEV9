@@ -32,7 +32,7 @@ namespace PSE
         private static void nat_DEV9write16(UInt32 addr, UInt16 value) { DEV9write16(addr, value); }
         [DllExport("DEV9write32", CallingConvention = CallingConvention.StdCall)]
         private static void nat_DEV9write32(UInt32 addr, UInt32 value) { DEV9write32(addr, value); }
-        //ENABLE_NEW_IOPDMA_DEV9
+        //ENABLE_NEW_IOPDMA_DEV9 (Not used)
         [DllExport("DEV9dmaRead", CallingConvention = CallingConvention.StdCall)]
         private static Int32 nat_DEV9dmaRead(Int32 channel, IntPtr data, UInt32 bytesLeft, ref UInt32 bytesProcessed) { return DEV9dmaRead(channel, data, bytesLeft, ref bytesProcessed); }
         [DllExport("DEV9dmaWrite", CallingConvention = CallingConvention.StdCall)]

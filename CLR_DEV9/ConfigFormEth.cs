@@ -151,6 +151,26 @@ namespace CLRDEV9
                     cbAutoDNS1.Checked = DEV9Header.config.DirectConnectionSettings.AutoDNS1;
                     cbAutoDNS2.Checked = DEV9Header.config.DirectConnectionSettings.AutoDNS2;
 
+                    //Impossible to get config settings of bridge in windows 8.1+
+                    KeyValuePair<Config.EthAPI, int> ret = apiIndex.FirstOrDefault(x => x.Value == cbAPI.SelectedIndex + 1);
+                    if (ret.Value == 0)
+                    {
+                        MessageBox.Show("Something when wrong");
+                        return;
+                    }
+                    if (ret.Key == Config.EthAPI.Tap)
+                    {
+                        cbAutoMask.Checked = false;
+                        cbAutoGate.Checked = false;
+                        cbAutoDNS1.Checked = false;
+                        cbAutoDNS2.Checked = false;
+
+                        cbAutoMask.Enabled = false;
+                        cbAutoGate.Enabled = false;
+                        cbAutoDNS1.Enabled = false;
+                        cbAutoDNS2.Enabled = false;
+                    }
+
                     tbMask.Enabled = !cbAutoMask.Checked;
                     tbGate.Enabled = !cbAutoGate.Checked;
                     tbDNS1.Enabled = !cbAutoDNS1.Checked;

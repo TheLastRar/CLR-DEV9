@@ -388,8 +388,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                                 retPay.Options.Add(new DHCPopRouter(Gateway));
                                 break;
                             case 6:
-                                Log_Verb("Sending DNS"); //TODO support more than 1
-                                //TODO Support DNS2
+                                Log_Verb("Sending DNS");
                                 if (DNS1 != null)
                                 {
                                     if (DNS2 != null)
@@ -400,7 +399,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                                         retPay.Options.Add(new DHCPopDNS(DNS1));
                                     }
                                 }
-                                //retPay.Options.Add(new DHCPopDNS(IPAddress.Parse("1.1.1.1")));
                                 break;
                             case 15:
                                 Log_Verb("Sending Domain Name");

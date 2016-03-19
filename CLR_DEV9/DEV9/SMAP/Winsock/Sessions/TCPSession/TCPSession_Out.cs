@@ -360,6 +360,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
             GetAllMyNumbers(out seqNum, out oldSeqNum);
 
+            Log_Verb("CHECK_NUMBERS");
+            Log_Verb("[SRV]CurrSeqNumber = " + seqNum + " [PS2]Ack Number = " + tcp.AcknowledgementNumber);
+            Log_Verb("[SRV]CurrAckNumber = " + ExpectedSequenceNumber + " [PS2]Seq Number = " + tcp.SequenceNumber);
+            Log_Verb("[PS2]Data Length = " + tcp.GetPayload().Length);
+
             if (tcp.AcknowledgementNumber != seqNum)
             {
                 Log_Verb("Outdated Acknowledgement Number, Got " + tcp.AcknowledgementNumber + " Expected " + seqNum);
