@@ -28,15 +28,7 @@ namespace CLRDEV9
         [OnDeserializing]
         void OnDeserializing(StreamingContext context)
         {
-            Hdd = DEV9Header.HDD_DEF;
-            HddSize = 8 * 1024;
-            Eth = DEV9Header.ETH_DEF;
-            EthType = EthAPI.Winsock;
-            EthEnable = true;
-            HddEnable = false;
-
-            DirectConnectionSettings = new ConfigDirectIP();
-            SocketConnectionSettings = new ConfigSocketIP();
+            Init();
         }
 
         private void Init()
@@ -49,6 +41,7 @@ namespace CLRDEV9
             HddEnable = false;
 
             DirectConnectionSettings = new ConfigDirectIP();
+            SocketConnectionSettings = new ConfigSocketIP();
         }
 
         public Config()
