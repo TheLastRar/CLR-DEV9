@@ -50,22 +50,6 @@ namespace PSE
 #else
         private const string libraryName = "CLR DEV9 Test";
 #endif
-#if DEBUG
-        public static void MsgBoxError(Exception e, string logPath)
-        {
-            Console.Error.WriteLine(e.Message + Environment.NewLine + e.StackTrace);
-            System.Windows.Forms.MessageBox.Show("Encounted Exception! : " + Environment.NewLine + e.Message);
-            Console.Error.WriteLine("Writing Log to " + logPath + "\\" + libraryName + " ERR.txt");
-            try
-            {
-                System.IO.File.WriteAllLines(logPath + "\\" + libraryName + " ERR.txt", new string[] { e.Message + Environment.NewLine + e.StackTrace });
-            } 
-            catch
-            {
-                Console.Error.WriteLine("Error while writing ErrorLog");
-            }
-        }
-#endif
 
         public static string PS2EgetLibName()
         {

@@ -53,7 +53,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 return -1;
             }
 #endif
@@ -75,7 +75,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 return -1;
             }
 #endif
@@ -91,7 +91,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
 #endif
@@ -115,7 +115,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
 #endif
@@ -131,7 +131,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
 #endif
@@ -148,7 +148,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
 #endif
@@ -165,7 +165,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
 #endif
@@ -181,7 +181,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
 #endif
@@ -197,7 +197,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
 #endif
@@ -214,7 +214,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
 #endif
@@ -230,7 +230,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
 #endif
@@ -246,7 +246,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
 #endif
@@ -264,7 +264,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
 #endif
@@ -281,7 +281,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
 #endif
@@ -298,7 +298,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
 #endif
@@ -315,7 +315,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
 #endif
@@ -332,7 +332,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
 #endif
@@ -356,7 +356,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
 #endif
@@ -377,7 +377,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 return 1;
             }
 #endif
@@ -395,7 +395,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE.MsgBoxError(e, LogFolderPath);
+                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
 #endif

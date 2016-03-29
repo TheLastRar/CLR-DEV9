@@ -9,15 +9,42 @@ namespace PSE
     {
         static TraceSource mySource = null;
         static SourceSwitch defualtSwicth = new SourceSwitch("Default");
+        static SourceLevels ConsoleStdLevel = SourceLevels.All & ~(SourceLevels.Error);
+        static SourceLevels ConsoleErrLevel = SourceLevels.Error;
+        static SourceLevels FileLevel = SourceLevels.All;
         static string currentLogPath = "";
 
         static CLR_PSE_PluginLog()
         {
             defualtSwicth.Level = SourceLevels.Error;
             Trace.AutoFlush = true;
+            SetLogLevel(SourceLevels.Critical, -1);
         }
 
         static Dictionary<int, SourceSwitch> enabledLogLevels = new Dictionary<int, SourceSwitch>();
+
+        public static void MsgBoxError(Exception e)
+        {
+            Console.Error.WriteLine(e.Message + Environment.NewLine + e.StackTrace);
+            System.Windows.Forms.MessageBox.Show("Encounted Exception! : " + Environment.NewLine + e.Message);
+            try
+            {
+                //System.IO.File.WriteAllLines(logPath + "\\" + libraryName + " ERR.txt", new string[] { e.Message + Environment.NewLine + e.StackTrace });
+                if (mySource != null)
+                {
+                    WriteLine(TraceEventType.Critical, -1, "ERROR", e.Message + Environment.NewLine + e.StackTrace);
+                }
+                else
+                {
+                    throw new Exception("Error Before Log Open");
+                }
+            }
+            catch
+            {
+                Console.Error.WriteLine("Error while writing ErrorLog");
+            }
+        }
+
         public static void SetLogLevel(SourceLevels eLevel, int logSource)
         {
             if (enabledLogLevels.ContainsKey(logSource))
@@ -29,6 +56,31 @@ namespace PSE
                 SourceSwitch newSwicth = new SourceSwitch("ID: " + logSource);
                 newSwicth.Level = eLevel;
                 enabledLogLevels.Add(logSource, newSwicth);
+            }
+        }
+
+        public static void SetStdOutLevel(SourceLevels eLevel)
+        {
+            ConsoleStdLevel = eLevel;
+            if (mySource != null)
+            {
+                mySource.Listeners["StdOut"].Filter = new EventTypeFilter(ConsoleStdLevel);
+            }
+        }
+        public static void SetStdErrLevel(SourceLevels eLevel)
+        {
+            ConsoleErrLevel = eLevel;
+            if (mySource != null)
+            {
+                mySource.Listeners["StdErr"].Filter = new EventTypeFilter(ConsoleErrLevel);
+            }
+        }
+        public static void SetFileLevel(SourceLevels eLevel)
+        {
+            FileLevel = eLevel;
+            if (mySource != null)
+            {
+                mySource.Listeners["File"].Filter = new EventTypeFilter(FileLevel);
             }
         }
 
@@ -58,7 +110,8 @@ namespace PSE
                 try
                 {
                     TextWriterTraceListener textListener = new TextWriterTraceListener(currentLogPath);
-                    textListener.Filter = new EventTypeFilter(SourceLevels.All);
+                    textListener.Filter = new EventTypeFilter(FileLevel);
+                    textListener.Name = "File";
                     mySource.Listeners.Add(textListener);
                 }
                 catch (Exception e)
@@ -67,13 +120,14 @@ namespace PSE
                 }
                 //Console Normal
                 ConsoleTraceListener consoleLog = new ConsoleTraceListener(true);
-                consoleLog.Filter = new EventTypeFilter(SourceLevels.All & ~ (SourceLevels.Error)); //information
+                consoleLog.Filter = new EventTypeFilter(ConsoleStdLevel); //information
+                consoleLog.Name = "StdOut";
                 //Console Error
                 ConsoleTraceListener consoleError = new ConsoleTraceListener(true);
-                consoleError.Filter = new EventTypeFilter(SourceLevels.Error);
-
+                consoleError.Filter = new EventTypeFilter(ConsoleErrLevel);
+                consoleError.Name = "StdErr";
                 //Add Sources
-                
+
                 mySource.Listeners.Add(consoleLog);
                 mySource.Listeners.Add(consoleError);
             }
