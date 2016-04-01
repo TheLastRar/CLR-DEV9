@@ -86,7 +86,7 @@ namespace PSE
 
         public static void Open(string logFolderPath , string logFileName)
         {
-            if (currentLogPath != logFolderPath + "\\" + logFileName)
+            if (mySource == null || (currentLogPath != logFolderPath + "\\" + logFileName))
             {
                 Close();
 
