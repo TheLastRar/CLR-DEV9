@@ -417,6 +417,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 return -1;
         }
 
+        public override void Close()
+        {
+            //Rx thread still running in close
+            //wait untill Rx thread stopped before
+            //disposing winsock connections
+        }
+
         public override void Dispose(bool disposing)
         {
             base.Dispose(true);

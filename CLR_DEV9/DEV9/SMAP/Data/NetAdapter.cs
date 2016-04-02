@@ -41,7 +41,8 @@ namespace CLRDEV9.DEV9.SMAP.Data
             return false;
         }
         public abstract bool Recv(ref NetPacket pkt); //gets a packet
-        public abstract bool Send(NetPacket pkt);	//sends the packet and deletes it when done
+        public abstract bool Send(NetPacket pkt);   //sends the packet and deletes it when done
+        public abstract void Close(); //Prepare to shutdown thread
         public void Dispose()
         {
             Dispose(true);
@@ -108,11 +109,6 @@ namespace CLRDEV9.DEV9.SMAP.Data
 
             foreach (NetworkInterface adapter in Interfaces)
             {
-                //Use WMI instead?
-                //if (Utils.memcmp(adapter.GetPhysicalAddress().GetAddressBytes(), 0, new byte[] { 0, 0, 0, 0, 0, 0 }, 0, 6))
-                //{
-                //    System.Windows.Forms.MessageBox.Show("Found Bridge");
-                //}
                 if (adapter.Id == parGUID)
                 { 
                     return adapter;

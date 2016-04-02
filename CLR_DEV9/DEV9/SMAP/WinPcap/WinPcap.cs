@@ -79,12 +79,21 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             host_mac = host_adapter.GetPhysicalAddress().GetAddressBytes();
 
             //DEV9Header.config.Eth.Substring(12, DEV9Header.config.Eth.Length - 12)
-            //TODO autodetect bridge and correct devID
             if (!pcap_io_init(@"\Device\NPF_" + parDevice))
             {
-                Log_Error("Can't Open Device " + DEV9Header.config.Eth);
-                System.Windows.Forms.MessageBox.Show("Can't Open Device " + DEV9Header.config.Eth);
-                return;
+                //Re-attempt with bridge detection logic
+                if (BridgeHelper.IsBridge(parDevice))
+                {
+                    Log_Error("Can't Open Device " + DEV9Header.config.Eth);
+                    System.Windows.Forms.MessageBox.Show("Can't Open Device " + DEV9Header.config.Eth);
+                    return;
+                }
+                else
+                {
+                    Log_Error("Can't Open Device " + DEV9Header.config.Eth);
+                    System.Windows.Forms.MessageBox.Show("Can't Open Device " + DEV9Header.config.Eth);
+                    return;
+                }
             }
 
             if (DEV9Header.config.DirectConnectionSettings.InterceptDHCP)
@@ -220,13 +229,13 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
         //Eth Protocol
         private byte get_eth_protocol_hi(byte[] buf)
         {
-            Log_Verb("Eth hi: " + buf[12]);
+            //Log_Verb("Eth hi: " + buf[12]);
             return buf[12];
 
         }
         private byte get_eth_protocol_lo(byte[] buf)
         {
-            Log_Verb("Eth lo: " + buf[13]);
+            //Log_Verb("Eth lo: " + buf[13]);
             return buf[13];
         }
         //Eth Dest Mac
@@ -234,7 +243,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
         {
             byte[] ret = new byte[6];
             Array.Copy(buf, 0, ret, 0, 6);
-            Log_Verb("Eth DestMac: " + ret[0].ToString("X") + ":" + ret[1].ToString("X") + ":" + ret[2].ToString("X") + ":" + ret[3].ToString("X") + ":" + ret[4].ToString("X") + ":" + ret[5].ToString("X"));
+            //Log_Verb("Eth DestMac: " + ret[0].ToString("X") + ":" + ret[1].ToString("X") + ":" + ret[2].ToString("X") + ":" + ret[3].ToString("X") + ":" + ret[4].ToString("X") + ":" + ret[5].ToString("X"));
             return buf;
         }
         private void set_dest_eth_mac(byte[] buf, byte[] value)
@@ -246,7 +255,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
         {
             byte[] ret = new byte[6];
             Array.Copy(buf, 6, ret, 0, 6);
-            Log_Verb("Eth DestMac: " + ret[0].ToString("X") + ":" + ret[1].ToString("X") + ":" + ret[2].ToString("X") + ":" + ret[3].ToString("X") + ":" + ret[4].ToString("X") + ":" + ret[5].ToString("X"));
+            //Log_Verb("Eth DestMac: " + ret[0].ToString("X") + ":" + ret[1].ToString("X") + ":" + ret[2].ToString("X") + ":" + ret[3].ToString("X") + ":" + ret[4].ToString("X") + ":" + ret[5].ToString("X"));
             return buf;
         }
         private void set_src_eth_mac(byte[] buf, byte[] value)
@@ -259,7 +268,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             //offset is where ip packet starts
             byte[] ret = new byte[4];
             Array.Copy(buf, pktoffset + 16, ret, 0, 4); //16
-            Log_Verb("IP DestIP: " + ret[0] + ":" + ret[1] + ":" + ret[2] + ":" + ret[3]);
+            //Log_Verb("IP DestIP: " + ret[0] + ":" + ret[1] + ":" + ret[2] + ":" + ret[3]);
             return ret;
         }
         //Arp Dest Mac
@@ -267,7 +276,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
         {
             byte[] ret = new byte[6];
             Array.Copy(buf, pktoffset + 18, ret, 0, 6);
-            Log_Verb("Eth DestMac: " + ret[0].ToString("X") + ":" + ret[1].ToString("X") + ":" + ret[2].ToString("X") + ":" + ret[3].ToString("X") + ":" + ret[4].ToString("X") + ":" + ret[5].ToString("X"));
+            //Log_Verb("Eth DestMac: " + ret[0].ToString("X") + ":" + ret[1].ToString("X") + ":" + ret[2].ToString("X") + ":" + ret[3].ToString("X") + ":" + ret[4].ToString("X") + ":" + ret[5].ToString("X"));
             return buf;
         }
         private void set_dest_arp_mac(byte[] buf, int pktoffset, byte[] value)
@@ -279,7 +288,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
         {
             byte[] ret = new byte[6];
             Array.Copy(buf, pktoffset + 8, ret, 0, 6);
-            Log_Verb("Eth DestMac: " + ret[0].ToString("X") + ":" + ret[1].ToString("X") + ":" + ret[2].ToString("X") + ":" + ret[3].ToString("X") + ":" + ret[4].ToString("X") + ":" + ret[5].ToString("X"));
+            //Log_Verb("Eth DestMac: " + ret[0].ToString("X") + ":" + ret[1].ToString("X") + ":" + ret[2].ToString("X") + ":" + ret[3].ToString("X") + ":" + ret[4].ToString("X") + ":" + ret[5].ToString("X"));
             return buf;
         }
         private void set_src_arp_mac(byte[] buf, int pktoffset, byte[] value)
@@ -291,10 +300,17 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
         {
             byte[] ret = new byte[4];
             Array.Copy(buf, pktoffset + 24, ret, 0, 4); //24
-            Log_Verb("ARP DestIP: " + ret[0] + ":" + ret[1] + ":" + ret[2] + ":" + ret[3]);
+            //Log_Verb("ARP DestIP: " + ret[0] + ":" + ret[1] + ":" + ret[2] + ":" + ret[3]);
             return ret;
         }
         #endregion
+
+        public override void Close()
+        {
+            //Rx thread still running in close
+            //wait untill Rx thread stopped before
+            //closing pcap
+        }
 
         public override void Dispose(bool disposing)
         {

@@ -130,7 +130,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                             Gateway = icsIP;
                             if (parDNS1 == null)
                             {
-                                parDNS1 = icsIP;
+                                DNS1 = icsIP;
                             }
                         }
                     }

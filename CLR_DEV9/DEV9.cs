@@ -46,8 +46,9 @@ namespace CLRDEV9
                 dev9 = new DEV9.DEV9_State();
                 Log_Info("Init ok");
 
-                //DEV9.SMAP.Tap.TAPAdapter.FindBridge("{F51AD931-7B1D-40CB-856A-959035390C7D}");
-
+                ////DEV9.SMAP.BridgeHelper.IsBridge("{94E77FAA-6436-41AC-BE5E-80618339B1F9}"); //Test if Bridge
+                ////{F51AD931-7B1D-40CB-856A-959035390C7D}
+                //DEV9.SMAP.BridgeHelper.IsInBridge("{F51AD931-7B1D-40CB-856A-959035390C7D}"); //Test if in bridge
                 return 0;
 #if DEBUG
             }

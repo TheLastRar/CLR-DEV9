@@ -4,15 +4,15 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Net.NetworkInformation;
+using System.Runtime.InteropServices;
 
 namespace CLRDEV9.DEV9.SMAP.Tap
 {
     partial class TAPAdapter : DirectAdapter
     {
-        SafeFileHandle htap;
-        FileStream htapstream;
+        SafeFileHandle htap = null;
+        FileStream htapstream = null;
 
         public static List<string[]> GetAdapters()
         {
@@ -34,14 +34,12 @@ namespace CLRDEV9.DEV9.SMAP.Tap
                 NetworkInterface host_adapter = GetAdapterFromGuid(parDevice);
                 if (host_adapter == null)
                 {
-                    //TAP adapter is bridged
-                    //As such we can't find it in get all adapters
-                    throw new NotImplementedException();
+                    if (BridgeHelper.IsInBridge(parDevice) == true)
+                    {
+                        host_adapter = GetAdapterFromGuid(BridgeHelper.GetBridgeGUID());
+                    }
                 }
-                else
-                {
-                    InitDHCP(host_adapter);
-                }
+                InitDHCP(host_adapter);
             }
         }
 
@@ -58,6 +56,7 @@ namespace CLRDEV9.DEV9.SMAP.Tap
             return true;
         }
         //gets a packet.rv :true success
+
         public override bool Recv(ref NetPacket pkt)
         {
             if (base.Recv(ref pkt)) { return true; }
@@ -68,6 +67,10 @@ namespace CLRDEV9.DEV9.SMAP.Tap
             {
                 read_size = htapstream.Read(pkt.buffer, 0, pkt.buffer.Length);
                 //result = true;
+            }
+            catch (OperationCanceledException)
+            {
+                return false;
             }
             catch (Exception e)
             {
@@ -126,15 +129,28 @@ namespace CLRDEV9.DEV9.SMAP.Tap
             PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.Tap, "TAP", str);
         }
 
+        public override void Close()
+        {
+            Dispose();
+        }
+
         public override void Dispose(bool disposing)
         {
             base.Dispose(true);
             if (disposing)
             {
-                TAPSetStatus(htap, false);
                 Log_Info("Shutdown Tap");
-                htapstream.Close();
-                htap.Close();
+                if (htapstream != null)
+                {
+                    htapstream.Close();
+                    htapstream = null;
+                }
+                if (htap == null)
+                {
+                    TAPSetStatus(htap, false);
+                    htap.Close();
+                    htap = null;
+                }
             }
         }
     }
