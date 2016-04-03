@@ -31,15 +31,15 @@ namespace CLRDEV9.DEV9.SMAP.Tap
 
             if (DEV9Header.config.DirectConnectionSettings.InterceptDHCP)
             {
-                NetworkInterface host_adapter = GetAdapterFromGuid(parDevice);
-                if (host_adapter == null)
+                NetworkInterface hostAdapter = GetAdapterFromGuid(parDevice);
+                if (hostAdapter == null)
                 {
                     if (BridgeHelper.IsInBridge(parDevice) == true)
                     {
-                        host_adapter = GetAdapterFromGuid(BridgeHelper.GetBridgeGUID());
+                        hostAdapter = GetAdapterFromGuid(BridgeHelper.GetBridgeGUID());
                     }
                 }
-                InitDHCP(host_adapter);
+                InitDHCP(hostAdapter);
             }
         }
 

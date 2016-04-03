@@ -51,6 +51,13 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             switched = isSwitch;
 
             NetworkInterface hostAdapter = GetAdapterFromGuid(parDevice);
+            if (hostAdapter == null)
+            {
+                if (BridgeHelper.IsInBridge(parDevice) == true)
+                {
+                    hostAdapter = GetAdapterFromGuid(BridgeHelper.GetBridgeGUID());
+                }
+            }
             hostMAC = hostAdapter.GetPhysicalAddress().GetAddressBytes();
 
             //DEV9Header.config.Eth.Substring(12, DEV9Header.config.Eth.Length - 12)
