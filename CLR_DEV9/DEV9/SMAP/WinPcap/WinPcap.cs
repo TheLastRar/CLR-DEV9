@@ -2,13 +2,12 @@
 using CLRDEV9.DEV9.SMAP.Winsock.PacketReader;
 using CLRDEV9.DEV9.SMAP.Winsock.PacketReader.ARP;
 using CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP;
-using CLRDEV9.DEV9.SMAP.Winsock.Sessions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using System.Net;
 
 namespace CLRDEV9.DEV9.SMAP.WinPcap
 {
@@ -29,39 +28,17 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
                 Console.Error.WriteLine("WinPcap not found");
                 return null;
             }
-            //Duplicate code bettween this and winsock
-            NetworkInterface[] Interfaces = NetworkInterface.GetAllNetworkInterfaces();
+
+            List<string[]> pcap_devs = pcap_list_adapters();
+
             List<string[]> names = new List<string[]>();
 
-            foreach (NetworkInterface adapter in Interfaces)
+            foreach (string[] adapter in pcap_devs)
             {
-                //if (adapter.NetworkInterfaceType == NetworkInterfaceType.Loopback)
-                //{
-                //    continue;
-                //}
-                //Don't know it we support all of these
-                if (adapter.NetworkInterfaceType != NetworkInterfaceType.Ethernet &
-                    adapter.NetworkInterfaceType != NetworkInterfaceType.Ethernet3Megabit &
-                    adapter.NetworkInterfaceType != NetworkInterfaceType.FastEthernetFx &
-                    adapter.NetworkInterfaceType != NetworkInterfaceType.FastEthernetT &
-                    adapter.NetworkInterfaceType != NetworkInterfaceType.GigabitEthernet)
+                //return adapter
+                if (wmi_get_friendly_name(adapter[1].Substring(@"\Device\NPF_".Length)) != null)
                 {
-                    continue;
-                }
-                //if (adapter.OperationalStatus == OperationalStatus.Up)
-                //{
-                    UnicastIPAddressInformationCollection IPInfo = adapter.GetIPProperties().UnicastAddresses;
-                    IPInterfaceProperties properties = adapter.GetIPProperties();
-
-                    foreach (UnicastIPAddressInformation IPAddressInfo in IPInfo)
-                    {
-                        if (IPAddressInfo.Address.AddressFamily == AddressFamily.InterNetwork)
-                        {
-                            //return adapter
-                            names.Add(new string[] { adapter.Name, adapter.Description, adapter.Id });
-                            break;
-                        }
-                    //}
+                    names.Add(new string[] { wmi_get_friendly_name(adapter[1].Substring(@"\Device\NPF_".Length)), adapter[0], adapter[1].Substring(@"\Device\NPF_".Length) });
                 }
             }
 
@@ -81,19 +58,9 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             //DEV9Header.config.Eth.Substring(12, DEV9Header.config.Eth.Length - 12)
             if (!pcap_io_init(@"\Device\NPF_" + parDevice))
             {
-                //Re-attempt with bridge detection logic
-                if (BridgeHelper.IsBridge(parDevice))
-                {
-                    Log_Error("Can't Open Device " + DEV9Header.config.Eth);
-                    System.Windows.Forms.MessageBox.Show("Can't Open Device " + DEV9Header.config.Eth);
-                    return;
-                }
-                else
-                {
-                    Log_Error("Can't Open Device " + DEV9Header.config.Eth);
-                    System.Windows.Forms.MessageBox.Show("Can't Open Device " + DEV9Header.config.Eth);
-                    return;
-                }
+                Log_Error("Can't Open Device " + DEV9Header.config.Eth);
+                System.Windows.Forms.MessageBox.Show("Can't Open Device " + DEV9Header.config.Eth);
+                return;
             }
 
             if (DEV9Header.config.DirectConnectionSettings.InterceptDHCP)

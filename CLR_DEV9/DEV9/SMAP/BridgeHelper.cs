@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Management;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Management;
 
 namespace CLRDEV9.DEV9.SMAP
 {

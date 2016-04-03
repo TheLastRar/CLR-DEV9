@@ -230,9 +230,9 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             return true;
         }
 
-        static string[] pcap_list_adapters()
+        static List<string[]> pcap_list_adapters()
         {
-            List<string> devices = new List<string>();
+            List<string[]> devices = new List<string[]>();
 
             IntPtr rawPcapAdapter = IntPtr.Zero;
             StringBuilder errbuf = new StringBuilder(PCAP_ERRBUF_SIZE);
@@ -245,7 +245,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
                 pcap_if d_0 = (pcap_if)Marshal.PtrToStructure(rawPcapAdapter, typeof(pcap_if));
                 foreach (pcap_if d in d_0)
                 {
-                    devices.Add(d.name);
+                    devices.Add(new string[] {d.description, d.name });
                 }
             }
             catch (Exception e)
@@ -256,7 +256,30 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             {
                 pcap_freealldevs(rawPcapAdapter);
             }
-            return devices.ToArray();
+            return devices;
+        }
+        private static string wmi_get_friendly_name(string guid)
+        {
+            //find adapter in WMI and compare servicename
+            ManagementScope scope = new ManagementScope("\\\\.\\ROOT\\cimv2");
+
+            ObjectQuery query = new ObjectQuery("SELECT NetConnectionID, GUID FROM Win32_NetworkAdapter Where GUID = '" + guid + "'");
+            using (ManagementObjectSearcher netSearcher = new ManagementObjectSearcher(scope, query))
+            {
+                using (ManagementObjectCollection netQueryCollection = netSearcher.Get())
+                {
+                    using (ManagementObjectCollection.ManagementObjectEnumerator netMOEn = netQueryCollection.GetEnumerator())
+                    {
+                        if (netMOEn.MoveNext())
+                        {
+                            ManagementObject netMO = (ManagementObject)netMOEn.Current;
+
+                            return (string)netMO["NetConnectionID"];
+                        }
+                    }
+                }
+            }
+            return null;
         }
 
         bool pcap_io_init(string adapter)
