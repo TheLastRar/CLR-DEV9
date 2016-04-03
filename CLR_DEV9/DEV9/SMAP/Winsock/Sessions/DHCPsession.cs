@@ -93,6 +93,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             }
             HandleDNS(parAdapter, parDNS1, parDNS2);
             HandleBroadcast(PS2IP, NetMask);
+            #region ICS
             //Special case for ICS
             if (Gateway == null)
             {
@@ -136,6 +137,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     }
                 }
             }
+            #endregion
         }
 
         private void HandleDNS(NetworkInterface parAdapter, byte[] parDNS1, byte[] parDNS2)

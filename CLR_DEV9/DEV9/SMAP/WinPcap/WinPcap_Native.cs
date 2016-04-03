@@ -1,6 +1,12 @@
 ﻿using System;
 using System.Text;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
+using System.Net;
+using System.Management;
+using System.Collections;
 
 namespace CLRDEV9.DEV9.SMAP.WinPcap
 {
@@ -32,6 +38,10 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
         static extern int pcap_sendpacket(IntPtr p, byte[] buf, int size);
         [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi)]
         static extern int pcap_close(IntPtr p);
+        [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi)]
+        static extern int pcap_findalldevs(ref IntPtr alldevsp, StringBuilder errbuf);
+        [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi)]
+        static extern void pcap_freealldevs(IntPtr alldevsp);
         #endregion
 
         [StructLayout(LayoutKind.Sequential)]
@@ -45,6 +55,170 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             public UInt32 len;
         }
 
+        [StructLayout(LayoutKind.Sequential)]
+        struct pcap_if
+        {
+            private IntPtr next;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string name;
+            [MarshalAs(UnmanagedType.LPStr)]
+            public string description;
+            private IntPtr addresses; //I don't need this
+            UInt32 flags;
+
+            //public pcap_addr GetAddresses()
+            //{
+            //    if (!HasAddresses())
+            //    {
+            //        throw new NullReferenceException("PCAP Address is null");
+            //    }
+            //    return (pcap_addr)Marshal.PtrToStructure(addresses, typeof(pcap_addr));
+            //}
+            //public bool HasAddresses()
+            //{
+            //    return (addresses != IntPtr.Zero);
+            //}
+
+            public pcap_if GetNext()
+            {
+                if (isNext())
+                {
+                    return (pcap_if)Marshal.PtrToStructure(next, typeof(pcap_if));
+                }
+                else
+                {
+                    throw new NullReferenceException();
+                }
+            }
+            public bool isNext()
+            {
+                return (next != IntPtr.Zero);
+            }
+
+            public pcap_if_enumerator GetEnumerator()
+            {
+                return new pcap_if_enumerator(this);
+            }
+
+            internal class pcap_if_enumerator : IEnumerator<pcap_if>
+            {
+                private pcap_if first;
+                private pcap_if current;
+                private int curIndex = -1;
+
+                public pcap_if_enumerator(pcap_if d_first)
+                {
+                    first = d_first;
+                }
+
+                public pcap_if Current
+                {
+                    get { return current; }
+                }
+
+                object IEnumerator.Current
+                {
+                    get { return Current; }
+                }
+
+                public void Dispose() { }
+
+                public bool MoveNext()
+                {
+                    if (curIndex == -1)
+                    {
+                        current = first;
+                        curIndex = 0;
+                        return true;
+                    }
+                    else
+                    {
+                        if (current.isNext())
+                        {
+                            current = current.GetNext();
+                            return true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+                public void Reset() { curIndex = -1; }
+            }
+        }
+
+        //[StructLayout(LayoutKind.Sequential)]
+        //struct pcap_addr
+        //{
+        //    private IntPtr next;
+        //    private IntPtr addr;
+        //    private IntPtr netmask;
+        //    private IntPtr broadaddr;
+        //    private IntPtr dstaddr;
+
+        //    public sockaddr GetAddr()
+        //    {
+        //        if (!HasAddr())
+        //        {
+        //            throw new NullReferenceException("PCAP Address.Addr is null");
+        //        }
+        //        return (sockaddr)Marshal.PtrToStructure(addr, typeof(sockaddr));
+        //    }
+        //    private bool HasAddr()
+        //    {
+        //        return (addr != IntPtr.Zero);
+        //    }
+
+        //    public pcap_addr GetNext()
+        //    {
+        //        if (isNext())
+        //        {
+        //            return (pcap_addr)Marshal.PtrToStructure(next, typeof(pcap_addr));
+        //        }
+        //        else
+        //        {
+        //            throw new NullReferenceException();
+        //        }
+        //    }
+        //    public bool isNext()
+        //    {
+        //        return (next != IntPtr.Zero);
+        //    }
+        //}
+
+        //[StructLayout(LayoutKind.Sequential)]
+        //struct sockaddr
+        //{
+        //    public UInt16 sa_family;
+
+        //    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 14)]
+        //    public byte[] sa_data;
+        //}
+
+        //[StructLayout(LayoutKind.Sequential)]
+        //struct sockaddr_in
+        //{
+        //    public UInt16 sin_family;
+        //    public UInt16 sin_port;
+        //    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        //    public byte[] sin_addr;
+        //    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
+        //    public byte[] sin_zero;
+
+        //    static public explicit operator sockaddr_in(sockaddr sa)
+        //    {
+        //        sockaddr_in sin = new sockaddr_in();
+        //        sin.sin_family = sa.sa_family;
+        //        sin.sin_port = BitConverter.ToUInt16(sa.sa_data, 0);
+        //        sin.sin_addr = new byte[4];
+        //        Array.Copy(sa.sa_data, 2, sin.sin_addr, 0, 4);
+        //        //Rest is zeros
+        //        return sin;
+        //    }
+        //}
+
         static bool pcap_io_available()
         {
             IntPtr hmod = LoadLibrary(PCAP_LIB_NAME);
@@ -56,6 +230,35 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             return true;
         }
 
+        static string[] pcap_list_adapters()
+        {
+            List<string> devices = new List<string>();
+
+            IntPtr rawPcapAdapter = IntPtr.Zero;
+            StringBuilder errbuf = new StringBuilder(PCAP_ERRBUF_SIZE);
+            if (pcap_findalldevs(ref rawPcapAdapter, errbuf) == -1)
+            {
+                return null;
+            }
+            try
+            {
+                pcap_if d_0 = (pcap_if)Marshal.PtrToStructure(rawPcapAdapter, typeof(pcap_if));
+                foreach (pcap_if d in d_0)
+                {
+                    devices.Add(d.name);
+                }
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+            finally
+            {
+                pcap_freealldevs(rawPcapAdapter);
+            }
+            return devices.ToArray();
+        }
+
         bool pcap_io_init(string adapter)
         {
             StringBuilder errbuf = new StringBuilder(PCAP_ERRBUF_SIZE);
@@ -65,9 +268,9 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             //Set PS2 MAC Based on Adapter MAC
             if ((adhandle = pcap_open_live(adapter,
                                             65536,
-                                            switched?1:0,
+                                            switched ? 1 : 0,
                                             1,
-                                            errbuf))==IntPtr.Zero)
+                                            errbuf)) == IntPtr.Zero)
             {
                 Log_Error(errbuf.ToString());
                 Log_Error("Unable to open the adapter. " + adapter + "is not supported by WinPcap");
@@ -78,7 +281,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             dlt_name = Marshal.PtrToStringAnsi(pcap_datalink_val_to_name(dlt));
 
             Log_Info("Device uses DLT " + dlt + ": " + dlt_name);
-            switch(dlt)
+            switch (dlt)
             {
                 case 1: //DLT_EN10MB
                     break;
@@ -114,7 +317,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             if ((res = pcap_next_ex(adhandle, out headerPtr, out pkt_dataPtr)) > 0)
             {
                 header = (pcap_pkthdr)Marshal.PtrToStructure(headerPtr, typeof(pcap_pkthdr));
-                Marshal.Copy(pkt_dataPtr, data, 0, Math.Min((int)header.len,max_len));
+                Marshal.Copy(pkt_dataPtr, data, 0, Math.Min((int)header.len, max_len));
                 return (int)header.len;
             }
             else
@@ -134,7 +337,8 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             if (pcap_sendpacket(adhandle, data, len) == 0)
             {
                 return true;
-            } else {
+            }
+            else {
                 return false;
             }
         }
