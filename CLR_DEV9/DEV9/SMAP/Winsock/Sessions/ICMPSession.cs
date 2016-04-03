@@ -11,16 +11,16 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
     {
         Object sentry = new Object();
 
-        List<ICMP> recvbuff = new List<ICMP>();
+        List<ICMP> recvBuff = new List<ICMP>();
 
         List<Ping> pings = new List<Ping>();
 
-        Dictionary<ConnectionKey, Session> Connections;
+        Dictionary<ConnectionKey, Session> connections;
 
         public ICMPSession(Dictionary<ConnectionKey, Session> parConnections)
-            :base(IPAddress.Any)
+            : base(IPAddress.Any)
         {
-            Connections = parConnections;
+            connections = parConnections;
         }
 
         struct PingData
@@ -32,7 +32,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         public void PingCompleate(object sender, PingCompletedEventArgs e)
         {
             Log_Verb("Ping Complete");
-            PingData Seq = (PingData)e.UserState;
+            PingData seq = (PingData)e.UserState;
             PingReply rep = e.Reply;
             Ping ping = (Ping)sender;
 
@@ -44,10 +44,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 switch (rep.Status)
                 {
                     case IPStatus.Success:
-                        ICMP retICMP = new ICMP(Seq.Data);
-                        retICMP.HeaderData = Seq.HeaderData;
+                        ICMP retICMP = new ICMP(seq.Data);
+                        retICMP.HeaderData = seq.HeaderData;
                         retICMP.Type = 0; //echo reply
-                        recvbuff.Add(retICMP);
+                        recvBuff.Add(retICMP);
                         break;
                     default:
                         open -= 1;
@@ -61,11 +61,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             //Error.WriteLine("UDP Recive");
             lock (sentry)
             {
-                if (recvbuff.Count != 0)
+                if (recvBuff.Count != 0)
                 {
                     ICMP ret;
-                    ret = recvbuff[0];
-                    recvbuff.RemoveAt(0);
+                    ret = recvBuff[0];
+                    recvBuff.RemoveAt(0);
                     open -= 1;
                     return ret;
                 }
@@ -86,16 +86,16 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     {
                         open += 1;
                     }
-                    PingData PD;
-                    PD.Data = icmp.Data;
-                    PD.HeaderData = icmp.HeaderData;
+                    PingData pd;
+                    pd.Data = icmp.Data;
+                    pd.HeaderData = icmp.HeaderData;
                     Ping nPing = new Ping();
                     nPing.PingCompleted += PingCompleate;
                     lock (sentry)
                     {
                         pings.Add(nPing);
                     }
-                    nPing.SendAsync(new IPAddress(DestIP), PD);
+                    nPing.SendAsync(new IPAddress(DestIP), pd);
                     System.Threading.Thread.Sleep(1); //Hack Fix
                     break;
                 case 3: //
@@ -103,20 +103,20 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     {
                         case 3:
                             Log_Error("Recived Packet Rejected, Port Closed");
-                            IPPacket retpkt = new IPPacket(icmp);
-                            byte[] srvIP = retpkt.SourceIP;
-                            byte prot = retpkt.Protocol;
+                            IPPacket retPkt = new IPPacket(icmp);
+                            byte[] srvIP = retPkt.SourceIP;
+                            byte prot = retPkt.Protocol;
                             UInt16 srvPort = 0;
                             UInt16 ps2Port = 0;
                             switch (prot)
                             {
                                 case (byte)IPType.TCP:
-                                    TCP tcp = (TCP)retpkt.Payload;
+                                    TCP tcp = (TCP)retPkt.Payload;
                                     srvPort = tcp.SourcePort;
                                     ps2Port = tcp.DestinationPort;
                                     break;
                                 case (byte)IPType.UDP:
-                                    UDP udp = (UDP)retpkt.Payload;
+                                    UDP udp = (UDP)retPkt.Payload;
                                     srvPort = udp.SourcePort;
                                     ps2Port = udp.DestinationPort;
                                     break;
@@ -126,9 +126,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                             Key.Protocol = prot;
                             Key.PS2Port = ps2Port;
                             Key.SRVPort = srvPort;
-                            if (Connections.ContainsKey(Key)) //TODO, Prevent this from removing permanent sessions
+                            if (connections.ContainsKey(Key)) //TODO, Prevent this from removing permanent sessions
                             {
-                                Connections[Key].Reset();
+                                connections[Key].Reset();
                                 Log_Info("Reset Rejected Connection");
                             }
                             else

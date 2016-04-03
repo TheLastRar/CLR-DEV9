@@ -7,15 +7,15 @@ namespace CLRDEV9.DEV9.SMAP
     partial class AdapterManager
     {
         NetAdapter nif = null;
-        System.Threading.Thread rx_thread;
+        System.Threading.Thread rxThread;
 
         volatile bool RxRunning = false;
 
         SMAP_State smap = null;
 
-        public AdapterManager(SMAP_State parsmap)
+        public AdapterManager(SMAP_State parSMAP)
         {
-            smap = parsmap;
+            smap = parSMAP;
         }
 
         //rx thread
@@ -24,9 +24,9 @@ namespace CLRDEV9.DEV9.SMAP
             NetPacket tmp = new NetPacket();
             while (RxRunning)
             {
-                while (smap.rx_fifo_can_rx() && nif.Recv(ref tmp))
+                while (smap.RxFifoCanRx() && nif.Recv(ref tmp))
                 {
-                    smap.rx_process(ref tmp);
+                    smap.RxProcess(ref tmp);
                 }
 
                 System.Threading.Thread.Sleep(1);
@@ -35,7 +35,7 @@ namespace CLRDEV9.DEV9.SMAP
             //return 0;
         }
 
-        public void tx_put(ref NetPacket pkt)
+        public void TxPut(ref NetPacket pkt)
         {
             if (nif != null)
                 nif.Send(pkt);
@@ -48,13 +48,13 @@ namespace CLRDEV9.DEV9.SMAP
             RxRunning = true;
             //System.Threading.ParameterizedThreadStart rx_setup = new System.Threading.ParameterizedThreadStart()
             //rx_setup
-            rx_thread = new System.Threading.Thread(NetRxThread);
-            rx_thread.Priority = System.Threading.ThreadPriority.Highest;
+            rxThread = new System.Threading.Thread(NetRxThread);
+            rxThread.Priority = System.Threading.ThreadPriority.Highest;
             //rx_thread = CreateThread(0, 0, NetRxThread, 0, CREATE_SUSPENDED, 0);
 
             //SetThreadPriority(rx_thread, THREAD_PRIORITY_HIGHEST);
             //ResumeThread(rx_thread);
-            rx_thread.Start();
+            rxThread.Start();
         }
         public void TermNet()
         {
@@ -63,7 +63,7 @@ namespace CLRDEV9.DEV9.SMAP
                 RxRunning = false;
                 nif.Close();
                 LOG.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "NetAdapter", "Waiting for RX-net thread to terminate..");
-                rx_thread.Join();
+                rxThread.Join();
                 LOG.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "NetAdapter", "Done");
                 nif.Dispose();
                 nif = null;

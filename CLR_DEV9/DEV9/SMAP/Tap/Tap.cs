@@ -22,8 +22,8 @@ namespace CLRDEV9.DEV9.SMAP.Tap
             return ret;
         }
 
-        public TAPAdapter(DEV9_State pardev9, string parDevice)
-            : base(pardev9)
+        public TAPAdapter(DEV9_State parDev9, string parDevice)
+            : base(parDev9)
         {
             htap = TAPOpen(parDevice);
 
@@ -61,11 +61,11 @@ namespace CLRDEV9.DEV9.SMAP.Tap
         {
             if (base.Recv(ref pkt)) { return true; }
 
-            int read_size = 0;
+            int readSize = 0;
             //bool result = false;
             try
             {
-                read_size = htapstream.Read(pkt.buffer, 0, pkt.buffer.Length);
+                readSize = htapstream.Read(pkt.buffer, 0, pkt.buffer.Length);
                 //result = true;
             }
             catch (OperationCanceledException)
@@ -84,11 +84,11 @@ namespace CLRDEV9.DEV9.SMAP.Tap
 
             //if (result)
             //{
-            if (!Verify(pkt, read_size))
+            if (!Verify(pkt, readSize))
             {
                 return false;
             }
-            pkt.size = read_size;
+            pkt.size = readSize;
             return true;
             //}
             //else

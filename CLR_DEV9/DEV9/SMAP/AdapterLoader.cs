@@ -9,17 +9,17 @@ namespace CLRDEV9.DEV9.SMAP
         public AdapterManager net = null;
         DEV9_State dev9 = null;
 
-        public AdapterLoader(SMAP_State parsmap, DEV9_State pardev9)
+        public AdapterLoader(SMAP_State parSmap, DEV9_State parDev9)
         {
-            dev9 = pardev9;
-            net = new AdapterManager(parsmap);
+            dev9 = parDev9;
+            net = new AdapterManager(parSmap);
         }
 
         NetAdapter GetNetAdapter()
         {
             NetAdapter na = null;
             //TODO Make this use EthType
-            switch(DEV9Header.config.EthType)
+            switch (DEV9Header.config.EthType)
             {
                 case Config.EthAPI.Winsock:
                     na = new Winsock.Winsock(dev9, DEV9Header.config.Eth);

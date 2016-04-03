@@ -40,12 +40,12 @@ namespace CLRDEV9
         {
             DEV9Header.config.EthEnable = cbEth.Checked;
             DEV9Header.config.HddEnable = cbHdd.Checked;
-            this.Close();
+            Close();
         }
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
-            this.Close();
+            Close();
         }
     }
 }

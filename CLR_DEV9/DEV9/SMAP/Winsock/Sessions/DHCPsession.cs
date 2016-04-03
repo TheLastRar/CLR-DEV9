@@ -29,17 +29,17 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         public byte[] Broadcast;
         #endregion
 
-        List<UDP> recvbuff = new List<UDP>();
-        byte HType;
-        byte Hlen;
+        List<UDP> recvBuff = new List<UDP>();
+        byte hType;
+        byte hLen;
         UInt32 xID = 0;
         byte[] cMac;
         UInt32 cookie = 0;
 
-        UInt16 maMs = 576;
+        UInt16 maxMs = 576;
 
         public UDP_DHCPsession(NetworkInterface parAdapter, byte[] parDNS1, byte[] parDNS2)
-            :base(IPAddress.Any)
+            : base(IPAddress.Any)
         {
             //Socket Settings
             //Fill Fixed Settings
@@ -58,7 +58,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         public UDP_DHCPsession(NetworkInterface parAdapter, byte[] parIP, byte[] parNetmask, byte[] parGateway,
             byte[] parDNS1, byte[] parDNS2)
-            :base(IPAddress.Any)
+            : base(IPAddress.Any)
         {
             IPInterfaceProperties properties = parAdapter.GetIPProperties();
             UnicastIPAddressInformationCollection IPInfoCollection = properties.UnicastAddresses;
@@ -280,18 +280,18 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         public override IPPayload Recv()
         {
-            if (recvbuff.Count == 0)
+            if (recvBuff.Count == 0)
                 return null;
-            UDP ret = recvbuff[0];
-            recvbuff.RemoveAt(0);
+            UDP ret = recvBuff[0];
+            recvBuff.RemoveAt(0);
             return ret;
         }
         public override bool Send(IPPayload payload)
         {
 
             DHCP dhcp = new DHCP(payload.GetPayload());
-            HType = dhcp.HardwareType;
-            Hlen = dhcp.HardwareAddressLength;
+            hType = dhcp.HardwareType;
+            hLen = dhcp.HardwareAddressLength;
             xID = dhcp.TransactionID;
             cMac = dhcp.ClientHardwareAddress;
             cookie = dhcp.MagicCookie;
@@ -334,8 +334,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                         Log_Verb("Got String Message (Not Suppported)");
                         break;
                     case 57:
-                        maMs = ((DHCPopMMSGS)(dhcp.Options[i])).MaxMessageSize;
-                        Log_Verb("Got Max Message Size of " + maMs);
+                        maxMs = ((DHCPopMMSGS)(dhcp.Options[i])).MaxMessageSize;
+                        Log_Verb("Got Max Message Size of " + maxMs);
                         break;
                     case 61:
                         Log_Verb("Got Client ID");
@@ -353,8 +353,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             }
             DHCP retPay = new DHCP();
             retPay.OP = 2;
-            retPay.HardwareType = HType;
-            retPay.HardwareAddressLength = Hlen;
+            retPay.HardwareType = hType;
+            retPay.HardwareAddressLength = hLen;
             retPay.TransactionID = xID;
 
             retPay.YourIP = PS2IP;//IPaddress.GetAddressBytes();
@@ -395,9 +395,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                                 {
                                     if (DNS2 != null)
                                     {
-                                        retPay.Options.Add(new DHCPopDNS(DNS1,DNS2));
+                                        retPay.Options.Add(new DHCPopDNS(DNS1, DNS2));
                                     }
-                                    else { 
+                                    else {
                                         retPay.Options.Add(new DHCPopDNS(DNS1));
                                     }
                                 }
@@ -435,11 +435,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             retPay.Options.Add(new DHCPopSERVIP(DefaultDHCPConfig.DHCP_IP));
             retPay.Options.Add(new DHCPopEND());
 
-            byte[] udpPayload = retPay.GetBytes((UInt16)(maMs - (8 + 20)));
+            byte[] udpPayload = retPay.GetBytes((UInt16)(maxMs - (8 + 20)));
             UDP retudp = new UDP(udpPayload);
             retudp.SourcePort = 67;
             retudp.DestinationPort = 68;
-            recvbuff.Add(retudp);
+            recvBuff.Add(retudp);
             return true;
         }
         public override void Reset()

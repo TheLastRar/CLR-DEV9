@@ -3,7 +3,7 @@ namespace CLRDEV9
 {
     enum DEV9LogSources : int
     {
-        unk = 1,
+        Unkown = 1,
         PluginInterface = 2,
         Dev9 = 3,
         ATA = 5,

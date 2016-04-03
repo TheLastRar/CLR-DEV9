@@ -12,7 +12,7 @@ namespace CLRDEV9.DEV9.SMAP.Tap
         const string TAPSUFFIX = ".tap";
 
         [StructLayout(LayoutKind.Sequential)]
-        struct version
+        struct Version
         {
             UInt32 major;
             UInt32 minor;
@@ -29,7 +29,7 @@ namespace CLRDEV9.DEV9.SMAP.Tap
         const UInt32 FILE_FLAG_OVERLAPPED = 0x40000000;
 
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        static extern bool DeviceIoControl(SafeFileHandle hDevice, UInt32 dwIoControlCode, ref version lpInBuffer, UInt32 nInBufferSize, ref version lpOutBuffer, UInt32 nOutBufferSize, ref UInt32 lpbytesReturned, IntPtr lpOverlapped);
+        static extern bool DeviceIoControl(SafeFileHandle hDevice, UInt32 dwIoControlCode, ref Version lpInBuffer, UInt32 nInBufferSize, ref Version lpOutBuffer, UInt32 nOutBufferSize, ref UInt32 lpbytesReturned, IntPtr lpOverlapped);
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         static extern bool DeviceIoControl(SafeFileHandle hDevice, UInt32 dwIoControlCode, ref bool lpInBuffer, UInt32 nInBufferSize, out bool lpOutBuffer, UInt32 nOutBufferSize, out UInt32 lpbytesReturned, IntPtr lpOverlapped);
 
@@ -45,27 +45,27 @@ namespace CLRDEV9.DEV9.SMAP.Tap
         {
             UInt32 len = 0;
 
-            IntPtr nullptr = IntPtr.Zero;
+            IntPtr nullPtr = IntPtr.Zero;
             return DeviceIoControl(handle, TAP_IOCTL_SET_MEDIA_STATUS,
                 ref status, (UInt32)Marshal.SizeOf(status),
-                out status, (UInt32)Marshal.SizeOf(status), out len, nullptr);
+                out status, (UInt32)Marshal.SizeOf(status), out len, nullPtr);
         }
 
         //Open the TAP adapter and set the connection to enabled :)
-        SafeFileHandle TAPOpen(string device_guid)
+        SafeFileHandle TAPOpen(string deviceGUID)
         {
-            string device_path;
+            string devicePath;
 
-            UInt32 version_len = 0;
+            UInt32 versionLen = 0;
 
             //_snprintf (device_path, sizeof(device_path), "%s%s%s",
             //          USERMODEDEVICEDIR,
             //          device_guid,
             //          TAPSUFFIX);
-            device_path = USERMODEDEVICEDIR + device_guid + TAPSUFFIX;
+            devicePath = USERMODEDEVICEDIR + deviceGUID + TAPSUFFIX;
 
             SafeFileHandle handle = CreateFile(
-                device_path,
+                devicePath,
                 GENERIC_READ | GENERIC_WRITE,
                 0,
                 IntPtr.Zero,
@@ -79,12 +79,12 @@ namespace CLRDEV9.DEV9.SMAP.Tap
                 //return INVALID_HANDLE_VALUE;
                 return new SafeFileHandle(new IntPtr(-1), true);
             }
-            version ver = new version();
+            Version ver = new Version();
 
             IntPtr nullptr = IntPtr.Zero;
             bool bret = DeviceIoControl(handle, TAP_IOCTL_GET_VERSION,
                                    ref ver, (UInt32)Marshal.SizeOf(ver),
-                                   ref ver, (UInt32)Marshal.SizeOf(ver), ref version_len, nullptr);
+                                   ref ver, (UInt32)Marshal.SizeOf(ver), ref versionLen, nullptr);
             if (bret == false)
             {
                 Log_Error("Error @ DIOC " + Marshal.GetLastWin32Error());

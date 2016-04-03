@@ -10,7 +10,7 @@ namespace CLRDEV9.DEV9.FLASH
             FLASHinit();
         }
 
-        void calculateECC(byte[] page)
+        void CalculateECC(byte[] page)
         {
             Utils.memset(ref page, FLASH_Constants.PAGE_SIZE, 0x00,
                 FLASH_Constants.ECC_SIZE);
@@ -25,7 +25,7 @@ namespace CLRDEV9.DEV9.FLASH
                 FLASH_Constants.PAGE_SIZE + 3 * 3);//(ECC_SIZE>>2));
         }
 
-        string getCmdName(UInt32 cmd)
+        string GetCmdName(UInt32 cmd)
         {
             switch (cmd)
             {
@@ -53,7 +53,7 @@ namespace CLRDEV9.DEV9.FLASH
 
             address = 0;
             Utils.memset(ref data, 0, 0xFF, FLASH_Constants.PAGE_SIZE);
-            calculateECC(data);
+            CalculateECC(data);
             ctrl = DEV9Header.FLASH_PP_READY;
 
             //if (fd = fopen("flash.dat", "rb"))
@@ -98,10 +98,10 @@ namespace CLRDEV9.DEV9.FLASH
                         else
                             if (!((ctrl & DEV9Header.FLASH_PP_NOECC) != 0) &&
                                 (counter >= FLASH_Constants.PAGE_SIZE_ECC))
-                            {
-                                counter %= FLASH_Constants.PAGE_SIZE_ECC;
-                                refill = 1;
-                            }
+                        {
+                            counter %= FLASH_Constants.PAGE_SIZE_ECC;
+                            refill = 1;
+                        }
                     }
                     if (refill != 0)
                     {
@@ -112,14 +112,14 @@ namespace CLRDEV9.DEV9.FLASH
                         address += FLASH_Constants.PAGE_SIZE;
                         address %= FLASH_Constants.CARD_SIZE;
                         Utils.memcpy(ref data, 0, file, (int)((address >> FLASH_Constants.PAGE_SIZE_BITS) * FLASH_Constants.PAGE_SIZE_ECC), FLASH_Constants.PAGE_SIZE);
-                        calculateECC(data);	// calculate ECC; should be in the file already
+                        CalculateECC(data);	//calculate ECC; should be in the file already
                         ctrl |= DEV9Header.FLASH_PP_READY;
                     }
 
                     return BitConverter.ToUInt32(valueByte, 0);
 
                 case DEV9Header.FLASH_R_CMD:
-                    Log_Error("*FLASH CMD " + (size * 8).ToString() + "bit read " + getCmdName(cmd) + " DENIED\n");
+                    Log_Error("*FLASH CMD " + (size * 8).ToString() + "bit read " + GetCmdName(cmd) + " DENIED\n");
                     return cmd;
 
                 case DEV9Header.FLASH_R_ADDR:
@@ -134,16 +134,16 @@ namespace CLRDEV9.DEV9.FLASH
                     if (cmd == DEV9Header.SM_CMD_READID)
                     {
                         Log_Verb("*FLASH ID " + (size * 8).ToString() + "bit read " + id.ToString("X8"));
-                        return id;//0x98=Toshiba/0xEC=Samsung maker code should be returned first
+                        return id; //0x98=Toshiba/0xEC=Samsung maker code should be returned first
                     }
                     else
                         if (cmd == DEV9Header.SM_CMD_GETSTATUS)
-                        {
-                            valueInt = 0x80 | ((ctrl & 1) << 6);	// 0:0=pass, 6:ready/busy, 7:1=not protected
-                            Log_Verb("*FLASH STATUS " + (size * 8).ToString() + "bit read " + valueInt.ToString("X8"));
-                            return valueInt;
-                        }//else fall off
-                    //dosn't like falling though...
+                    {
+                        valueInt = 0x80 | ((ctrl & 1) << 6); //0:0=pass, 6:ready/busy, 7:1=not protected
+                        Log_Verb("*FLASH STATUS " + (size * 8).ToString() + "bit read " + valueInt.ToString("X8"));
+                        return valueInt;
+                    } //else fall off
+                      //dosn't like falling though...
                     Log_Error("*FLASH Unkwnown " + (size * 8).ToString() + "bit read at address " + addr.ToString("X8"));
                     return 0;
                 default:
@@ -162,7 +162,7 @@ namespace CLRDEV9.DEV9.FLASH
                     byte[] valueBytes = BitConverter.GetBytes(value);
                     Utils.memcpy(ref data, (int)counter, valueBytes, 0, size);
                     counter += (uint)size;
-                    counter %= FLASH_Constants.PAGE_SIZE_ECC;//should not get past the last byte, but at the end
+                    counter %= FLASH_Constants.PAGE_SIZE_ECC; //should not get past the last byte, but at the end
                     break;
 
                 case DEV9Header.FLASH_R_CMD:
@@ -170,7 +170,7 @@ namespace CLRDEV9.DEV9.FLASH
                     {
                         if ((value != DEV9Header.SM_CMD_GETSTATUS) && (value != DEV9Header.SM_CMD_RESET))
                         {
-                            Log_Error("*FLASH CMD " + (size * 8).ToString() + "bit write " + getCmdName(value) + " ILLEGAL in busy mode - IGNORED");
+                            Log_Error("*FLASH CMD " + (size * 8).ToString() + "bit write " + GetCmdName(value) + " ILLEGAL in busy mode - IGNORED");
                             break;
                         }
                     }
@@ -178,18 +178,19 @@ namespace CLRDEV9.DEV9.FLASH
                     {
                         if ((value != DEV9Header.SM_CMD_PROGRAMPAGE) && (value != DEV9Header.SM_CMD_RESET))
                         {
-                            Log_Error("*FLASH CMD " + (size * 8).ToString() + "bit write " + getCmdName(value) + " ILLEGAL after WRITEDATA cmd - IGNORED");
+                            Log_Error("*FLASH CMD " + (size * 8).ToString() + "bit write " + GetCmdName(value) + " ILLEGAL after WRITEDATA cmd - IGNORED");
                             unchecked
                             {
-                                ctrl &= ~DEV9Header.FLASH_PP_READY;//go busy, reset is needed
+                                ctrl &= ~DEV9Header.FLASH_PP_READY; //go busy, reset is needed
                             }
                             break;
                         }
                     }
-                    Log_Info("*FLASH CMD " + (size * 8).ToString() + "bit write " + getCmdName(value));
-                    switch (value)
-                    {																	// A8 bit is encoded in READ cmd;)
-                        case DEV9Header.SM_CMD_READ1:counter = 0;
+                    Log_Info("*FLASH CMD " + (size * 8).ToString() + "bit write " + GetCmdName(value));
+                    switch (value) //A8 bit is encoded in READ cmd;)
+                    {
+                        case DEV9Header.SM_CMD_READ1:
+                            counter = 0;
                             if (cmd != DEV9Header.SM_CMD_GETSTATUS)
                             {
                                 address = counter;
@@ -210,7 +211,7 @@ namespace CLRDEV9.DEV9.FLASH
                             {
                                 address = counter;
                             }
-                            addrbyte = 0; 
+                            addrbyte = 0;
                             break;
                         case DEV9Header.SM_CMD_RESET:
                             FLASHinit();
@@ -232,7 +233,7 @@ namespace CLRDEV9.DEV9.FLASH
                             {
                                 ctrl &= ~DEV9Header.FLASH_PP_READY;
                             }
-                            calculateECC(data);
+                            CalculateECC(data);
                             Utils.memcpy(ref file, (int)((address / FLASH_Constants.PAGE_SIZE) * FLASH_Constants.PAGE_SIZE_ECC), data, 0, FLASH_Constants.PAGE_SIZE_ECC);
                             /*write2file*/
                             ctrl |= DEV9Header.FLASH_PP_READY;
@@ -244,7 +245,7 @@ namespace CLRDEV9.DEV9.FLASH
                             {
                                 ctrl &= ~DEV9Header.FLASH_PP_READY;
                             }
-                            return;//ignore any other command; go busy, reset is needed
+                            return; //ignore any other command; go busy, reset is needed
                     }
                     cmd = value;
                     break;
@@ -255,7 +256,7 @@ namespace CLRDEV9.DEV9.FLASH
                     addrbyte++;
                     Log_Verb("*FLASH ADDR = 0x" + address + " (addrbyte=" + addrbyte.ToString() + ")\n");
                     if (!((value & 0x100) != 0))
-                    {	// address is complete
+                    {	//address is complete
                         if ((cmd == DEV9Header.SM_CMD_READ1) || (cmd == DEV9Header.SM_CMD_READ2) || (cmd == DEV9Header.SM_CMD_READ3))
                         {
                             unchecked
@@ -265,10 +266,10 @@ namespace CLRDEV9.DEV9.FLASH
                             Utils.memcpy(ref data, 0, file,
                                 (int)((address >> FLASH_Constants.PAGE_SIZE_BITS) * FLASH_Constants.PAGE_SIZE_ECC),
                                 FLASH_Constants.PAGE_SIZE);
-                            calculateECC(data);	// calculate ECC; should be in the file already
+                            CalculateECC(data);	//calculate ECC; should be in the file already
                             ctrl |= DEV9Header.FLASH_PP_READY;
                         }
-                        addrbyte = 0;		// address reset
+                        addrbyte = 0; //address reset
                         {
                             UInt32 bytes, pages, blocks;
 
@@ -296,24 +297,24 @@ namespace CLRDEV9.DEV9.FLASH
             }
         }
 
-        void xfromman_call20_calculateXors(byte[] buffer, int dataoffset, byte[] xor, int xoroffset)
+        void xfromman_call20_calculateXors(byte[] buffer, int dataOffset, byte[] xor, int xorOffset)
         {
             byte a = 0, b = 0, c = 0;
             int i;
 
-            for (i = dataoffset; i < 128 + dataoffset; i++)
+            for (i = dataOffset; i < 128 + dataOffset; i++)
             {
-                a ^= FLASH_Constants.xor_table[buffer[i]]; //xor
-                if ((FLASH_Constants.xor_table[buffer[i]] & 0x80) != 0)
+                a ^= FLASH_Constants.XOR_TABLE[buffer[i]]; //xor
+                if ((FLASH_Constants.XOR_TABLE[buffer[i]] & 0x80) != 0)
                 {
-                    b ^= (byte)(~(i - dataoffset));
-                    c ^= (byte)(i - dataoffset);
+                    b ^= (byte)(~(i - dataOffset));
+                    c ^= (byte)(i - dataOffset);
                 }
             }
 
-            xor[xoroffset + 0] = (byte)((~a) & 0x77);
-            xor[xoroffset + 1] = (byte)((~b) & 0x7F);
-            xor[xoroffset + 2] = (byte)((~c) & 0x7F);
+            xor[xorOffset + 0] = (byte)((~a) & 0x77);
+            xor[xorOffset + 1] = (byte)((~b) & 0x7F);
+            xor[xorOffset + 2] = (byte)((~c) & 0x7F);
         }
 
         private void Log_Error(string str)

@@ -7,7 +7,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
     {
         public UInt16 SourcePort;
         public UInt16 DestinationPort;
-        UInt16 _Length;
+        protected UInt16 _Length;
         public override UInt16 Length
         {
             get
@@ -19,7 +19,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
                 _Length = value;
             }
         }
-        protected UInt16 Checksum;
+        protected UInt16 checksum;
         protected int HeaderLength
         {
             get
@@ -51,7 +51,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             //Bits 32-63
 
             NetLib.ReadUInt16(buffer, ref offset, out _Length); //includes header length
-            NetLib.ReadUInt16(buffer, ref offset, out Checksum);
+            NetLib.ReadUInt16(buffer, ref offset, out checksum);
 
             if (_Length > parLength)
             {
@@ -84,10 +84,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             //Pseudo Header added
             //Rest of data is normal Header+data (with zerored checksum feild)
             //Null Checksum
-            Checksum = 0;
+            checksum = 0;
             NetLib.WriteByteArray(ref headerSegment, ref counter, GetBytes());
 
-            Checksum = IPPacket.InternetChecksum(headerSegment); //For performance, we can set this to = zero
+            checksum = IPPacket.InternetChecksum(headerSegment); //For performance, we can set this to = zero
         }
 
         public override bool VerifyCheckSum(byte[] srcIP, byte[] dstIP)
@@ -122,7 +122,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             NetLib.WriteUInt16(ref ret, ref counter, SourcePort);
             NetLib.WriteUInt16(ref ret, ref counter, DestinationPort);
             NetLib.WriteUInt16(ref ret, ref counter, Length);
-            NetLib.WriteUInt16(ref ret, ref counter, Checksum);
+            NetLib.WriteUInt16(ref ret, ref counter, checksum);
 
             NetLib.WriteByteArray(ref ret, ref counter, data);
             return ret;

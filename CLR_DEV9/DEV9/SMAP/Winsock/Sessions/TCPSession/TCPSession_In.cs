@@ -25,12 +25,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 avaData = client.Available;
             }
 
-            if (avaData != 0 && MyNumberACKed.WaitOne(0))
+            if (avaData != 0 && myNumberACKed.WaitOne(0))
             {
-                if (avaData > (MaxSegmentSize - 16))
+                if (avaData > (maxSegmentSize - 16))
                 {
                     Log_Info("Got a lot of data");
-                    avaData = MaxSegmentSize - 16;
+                    avaData = maxSegmentSize - 16;
                 }
 
                 byte[] recived = new byte[avaData];
@@ -43,7 +43,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 iRet.ACK = true;
                 iRet.PSH = true;
 
-                MyNumberACKed.Reset();
+                myNumberACKed.Reset();
                 return iRet;
             }
 

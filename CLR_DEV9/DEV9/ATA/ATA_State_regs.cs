@@ -7,7 +7,7 @@ namespace CLRDEV9.DEV9.ATA
         delegate bool Cmd();
         delegate void EndTransfer();
 
-        UInt16 xfer_mode;
+        UInt16 xferMode;
 
         bool sendIRQ = true;
 
@@ -17,8 +17,8 @@ namespace CLRDEV9.DEV9.ATA
 
         //UInt16 feature; //Shars reg with error
 
-        Cmd[] HDDcmds = new Cmd[256];
-        bool[] HDDcmdDoesSeek = new bool[256];
+        Cmd[] hddCmds = new Cmd[256];
+        bool[] hddCmdDoesSeek = new bool[256];
 
         //bus
         UInt16 command;
@@ -30,7 +30,7 @@ namespace CLRDEV9.DEV9.ATA
         //int64_t nb_sectors;
         //int mult_sectors = 0;
         //int identify_set;
-        byte[] identify_data; //512 bytes in size
+        byte[] identifyData; //512 bytes in size
         //int drive_serial;
         //char drive_serial_str[21];
         //char drive_model_str[41];
@@ -43,11 +43,11 @@ namespace CLRDEV9.DEV9.ATA
         byte lcyl;
         byte hcyl;
         /* other part of tf for lba48 support */
-        byte hob_feature;
-        byte hob_nsector;
-        byte hob_sector;
-        byte hob_lcyl;
-        byte hob_hcyl;
+        byte hobFeature;
+        byte hobNsector;
+        byte hobSector;
+        byte hobLcyl;
+        byte hobHcyl;
 
         byte select;
         byte status;
@@ -79,11 +79,11 @@ namespace CLRDEV9.DEV9.ATA
         //Int32 io_buffer_size;
         //QEMUSGList sg;
         /* PIO transfer handling */
-        int req_nb_sectors; /* number of sectors per interrupt */
-        EndTransfer end_transfer_func;
-        int data_ptr;
-        int data_end;
-        byte[] pio_buffer = new byte[512];
+        int reqNbSectors; /* number of sectors per interrupt */
+        EndTransfer endTransferFunc;
+        int dataPtr;
+        int dataEnd;
+        byte[] pioBuffer = new byte[512];
         /* PIO save/restore */
         //Int32 io_buffer_total_len;
         //Int32 cur_io_buffer_offset;
@@ -99,10 +99,10 @@ namespace CLRDEV9.DEV9.ATA
         //int media_changed;
         //enum ide_dma_cmd dma_cmd;
         /* SMART */
-        bool smart_enabled;
-        bool smart_autosave;
-        bool smart_errors = false;
-        byte smart_selftest_count;
+        bool smartEnabled;
+        bool smartAutosave;
+        bool smartErrors = false;
+        byte smartSelfTestCount;
         //uint8_t *smart_selftest_data;
         /* AHCI */
         //int ncq_queues;

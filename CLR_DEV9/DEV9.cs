@@ -9,10 +9,10 @@ namespace CLRDEV9
         private static string LogFolderPath = "logs";
         private static string IniFolderPath = "inis";
         private static DEV9.DEV9_State dev9 = null;
-        const bool DoLog = true;
+        const bool doLog = true;
         private static void LogInit()
         {
-            if (DoLog)
+            if (doLog)
             {
                 if (LogFolderPath.EndsWith(System.IO.Path.DirectorySeparatorChar.ToString()))
                 {
@@ -37,34 +37,24 @@ namespace CLRDEV9
 
         public static Int32 Init()
         {
-#if DEBUG
             try
             {
-#endif
                 LogInit();
                 Log_Info("Init");
                 dev9 = new DEV9.DEV9_State();
                 Log_Info("Init ok");
-
-                ////DEV9.SMAP.BridgeHelper.IsBridge("{94E77FAA-6436-41AC-BE5E-80618339B1F9}"); //Test if Bridge
-                ////{F51AD931-7B1D-40CB-856A-959035390C7D}
-                //DEV9.SMAP.BridgeHelper.IsInBridge("{F51AD931-7B1D-40CB-856A-959035390C7D}"); //Test if in bridge
                 return 0;
-#if DEBUG
             }
             catch (Exception e)
             {
                 PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 return -1;
             }
-#endif
         }
         public static Int32 Open(IntPtr winHandle)
         {
-#if DEBUG
             try
             {
-#endif
                 Log_Info("Open");
                 Config.LoadConf(IniFolderPath, "CLR_DEV9.ini");
 
@@ -72,37 +62,29 @@ namespace CLRDEV9
                     return dev9.Open(DEV9Header.config.Hdd);
                 else
                     return dev9.Open(IniFolderPath + "\\" + DEV9Header.config.Hdd);
-#if DEBUG
             }
             catch (Exception e)
             {
                 PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 return -1;
             }
-#endif
         }
         public static void Close()
         {
-#if DEBUG
             try
             {
-#endif
                 dev9.Close();
-#if DEBUG
             }
             catch (Exception e)
             {
                 PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
-#endif
         }
         public static void Shutdown()
         {
-#if DEBUG
             try
             {
-#endif
                 Log_Info("Shutdown");
                 PSE.CLR_PSE_PluginLog.Close();
                 //PluginLog.Close(); //fclose(dev9Log);
@@ -112,238 +94,182 @@ namespace CLRDEV9
                     irqHandle.Free(); //allow garbage collection
                 }
                 //Do dispose()?
-#if DEBUG
             }
             catch (Exception e)
             {
                 PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
-#endif
         }
         public static void SetSettingsDir(string dir)
         {
-#if DEBUG
             try
             {
-#endif
                 IniFolderPath = dir;
-#if DEBUG
             }
             catch (Exception e)
             {
                 PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
-#endif
         }
         public static void SetLogDir(string dir)
         {
-#if DEBUG
             try
             {
-#endif
                 LogFolderPath = dir;
                 //LogInit();
-#if DEBUG
             }
             catch (Exception e)
             {
                 PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
-#endif
         }
 
         public static byte DEV9read8(uint addr)
         {
-#if DEBUG
             try
             {
-#endif
                 return dev9.DEV9read8(addr);
-#if DEBUG
             }
             catch (Exception e)
             {
                 PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
-#endif
         }
         public static ushort DEV9read16(uint addr)
         {
-#if DEBUG
             try
             {
-#endif
-                return dev9.DEV9read16(addr);
-#if DEBUG
+                return dev9.DEV9_Read16(addr);
             }
             catch (Exception e)
             {
                 PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
-#endif
         }
         public static uint DEV9read32(uint addr)
         {
-#if DEBUG
             try
             {
-#endif
-                return dev9.DEV9read32(addr);
-#if DEBUG
+                return dev9.DEV9_Read32(addr);
             }
             catch (Exception e)
             {
                 PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
-#endif
         }
 
         public static void DEV9write8(uint addr, byte value)
         {
-#if DEBUG
             try
             {
-#endif
-                dev9.DEV9write8(addr, value);
-#if DEBUG
+                dev9.DEV9_Write8(addr, value);
             }
             catch (Exception e)
             {
                 PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
-#endif
         }
         public static void DEV9write16(uint addr, ushort value)
         {
-#if DEBUG
             try
             {
-#endif
-                dev9.DEV9write16(addr, value);
-#if DEBUG
+                dev9.DEV9_Write16(addr, value);
             }
             catch (Exception e)
             {
                 PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
-#endif
         }
         public static void DEV9write32(uint addr, uint value)
         {
-#if DEBUG
             try
             {
-#endif
-                dev9.DEV9write32(addr, value);
-#if DEBUG
+                dev9.DEV9_Write32(addr, value);
             }
             catch (Exception e)
             {
                 PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
-#endif
         }
 
         unsafe public static void DEV9readDMA8Mem(byte* memPointer, int size)
         {
-#if DEBUG
             try
             {
-#endif
                 System.IO.UnmanagedMemoryStream pMem = new System.IO.UnmanagedMemoryStream(memPointer, size, size, System.IO.FileAccess.Write);
-                dev9.DEV9readDMA8Mem(pMem, size);
-#if DEBUG
+                dev9.DEV9_ReadDMA8Mem(pMem, size);
             }
             catch (Exception e)
             {
                 PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
-#endif
         }
         unsafe public static void DEV9writeDMA8Mem(byte* memPointer, int size)
         {
-#if DEBUG
             try
             {
-#endif
                 System.IO.UnmanagedMemoryStream pMem = new System.IO.UnmanagedMemoryStream(memPointer, size, size, System.IO.FileAccess.Read);
-                dev9.DEV9writeDMA8Mem(pMem, size);
-#if DEBUG
+                dev9.DEV9_WriteDMA8Mem(pMem, size);
             }
             catch (Exception e)
             {
                 PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
-#endif
         }
 
         public static void DEV9async(uint cycles)
         {
-#if DEBUG
             try
             {
-#endif
-                dev9.DEV9async(cycles);
-#if DEBUG
+                dev9.DEV9_Async(cycles);
             }
             catch (Exception e)
             {
                 PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
-#endif
         }
 
         public static void DEV9irqCallback(PSE.CLR_PSE_Callbacks.CLR_CyclesCallback callback)
         {
-#if DEBUG
             try
             {
-#endif
                 DEV9Header.DEV9irq = callback;
-#if DEBUG
             }
             catch (Exception e)
             {
                 PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
-#endif
         }
         static GCHandle irqHandle;
         public static int _DEV9irqHandler()
         {
-#if DEBUG
             try
             {
-#endif
                 return dev9._DEV9irqHandler();
-#if DEBUG
             }
             catch (Exception e)
             {
                 PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
-#endif
         }
         public static PSE.CLR_PSE_Callbacks.CLR_IRQHandler DEV9irqHandler()
         {
-#if DEBUG
             try
             {
-#endif
                 // Pass our handler to pcsx2.
                 if (irqHandle.IsAllocated)
                 {
@@ -353,14 +279,12 @@ namespace CLRDEV9
                 PSE.CLR_PSE_Callbacks.CLR_IRQHandler fp = new PSE.CLR_PSE_Callbacks.CLR_IRQHandler(_DEV9irqHandler);
                 irqHandle = GCHandle.Alloc(fp); //prevent GC
                 return fp;
-#if DEBUG
             }
             catch (Exception e)
             {
                 PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
-#endif
         }
 
         //freeze
@@ -369,37 +293,29 @@ namespace CLRDEV9
         //test
         public static int Test()
         {
-#if DEBUG
             try
             {
-#endif
                 return 0;
-#if DEBUG
             }
             catch (Exception e)
             {
                 PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 return 1;
             }
-#endif
         }
         public static void Configure()
         {
-#if DEBUG
             try
             {
-#endif
                 Config.LoadConf(IniFolderPath, "CLR_DEV9.ini");
                 Config.DoConfig(IniFolderPath, "CLR_DEV9.ini");
                 Config.SaveConf(IniFolderPath, "CLR_DEV9.ini");
-#if DEBUG
             }
             catch (Exception e)
             {
                 PSE.CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
-#endif
         }
 
         private static void Log_Error(string str)

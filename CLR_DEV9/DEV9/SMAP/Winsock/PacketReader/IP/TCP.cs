@@ -10,34 +10,34 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
         public UInt16 DestinationPort;
         public UInt32 SequenceNumber;
         public UInt32 AcknowledgementNumber;
-        byte data_offset_and_NS_flag;
-        protected int HeaderLength //Can have varying Header Len
+        protected byte dataOffsetAndNS_Flag;
+        protected int headerLength //Can have varying Header Len
         //Need to account for this at packet creation
         {
             get
             {
-                return (data_offset_and_NS_flag >> 4) << 2;
+                return (dataOffsetAndNS_Flag >> 4) << 2;
             }
             set
             {
-                byte NS = (byte)(data_offset_and_NS_flag & 1);
-                data_offset_and_NS_flag = (byte)((value >> 2) << 4);
-                data_offset_and_NS_flag |= NS;
+                byte NS = (byte)(dataOffsetAndNS_Flag & 1);
+                dataOffsetAndNS_Flag = (byte)((value >> 2) << 4);
+                dataOffsetAndNS_Flag |= NS;
             }
         }
         public bool NS
         {
-            get { return ((data_offset_and_NS_flag & 1) != 0); }
+            get { return ((dataOffsetAndNS_Flag & 1) != 0); }
             set
             {
-                if (value) { data_offset_and_NS_flag |= (1); }
-                else { data_offset_and_NS_flag &= unchecked((byte)(~(1))); }
+                if (value) { dataOffsetAndNS_Flag |= (1); }
+                else { dataOffsetAndNS_Flag &= unchecked((byte)(~(1))); }
             }
         }
         byte flags;
         public UInt16 WindowSize;
-        protected UInt16 Checksum;
-        protected UInt16 UrgentPointer;
+        protected UInt16 checksum;
+        protected UInt16 urgentPointer;
         public List<TCPOption> Options = new List<TCPOption>();
         byte[] data;
         public override byte Protocol
@@ -49,7 +49,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             get
             {
                 ReComputeHeaderLen();
-                return (UInt16)(data.Length + HeaderLength);
+                return (UInt16)(data.Length + headerLength);
             }
             protected set
             {
@@ -140,7 +140,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
                 opOffset += Options[i].Length;
             }
             opOffset += opOffset % 4; //needs to be a whole number of 32bits
-            HeaderLength = opOffset;
+            headerLength = opOffset;
         }
 
         public override byte[] GetPayload()
@@ -169,19 +169,19 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             //Error.WriteLine("ack num=" + AcknowledgmentNumber); //the next expected byte(seq) number
 
             //Bits 96-127
-            NetLib.ReadByte08(buffer, ref offset, out data_offset_and_NS_flag);
+            NetLib.ReadByte08(buffer, ref offset, out dataOffsetAndNS_Flag);
             //Error.WriteLine("TCP hlen=" + HeaderLength);
             NetLib.ReadByte08(buffer, ref offset, out flags);
             NetLib.ReadUInt16(buffer, ref offset, out WindowSize);
             //Error.WriteLine("win Size=" + WindowSize);
 
             //Bits 127-159
-            NetLib.ReadUInt16(buffer, ref offset, out Checksum);
-            NetLib.ReadUInt16(buffer, ref offset, out UrgentPointer);
+            NetLib.ReadUInt16(buffer, ref offset, out checksum);
+            NetLib.ReadUInt16(buffer, ref offset, out urgentPointer);
             //Error.WriteLine("urg ptr=" + UrgentPointer);
 
             //Bits 160+
-            if (HeaderLength > 20) //TCP options
+            if (headerLength > 20) //TCP options
             {
                 bool opReadFin = false;
                 do
@@ -215,22 +215,22 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
                             break;
                     }
                     offset += opLen;
-                    if (offset == initialOffset + HeaderLength)
+                    if (offset == initialOffset + headerLength)
                     {
                         //Error.WriteLine("Reached end of Options");
                         opReadFin = true;
                     }
                 } while (opReadFin == false);
             }
-            offset = initialOffset + HeaderLength;
+            offset = initialOffset + headerLength;
 
-            NetLib.ReadByteArray(buffer, ref offset, parLength - HeaderLength, out data);
+            NetLib.ReadByteArray(buffer, ref offset, parLength - headerLength, out data);
             //AllDone
         }
 
         public override void CalculateCheckSum(byte[] srcIP, byte[] dstIP)
         {
-            Int16 TCPLength = (Int16)(HeaderLength + data.Length);
+            Int16 TCPLength = (Int16)(headerLength + data.Length);
             int pHeaderLen = (12 + TCPLength);
             if ((pHeaderLen & 1) != 0)
             {
@@ -249,10 +249,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             //Pseudo Header added
             //Rest of data is normal Header+data (with zerored checksum feild)
             //Null Checksum
-            Checksum = 0;
+            checksum = 0;
             NetLib.WriteByteArray(ref headerSegment, ref counter, GetBytes());
 
-            Checksum = IPPacket.InternetChecksum(headerSegment);
+            checksum = IPPacket.InternetChecksum(headerSegment);
         }
 
         public override bool VerifyCheckSum(byte[] srcIP, byte[] dstIP)
@@ -291,18 +291,18 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             NetLib.WriteUInt16(ref ret, ref counter, DestinationPort);
             NetLib.WriteUInt32(ref ret, ref counter, SequenceNumber);
             NetLib.WriteUInt32(ref ret, ref counter, AcknowledgementNumber);
-            NetLib.WriteByte08(ref ret, ref counter, data_offset_and_NS_flag);
+            NetLib.WriteByte08(ref ret, ref counter, dataOffsetAndNS_Flag);
             NetLib.WriteByte08(ref ret, ref counter, flags);
             NetLib.WriteUInt16(ref ret, ref counter, WindowSize);
-            NetLib.WriteUInt16(ref ret, ref counter, Checksum);
-            NetLib.WriteUInt16(ref ret, ref counter, UrgentPointer);
+            NetLib.WriteUInt16(ref ret, ref counter, checksum);
+            NetLib.WriteUInt16(ref ret, ref counter, urgentPointer);
 
             //options
             for (int i = 0; i < Options.Count; i++)
             {
                 NetLib.WriteByteArray(ref ret, ref counter, Options[i].GetBytes());
             }
-            counter = HeaderLength;
+            counter = headerLength;
             NetLib.WriteByteArray(ref ret, ref counter, data);
             return ret;
         }

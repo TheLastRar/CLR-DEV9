@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Text;
-using System.Runtime.InteropServices;
-using System.Collections.Generic;
-using System.Net.NetworkInformation;
-using System.Net.Sockets;
-using System.Net;
-using System.Management;
 using System.Collections;
+using System.Collections.Generic;
+using System.Management;
+using System.Runtime.InteropServices;
+using System.Text;
 
 namespace CLRDEV9.DEV9.SMAP.WinPcap
 {
@@ -219,7 +216,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
         //    }
         //}
 
-        static bool pcap_io_available()
+        static bool PcapAvailable()
         {
             IntPtr hmod = LoadLibrary(PCAP_LIB_NAME);
             if (hmod == IntPtr.Zero)
@@ -230,7 +227,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             return true;
         }
 
-        static List<string[]> pcap_list_adapters()
+        static List<string[]> PcapListAdapters()
         {
             List<string[]> devices = new List<string[]>();
 
@@ -245,7 +242,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
                 pcap_if d_0 = (pcap_if)Marshal.PtrToStructure(rawPcapAdapter, typeof(pcap_if));
                 foreach (pcap_if d in d_0)
                 {
-                    devices.Add(new string[] {d.description, d.name });
+                    devices.Add(new string[] { d.description, d.name });
                 }
             }
             catch (Exception e)
@@ -258,7 +255,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             }
             return devices;
         }
-        private static string wmi_get_friendly_name(string guid)
+        private static string GetFriendlyName(string guid)
         {
             //find adapter in WMI and compare servicename
             ManagementScope scope = new ManagementScope("\\\\.\\ROOT\\cimv2");
@@ -282,14 +279,14 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             return null;
         }
 
-        bool pcap_io_init(string adapter)
+        bool PcapInitIO(string adapter)
         {
             StringBuilder errbuf = new StringBuilder(PCAP_ERRBUF_SIZE);
 
             int dlt;
             string dlt_name;
             //Set PS2 MAC Based on Adapter MAC
-            if ((adhandle = pcap_open_live(adapter,
+            if ((adHandle = pcap_open_live(adapter,
                                             65536,
                                             switched ? 1 : 0,
                                             1,
@@ -300,7 +297,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
                 return false;
             }
 
-            dlt = pcap_datalink(adhandle);
+            dlt = pcap_datalink(adHandle);
             dlt_name = Marshal.PtrToStringAnsi(pcap_datalink_val_to_name(dlt));
 
             Log_Info("Device uses DLT " + dlt + ": " + dlt_name);
@@ -313,31 +310,31 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
                     return false;
             }
 
-            if (pcap_setnonblock(adhandle, 1, errbuf) == -1)
+            if (pcap_setnonblock(adHandle, 1, errbuf) == -1)
             {
                 Log_Error("WARNING: Error setting non-blocking mode. Default mode will be used");
             }
 
             //Don't bother with pcap logs yet
 
-            pcap_io_running = true;
+            pcapRunning = true;
 
             return true;
         }
 
-        int pcap_io_recv(byte[] data, int max_len)
+        int PcapRecvIO(byte[] data, int max_len)
         {
             int res;
             pcap_pkthdr header;
             IntPtr headerPtr;
             IntPtr pkt_dataPtr;
 
-            if (!pcap_io_running)
+            if (!pcapRunning)
             {
                 return -1;
             }
 
-            if ((res = pcap_next_ex(adhandle, out headerPtr, out pkt_dataPtr)) > 0)
+            if ((res = pcap_next_ex(adHandle, out headerPtr, out pkt_dataPtr)) > 0)
             {
                 header = (pcap_pkthdr)Marshal.PtrToStructure(headerPtr, typeof(pcap_pkthdr));
                 Marshal.Copy(pkt_dataPtr, data, 0, Math.Min((int)header.len, max_len));
@@ -349,15 +346,15 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             }
         }
 
-        bool pcap_io_send(byte[] data, int len)
+        bool PcapSendIO(byte[] data, int len)
         {
-            if (!pcap_io_running)
+            if (!pcapRunning)
             {
                 return false;
             }
             Log_Verb(" * pcap io: Sending " + len + " byte packet");
 
-            if (pcap_sendpacket(adhandle, data, len) == 0)
+            if (pcap_sendpacket(adHandle, data, len) == 0)
             {
                 return true;
             }
@@ -366,15 +363,15 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             }
         }
 
-        void pcap_io_close()
+        void PcapCloseIO()
         {
             //Close logs (not ported)
-            if (adhandle != IntPtr.Zero)
+            if (adHandle != IntPtr.Zero)
             {
-                pcap_close(adhandle);
-                adhandle = IntPtr.Zero;
+                pcap_close(adHandle);
+                adHandle = IntPtr.Zero;
             }
-            pcap_io_running = false;
+            pcapRunning = false;
         }
     }
 }

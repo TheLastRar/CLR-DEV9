@@ -1,7 +1,6 @@
 ﻿using CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP;
 using System;
 using System.Diagnostics;
-using System.Net;
 using System.Text;
 
 namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
@@ -48,15 +47,15 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
     }
     class DHCPopRouter : TCPOption //can be longer then 1 address (not supported)
     {
-        byte[] routerip = new byte[4];
+        byte[] routerIP = new byte[4];
         public DHCPopRouter(byte[] data)
         {
-            routerip = data;
+            routerIP = data;
         }
         public DHCPopRouter(byte[] data, int offset) //Offset will include Kind and Len
         {
             offset += 2;
-            NetLib.ReadByteArray(data, ref offset, 4, out routerip);
+            NetLib.ReadByteArray(data, ref offset, 4, out routerIP);
         }
         public override byte Length { get { return 6; } }
         public override byte Code { get { return 3; } }
@@ -67,39 +66,39 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
             int counter = 0;
             NetLib.WriteByte08(ref ret, ref counter, Code);
             NetLib.WriteByte08(ref ret, ref counter, (byte)(Length - 2));
-            NetLib.WriteByteArray(ref ret, ref counter, routerip);
+            NetLib.WriteByteArray(ref ret, ref counter, routerIP);
             return ret;
         }
     }
     class DHCPopDNS : TCPOption //can be longer then 1 address (not supported)
     {
-        byte[] dnsip1 = new byte[4];
-        byte[] dnsip2 = null;
+        byte[] dnsIP1 = new byte[4];
+        byte[] dnsIP2 = null;
         public DHCPopDNS(byte[] parIP)
         {
-            dnsip1 = parIP;
+            dnsIP1 = parIP;
         }
         public DHCPopDNS(byte[] parIP1, byte[] parIP2)
         {
-            dnsip1 = parIP1;
-            dnsip2 = parIP2;
+            dnsIP1 = parIP1;
+            dnsIP2 = parIP2;
         }
         public DHCPopDNS(byte[] data, int offset) //Offset will include Kind and Len
         {
             offset += 1;
             byte len;
             NetLib.ReadByte08(data, ref offset, out len);
-            NetLib.ReadByteArray(data, ref offset, 4, out dnsip1);
+            NetLib.ReadByteArray(data, ref offset, 4, out dnsIP1);
             if (len == 10)
             {
-                NetLib.ReadByteArray(data, ref offset, 4, out dnsip2);
+                NetLib.ReadByteArray(data, ref offset, 4, out dnsIP2);
             }
         }
         public override byte Length
         {
             get
             {
-                if (dnsip2 == null)
+                if (dnsIP2 == null)
                     return 6;
                 else
                     return 10;
@@ -113,10 +112,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
             int counter = 0;
             NetLib.WriteByte08(ref ret, ref counter, Code);
             NetLib.WriteByte08(ref ret, ref counter, (byte)(Length - 2));
-            NetLib.WriteByteArray(ref ret, ref counter, dnsip1);
-            if (dnsip2 != null)
+            NetLib.WriteByteArray(ref ret, ref counter, dnsIP1);
+            if (dnsIP2 != null)
             {
-                NetLib.WriteByteArray(ref ret, ref counter, dnsip2);
+                NetLib.WriteByteArray(ref ret, ref counter, dnsIP2);
             }
             return ret;
         }
@@ -353,15 +352,15 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
     class DHCPopMSGStr : TCPOption
     {
         byte len;
-        byte[] MsgBytes;
+        byte[] msgBytes;
         public DHCPopMSGStr(byte[] data, int offset) //Offset will include Kind and Len
         {
             offset += 1;
             NetLib.ReadByte08(data, ref offset, out len);
-            NetLib.ReadByteArray(data, ref offset, len, out MsgBytes);
+            NetLib.ReadByteArray(data, ref offset, len, out msgBytes);
 
             Encoding enc = Encoding.ASCII;
-            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.Winsock, "DCHP", enc.GetString(MsgBytes));
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.Winsock, "DCHP", enc.GetString(msgBytes));
         }
         public override byte Length { get { return (byte)(2 + len); } }
         public override byte Code { get { return 56; } }
@@ -372,7 +371,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
             int counter = 0;
             NetLib.WriteByte08(ref ret, ref counter, Code);
             NetLib.WriteByte08(ref ret, ref counter, (byte)(Length - 2));
-            NetLib.WriteByteArray(ref ret, ref counter, MsgBytes);
+            NetLib.WriteByteArray(ref ret, ref counter, msgBytes);
             return ret;
         }
     }
@@ -399,13 +398,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
     class DHCPopCID : TCPOption
     {
         byte len;
-        byte[] ClientID;
+        byte[] clientID;
         public DHCPopCID(byte[] data, int offset) //Offset will include Kind and Len
         {
             offset += 1;
             NetLib.ReadByte08(data, ref offset, out len);
             //ClientID = new byte[len];
-            NetLib.ReadByteArray(data, ref offset, len, out ClientID);
+            NetLib.ReadByteArray(data, ref offset, len, out clientID);
         }
         public override byte Length { get { return (byte)(2 + len); } }
         public override byte Code { get { return 61; } }
@@ -416,7 +415,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
             int counter = 0;
             NetLib.WriteByte08(ref ret, ref counter, Code);
             NetLib.WriteByte08(ref ret, ref counter, (byte)(Length - 2));
-            NetLib.WriteByteArray(ref ret, ref counter, ClientID);
+            NetLib.WriteByteArray(ref ret, ref counter, clientID);
             return ret;
         }
     }

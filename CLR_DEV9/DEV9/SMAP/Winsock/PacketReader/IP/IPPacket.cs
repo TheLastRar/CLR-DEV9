@@ -6,8 +6,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
     class IPPacket : EthernetPayload //IPv4 Only
     {
         const byte _verHi = 4 << 4; //Assume it is always 4
-        int hlen; //convert this back to num of 32bit words
-        byte typeofservice; //TODO, Implement this
+        int hLen; //convert this back to num of 32bit words
+        byte typeOfService; //TODO, Implement this
         UInt16 _Length;
         public override UInt16 Length
         {
@@ -20,7 +20,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
                 _Length = value;
             }
         }
-        protected UInt16 ID;
+        protected UInt16 id;
         #region "Fragment"
         protected UInt16 FragmentFlags;
         public UInt16 FragmentOffset
@@ -50,9 +50,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             }
         }
         #endregion
-        byte ttl = 128;
+        protected byte ttl = 128;
         public byte Protocol;
-        protected UInt16 Checksum;
+        protected UInt16 checksum;
         public byte[] SourceIP = new byte[4];
         public byte[] DestinationIP = new byte[4];
 
@@ -73,16 +73,16 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
 
                 byte[] ret = new byte[Length];
                 int counter = 0;
-                NetLib.WriteByte08(ref ret, ref counter, (byte)(_verHi + (hlen >> 2)));
-                NetLib.WriteByte08(ref ret, ref counter, typeofservice);//DSCP/ECN
+                NetLib.WriteByte08(ref ret, ref counter, (byte)(_verHi + (hLen >> 2)));
+                NetLib.WriteByte08(ref ret, ref counter, typeOfService);//DSCP/ECN
                 NetLib.WriteUInt16(ref ret, ref counter, _Length);
 
-                NetLib.WriteUInt16(ref ret, ref counter, ID);
+                NetLib.WriteUInt16(ref ret, ref counter, id);
                 NetLib.WriteUInt16(ref ret, ref counter, FragmentFlags);
 
                 NetLib.WriteByte08(ref ret, ref counter, ttl);
                 NetLib.WriteByte08(ref ret, ref counter, Protocol);
-                NetLib.WriteUInt16(ref ret, ref counter, Checksum); //header csum
+                NetLib.WriteUInt16(ref ret, ref counter, checksum); //header csum
 
                 NetLib.WriteByteArray(ref ret, ref counter, SourceIP);
                 NetLib.WriteByteArray(ref ret, ref counter, DestinationIP); ;
@@ -97,8 +97,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
         public IPPacket(IPPayload pl)
         {
             _pl = pl;
-            hlen = 20;
-            Length = (UInt16)(pl.Length + hlen);
+            hLen = 20;
+            Length = (UInt16)(pl.Length + hLen);
             Protocol = _pl.Protocol;
         }
 
@@ -114,14 +114,14 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
 
         private void ReadBuffer(byte[] buffer, int offset, int bufferSize)
         {
-            int pktoffset = offset;
+            int pktOffset = offset;
 
             //Bits 0-31
             byte v_hl;
-            NetLib.ReadByte08(buffer, ref pktoffset, out v_hl);
-            hlen = ((v_hl & 0xF) << 2);
-            NetLib.ReadByte08(buffer, ref pktoffset, out typeofservice); //TODO, Implement this
-            NetLib.ReadUInt16(buffer, ref pktoffset, out _Length);
+            NetLib.ReadByte08(buffer, ref pktOffset, out v_hl);
+            hLen = ((v_hl & 0xF) << 2);
+            NetLib.ReadByte08(buffer, ref pktOffset, out typeOfService); //TODO, Implement this
+            NetLib.ReadUInt16(buffer, ref pktOffset, out _Length);
             if (_Length > bufferSize - offset)
             {
                 Log_Error("Unexpected Length");
@@ -130,8 +130,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             //Error.WriteLine("len=" + Length); //Includes hlen
 
             //Bits 32-63
-            NetLib.ReadUInt16(buffer, ref pktoffset, out ID); //Send packets with unique IDs
-            NetLib.ReadUInt16(buffer, ref pktoffset, out FragmentFlags);
+            NetLib.ReadUInt16(buffer, ref pktOffset, out id); //Send packets with unique IDs
+            NetLib.ReadUInt16(buffer, ref pktOffset, out FragmentFlags);
 
             if (MoreFragments)
             {
@@ -139,54 +139,54 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             }
 
             //Bits 64-95
-            NetLib.ReadByte08(buffer, ref pktoffset, out ttl);
-            NetLib.ReadByte08(buffer, ref pktoffset, out Protocol);
-            NetLib.ReadUInt16(buffer, ref pktoffset, out Checksum);
+            NetLib.ReadByte08(buffer, ref pktOffset, out ttl);
+            NetLib.ReadByte08(buffer, ref pktOffset, out Protocol);
+            NetLib.ReadUInt16(buffer, ref pktOffset, out checksum);
             //bool ccsum = verifyCheckSum(Ef.RawPacket.buffer, pktoffset);
             //Error.WriteLine("IP Checksum Good? " + ccsum);//Should ALWAYS be true
 
             //Bits 96-127
-            NetLib.ReadByteArray(buffer, ref pktoffset, 4, out SourceIP);
+            NetLib.ReadByteArray(buffer, ref pktOffset, 4, out SourceIP);
             //Bits 128-159
-            NetLib.ReadByteArray(buffer, ref pktoffset, 4, out DestinationIP);
+            NetLib.ReadByteArray(buffer, ref pktOffset, 4, out DestinationIP);
             //WriteLine("Target IP :" + DestinationIP[0] + "." + DestinationIP[1] + "." + DestinationIP[2] + "." + DestinationIP[3]);
 
             //Bits 160+
-            if (hlen > 20) //IP options (if any)
+            if (hLen > 20) //IP options (if any)
             {
-                Log_Error("hlen=" + hlen + " > 20");
+                Log_Error("hlen=" + hLen + " > 20");
                 Log_Error("IP options are not supported");
                 throw new NotImplementedException("IP options are not supported");
             }
             switch (Protocol) //(Prase Payload)
             {
                 case (byte)IPType.ICMP:
-                    _pl = new ICMP(buffer, pktoffset, Length - hlen);
+                    _pl = new ICMP(buffer, pktOffset, Length - hLen);
                     //((ICMP)_pl).VerifyCheckSum(SourceIP, DestinationIP);
                     break;
                 case (byte)IPType.TCP:
-                    _pl = new TCP(buffer, pktoffset, Length - hlen);
+                    _pl = new TCP(buffer, pktOffset, Length - hLen);
                     //((TCP)_pl).VerifyCheckSum(SourceIP, DestinationIP);
                     break;
                 case (byte)IPType.UDP:
-                    _pl = new UDP(buffer, pktoffset, Length - hlen);
+                    _pl = new UDP(buffer, pktOffset, Length - hLen);
                     //((UDP)_pl).VerifyCheckSum(SourceIP, DestinationIP);
                     break;
                 default:
                     throw new NotImplementedException("Unkown IPv4 Protocol " + Protocol.ToString("X2"));
-                //break;
+                    //break;
             }
         }
         private void CalculateCheckSum()
         {
             //if (!(i == 5)) //checksum feild is 10-11th byte (5th short), which is skipped
-            byte[] headerSegment = new byte[hlen];
+            byte[] headerSegment = new byte[hLen];
             int counter = 0;
-            NetLib.WriteByte08(ref headerSegment, ref counter, (byte)(_verHi + (hlen >> 2)));
-            NetLib.WriteByte08(ref headerSegment, ref counter, typeofservice);//DSCP/ECN
+            NetLib.WriteByte08(ref headerSegment, ref counter, (byte)(_verHi + (hLen >> 2)));
+            NetLib.WriteByte08(ref headerSegment, ref counter, typeOfService);//DSCP/ECN
             NetLib.WriteUInt16(ref headerSegment, ref counter, _Length);
 
-            NetLib.WriteUInt16(ref headerSegment, ref counter, ID);
+            NetLib.WriteUInt16(ref headerSegment, ref counter, id);
             NetLib.WriteUInt16(ref headerSegment, ref counter, FragmentFlags);
 
             NetLib.WriteByte08(ref headerSegment, ref counter, ttl);
@@ -196,22 +196,22 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             NetLib.WriteByteArray(ref headerSegment, ref counter, SourceIP);
             NetLib.WriteByteArray(ref headerSegment, ref counter, DestinationIP);
 
-            Checksum = InternetChecksum(headerSegment);
+            checksum = InternetChecksum(headerSegment);
         }
         public bool VerifyCheckSum()
         {
-            byte[] headerSegment = new byte[hlen];
+            byte[] headerSegment = new byte[hLen];
             int counter = 0;
-            NetLib.WriteByte08(ref headerSegment, ref counter, (byte)(_verHi + (hlen >> 2)));
-            NetLib.WriteByte08(ref headerSegment, ref counter, typeofservice);//DSCP/ECN
+            NetLib.WriteByte08(ref headerSegment, ref counter, (byte)(_verHi + (hLen >> 2)));
+            NetLib.WriteByte08(ref headerSegment, ref counter, typeOfService);//DSCP/ECN
             NetLib.WriteUInt16(ref headerSegment, ref counter, _Length);
 
-            NetLib.WriteUInt16(ref headerSegment, ref counter, ID);
+            NetLib.WriteUInt16(ref headerSegment, ref counter, id);
             NetLib.WriteUInt16(ref headerSegment, ref counter, FragmentFlags);
 
             NetLib.WriteByte08(ref headerSegment, ref counter, ttl);
             NetLib.WriteByte08(ref headerSegment, ref counter, Protocol);
-            NetLib.WriteUInt16(ref headerSegment, ref counter, Checksum); //header csum
+            NetLib.WriteUInt16(ref headerSegment, ref counter, checksum); //header csum
 
             NetLib.WriteByteArray(ref headerSegment, ref counter, SourceIP);
             NetLib.WriteByteArray(ref headerSegment, ref counter, DestinationIP);

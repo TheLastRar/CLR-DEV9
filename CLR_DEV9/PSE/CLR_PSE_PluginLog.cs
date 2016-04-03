@@ -9,7 +9,7 @@ namespace PSE
     {
         static TraceSource mySource = null;
         static SourceSwitch defualtSwicth = new SourceSwitch("Default");
-        static SourceLevels ConsoleStdLevel = SourceLevels.All & ~(SourceLevels.Error);
+        static SourceLevels ConsoleStdLevel = SourceLevels.Information & ~(SourceLevels.Error);
         static SourceLevels ConsoleErrLevel = SourceLevels.Error;
         static SourceLevels FileLevel = SourceLevels.All;
         static string currentLogPath = "";

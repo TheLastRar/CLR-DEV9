@@ -5,13 +5,13 @@ namespace CLRDEV9.DEV9.ATA
     partial class ATA_State
     {
         //cache
-        void ide_flush_cache()
+        void IDE_FlushCache()
         {
             status |= (byte)DEV9Header.ATA_STAT_BUSY;
 
-            ide_flush_cb();
+            IDE_FlushCB();
         }
-        void ide_flush_cb()
+        void IDE_FlushCB()
         {
             // Write cache not supported yet
 
@@ -19,30 +19,30 @@ namespace CLRDEV9.DEV9.ATA
             if (sendIRQ) dev9.DEV9irq(1, 1);
         }
         //PIO
-        void ide_transfer_stop()
+        void IDE_TransferStop()
         {
-            end_transfer_func = ide_transfer_stop;
-            data_ptr = 0;
-            data_end = 0;
+            endTransferFunc = IDE_TransferStop;
+            dataPtr = 0;
+            dataEnd = 0;
             status &= unchecked((byte)(~DEV9Header.ATA_STAT_DRQ));
         }
 
-        void ide_transfer_start(byte[] buf, int buffIndex, int size, EndTransfer endFunc)
+        void IDE_TransferStart(byte[] buf, int buffIndex, int size, EndTransfer endFunc)
         {
-            end_transfer_func = endFunc;
-            data_ptr = 0;
-            data_end = size >> 1;
+            endTransferFunc = endFunc;
+            dataPtr = 0;
+            dataEnd = size >> 1;
             if ((status & DEV9Header.ATA_STAT_ERR) == 0)
             {
                 status |= (byte)DEV9Header.ATA_STAT_DRQ;
             }
 
-            Utils.memcpy(ref pio_buffer, 0, buf, buffIndex, Math.Min(size, buf.Length - buffIndex));
+            Utils.memcpy(ref pioBuffer, 0, buf, buffIndex, Math.Min(size, buf.Length - buffIndex));
         }
 
         //TODO multi-Sector read support
-        byte[] piosectorbuffer;
-        int piobufferindex = -1;
+        byte[] pioSectorBuffer;
+        int pioBufferIndex = -1;
         void ide_sector_read()
         {
             Log_Verb("SectorRead");
@@ -55,42 +55,42 @@ namespace CLRDEV9.DEV9.ATA
 
             if (n == 0)
             {
-                ide_transfer_stop();
-                piobufferindex = -1;
+                IDE_TransferStop();
+                pioBufferIndex = -1;
                 return;
             }
 
             status |= (byte)DEV9Header.ATA_STAT_BUSY;
 
-            if (n > req_nb_sectors)
+            if (n > reqNbSectors)
             {
-                n = req_nb_sectors;
+                n = reqNbSectors;
             }
 
             //QEMU Does async read here
-            if (piobufferindex == -1)
+            if (pioBufferIndex == -1)
             {
-                if (HDDseek() == -1)
+                if (HDD_Seek() == -1)
                 {
                     //ide_rw_error
                     return;
                 }
-                piosectorbuffer = new byte[512 * nsector];
-                piobufferindex = 0;
-                hddimage.Read(piosectorbuffer, 0, piosectorbuffer.Length);
+                pioSectorBuffer = new byte[512 * nsector];
+                pioBufferIndex = 0;
+                hddImage.Read(pioSectorBuffer, 0, pioSectorBuffer.Length);
             }
 
-            ide_sector_read_cb();
+            IDE_SectorReadCB();
         }
 
-        void ide_sector_read_cb()
+        void IDE_SectorReadCB()
         {
             status &= unchecked((byte)(~DEV9Header.ATA_STAT_BUSY));
 
             int n = nsector;
-            if (n > req_nb_sectors)
+            if (n > reqNbSectors)
             {
-                n = req_nb_sectors;
+                n = reqNbSectors;
             }
 
             //Set Next Sector (TODO)
@@ -99,13 +99,13 @@ namespace CLRDEV9.DEV9.ATA
 
             //Start Transfer
             //Sector size is 512b
-            ide_transfer_start(piosectorbuffer, piobufferindex * 512, n * 512, ide_sector_read);
-            piobufferindex++;
+            IDE_TransferStart(pioSectorBuffer, pioBufferIndex * 512, n * 512, ide_sector_read);
+            pioBufferIndex++;
             if (sendIRQ) dev9.DEV9irq(1, 1);
         }
 
         //DMA
-        void ide_start_dma()
+        void IDE_StartDMA()
         {
             //dummy function
             //This would normally set dma_cb in qemu,
@@ -145,16 +145,16 @@ namespace CLRDEV9.DEV9.ATA
 
         //}
 
-        void ide_sector_start_dma(bool read)
+        void IDE_SectorStartDma(bool read)
         {
             status = DEV9Header.ATA_STAT_READY | DEV9Header.ATA_STAT_SEEK | DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_BUSY;
 
-            if (HDDseek() != 0)
+            if (HDD_Seek() != 0)
             {
                 return;
             }
 
-            ide_start_dma();
+            IDE_StartDMA();
         }
     }
 }

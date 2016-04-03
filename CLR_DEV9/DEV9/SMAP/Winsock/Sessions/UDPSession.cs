@@ -13,8 +13,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         UdpClient client;
 
-        UInt16 SrcPort = 0;
-        UInt16 DestPort = 0;
+        UInt16 srcPort = 0;
+        UInt16 destPort = 0;
         //Broadcast
         byte[] broadcastAddr;
         bool isBroadcast = false;
@@ -22,13 +22,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         byte[] broadcastResponseIP = null;
         //EndBroadcast
 
-        Stopwatch DeathClock = new Stopwatch();
-        const double MaxIdle = 72;
+        Stopwatch deathClock = new Stopwatch();
+        const double MAX_IDLE = 72;
         public UDPSession(IPAddress parAdapterIP, byte[] parBroadcastIP)
-            :base(parAdapterIP)
+            : base(parAdapterIP)
         {
             broadcastAddr = parBroadcastIP;
-            DeathClock.Start();
+            deathClock.Start();
         }
         public override IPPayload Recv()
         {
@@ -36,10 +36,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             {
                 UDP ret = recvbuff[0];
                 recvbuff.RemoveAt(0);
-                DeathClock.Restart();
+                deathClock.Restart();
                 return ret;
             }
-            if (SrcPort == 0)
+            if (srcPort == 0)
             {
                 return null;
             }
@@ -54,7 +54,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     }
                     else
                     {
-                        remoteIPEndPoint = new IPEndPoint(new IPAddress(DestIP), DestPort);
+                        remoteIPEndPoint = new IPEndPoint(new IPAddress(DestIP), destPort);
                     }
                     byte[] recived = client.Receive(ref remoteIPEndPoint);
                     //Error.WriteLine("UDP Got Data");
@@ -63,13 +63,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                         DestIP = remoteIPEndPoint.Address.GetAddressBytes(); //assumes ipv4
                     }
                     UDP iRet = new UDP(recived);
-                    iRet.DestinationPort = SrcPort;
-                    iRet.SourcePort = DestPort;
-                    DeathClock.Restart();
+                    iRet.DestinationPort = srcPort;
+                    iRet.SourcePort = destPort;
+                    deathClock.Restart();
                     return iRet;
                 }
             }
-            if (DeathClock.Elapsed.TotalSeconds > MaxIdle)
+            if (deathClock.Elapsed.TotalSeconds > MAX_IDLE)
             {
                 client.Close();
                 open = false;
@@ -78,12 +78,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         }
         public override bool Send(IPPayload payload)
         {
-            DeathClock.Restart();
+            deathClock.Restart();
             UDP udp = (UDP)payload;
 
-            if (DestPort != 0)
+            if (destPort != 0)
             {
-                if (!(udp.DestinationPort == DestPort && udp.SourcePort == SrcPort))
+                if (!(udp.DestinationPort == destPort && udp.SourcePort == srcPort))
                 {
                     Log_Error("UDP packet invalid for current session (Duplicate key?)");
                     return false;
@@ -91,8 +91,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             }
             else
             {
-                DestPort = udp.DestinationPort;
-                SrcPort = udp.SourcePort;
+                destPort = udp.DestinationPort;
+                srcPort = udp.SourcePort;
 
                 if (Utils.memcmp(DestIP, 0, broadcastAddr, 0, 4))
                 {
@@ -103,7 +103,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 {
                     Log_Info("Is Broadcast");
 
-                    client = new UdpClient(new IPEndPoint(adapterIP, SrcPort)); //Assuming broadcast wants a return message
+                    client = new UdpClient(new IPEndPoint(adapterIP, srcPort)); //Assuming broadcast wants a return message
                     client.EnableBroadcast = true;
 
                     //client.Close();
@@ -114,17 +114,17 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 else
                 {
                     IPAddress address = new IPAddress(DestIP);
-                    if (SrcPort == DestPort)
+                    if (srcPort == destPort)
                     {
-                        client = new UdpClient(new IPEndPoint(adapterIP, SrcPort)); //Needed for Crash TTR (and probable other games) LAN
+                        client = new UdpClient(new IPEndPoint(adapterIP, srcPort)); //Needed for Crash TTR (and probable other games) LAN
                     }
                     else
                     {
                         client = new UdpClient(new IPEndPoint(adapterIP, 0));
                     }
 
-                    client.Connect(address, DestPort); //address to send on
-                    if (SrcPort != 0)
+                    client.Connect(address, destPort); //address to send on
+                    if (srcPort != 0)
                     {
                         //Error.WriteLine("UDP expects Data");
                         open = true;
@@ -134,13 +134,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
             if (isBroadcast)
             {
-                client.Send(udp.GetPayload(), udp.GetPayload().Length, new IPEndPoint(IPAddress.Broadcast, DestPort));
+                client.Send(udp.GetPayload(), udp.GetPayload().Length, new IPEndPoint(IPAddress.Broadcast, destPort));
             }
             else
             {
                 client.Send(udp.GetPayload(), udp.GetPayload().Length);
             }
-
 
             //Error.WriteLine("UDP Sent");
             return true;
@@ -149,7 +148,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         private void ReceiveFromBroadcast(IAsyncResult ar)
         {
             Log_Verb("Got Data");
-            IPEndPoint ip = new IPEndPoint(IPAddress.Any, DestPort);
+            IPEndPoint ip = new IPEndPoint(IPAddress.Any, destPort);
             byte[] bytes = client.EndReceive(ar, ref ip);
             broadcastResponseData = bytes;
             broadcastResponseIP = ip.Address.GetAddressBytes();

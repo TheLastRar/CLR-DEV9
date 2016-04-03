@@ -4,59 +4,59 @@ namespace CLRDEV9.DEV9.SMAP.Data
 {
     class SMAP_bd
     {
-        int _startoff = 0;
-        byte[] basedata;
-        public SMAP_bd(byte[] data, int startoffset)
+        int startOff = 0;
+        byte[] baseData;
+        public SMAP_bd(byte[] data, int startOffset)
         {
-            basedata = data;
-            _startoff = startoffset;
+            baseData = data;
+            startOff = startOffset;
         }
-        public UInt16 ctrl_stat
+        public UInt16 CtrlStat
         {
             get
             {
-                return BitConverter.ToUInt16(basedata, _startoff);
+                return BitConverter.ToUInt16(baseData, startOff);
             }
             set
             {
                 byte[] var = BitConverter.GetBytes(value);
-                Utils.memcpy(ref basedata, _startoff, var, 0, var.Length);
+                Utils.memcpy(ref baseData, startOff, var, 0, var.Length);
             }
         }
-        public UInt16 reserved
+        public UInt16 Reserved
         {
             get
             {
-                return BitConverter.ToUInt16(basedata, _startoff + 2);
+                return BitConverter.ToUInt16(baseData, startOff + 2);
             }
             set
             {
                 byte[] var = BitConverter.GetBytes(value);
-                Utils.memcpy(ref basedata, _startoff + 2, var, 0, var.Length);
+                Utils.memcpy(ref baseData, startOff + 2, var, 0, var.Length);
             }
         }
-        public UInt16 length
+        public UInt16 Length
         {
             get
             {
-                return BitConverter.ToUInt16(basedata, _startoff + 4);
+                return BitConverter.ToUInt16(baseData, startOff + 4);
             }
             set
             {
                 byte[] var = BitConverter.GetBytes(value);
-                Utils.memcpy(ref basedata, _startoff + 4, var, 0, var.Length);
+                Utils.memcpy(ref baseData, startOff + 4, var, 0, var.Length);
             }
         }
-        public UInt16 pointer
+        public UInt16 Pointer
         {
             get
             {
-                return BitConverter.ToUInt16(basedata, _startoff + 6);
+                return BitConverter.ToUInt16(baseData, startOff + 6);
             }
             set
             {
                 byte[] var = BitConverter.GetBytes(value);
-                Utils.memcpy(ref basedata, _startoff + 6, var, 0, var.Length);
+                Utils.memcpy(ref baseData, startOff + 6, var, 0, var.Length);
             }
         }
 

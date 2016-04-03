@@ -31,22 +31,22 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         }
 
         #region ReciveBuffer
-        List<TCP> _recvbuff = new List<TCP>();
+        List<TCP> _recvBuff = new List<TCP>();
         private void PushRecvBuff(TCP tcp)
         {
-            lock (_recvbuff)
+            lock (_recvBuff)
             {
-                _recvbuff.Add(tcp);
+                _recvBuff.Add(tcp);
             }
         }
         private TCP PopRecvBuff()
         {
-            lock (_recvbuff)
+            lock (_recvBuff)
             {
-                if (_recvbuff.Count != 0)
+                if (_recvBuff.Count != 0)
                 {
-                    TCP tcp = _recvbuff[0];
-                    _recvbuff.RemoveAt(0);
+                    TCP tcp = _recvBuff[0];
+                    _recvBuff.RemoveAt(0);
                     return tcp;
                 }
                 else
@@ -55,31 +55,31 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         }
         #endregion
         //TCP LastDataPacket = null; //Only 1 outstanding data packet from the remote source can exist at a time
-        Object clientSentry = new Object();
+        object clientSentry = new object();
         TcpClient client;
         NetworkStream netStream = null;
         TCPState state = TCPState.None;
 
-        UInt16 SrcPort = 0; //PS2 Port
-        UInt16 DestPort = 0; //Remote Port
+        UInt16 srcPort = 0; //PS2 Port
+        UInt16 destPort = 0; //Remote Port
 
         //UInt16 WindowSize; //assume zero scale
-        UInt16 MaxSegmentSize = 1460;//Accesed By Both In and Out Threads, but set only on Connect Thread
+        UInt16 maxSegmentSize = 1460;//Accesed By Both In and Out Threads, but set only on Connect Thread
 
-        UInt32 LastRecivedTimeStamp; //Accesed By Both In and Out Threads
-        Stopwatch TimeStamp = new Stopwatch(); //Accesed By Both In and Out Threads
-        bool SendTimeStamps = false; //Accesed By Out Thread Only
+        UInt32 lastRecivedTimeStamp; //Accesed By Both In and Out Threads
+        Stopwatch timeStamp = new Stopwatch(); //Accesed By Both In and Out Threads
+        bool sendTimeStamps = false; //Accesed By Out Thread Only
 
-        UInt32 ExpectedSequenceNumber; //Accesed By Out Thread Only
-        List<UInt32> ReceivedPS2SequenceNumbers = new List<UInt32>(); //Accesed By Out Thread Only
+        UInt32 expectedSequenceNumber; //Accesed By Out Thread Only
+        List<UInt32> receivedPS2SequenceNumbers = new List<UInt32>(); //Accesed By Out Thread Only
 
         #region MySequenceNumber
-        Object MyNumberSentry = new Object();
+        object myNumberSentry = new object();
         UInt32 _MySequenceNumber = 1;
         UInt32 _OldMyNumber = 1; //Is set on one thread, and read on another
         private void IncrementMyNumber(UInt32 amount)
         {
-            lock (MyNumberSentry)
+            lock (myNumberSentry)
             {
                 _OldMyNumber = _MySequenceNumber;
                 unchecked
@@ -90,20 +90,20 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         }
         private UInt32 GetMyNumber()
         {
-            lock (MyNumberSentry)
+            lock (myNumberSentry)
             {
                 return _MySequenceNumber;
             }
         }
         private void GetAllMyNumbers(out UInt32 Current, out UInt32 Old)
         {
-            lock (MyNumberSentry)
+            lock (myNumberSentry)
             {
                 Current = _MySequenceNumber;
                 Old = _OldMyNumber;
             }
         }
-        ManualResetEvent MyNumberACKed = new ManualResetEvent(true);
+        ManualResetEvent myNumberACKed = new ManualResetEvent(true);
         #endregion
 
         public TCPSession(IPAddress parAdapterIP) : base(parAdapterIP) { }
@@ -131,7 +131,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             {
                 client.Close();
             }
-            MyNumberACKed.Dispose();
+            myNumberACKed.Dispose();
         }
 
         //CheckNumbers
@@ -145,21 +145,21 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             TCP ret = new TCP(data);
 
             //and now to setup THE ENTIRE THING
-            ret.SourcePort = DestPort;
-            ret.DestinationPort = SrcPort;
+            ret.SourcePort = destPort;
+            ret.DestinationPort = srcPort;
 
             ret.SequenceNumber = GetMyNumber();
 
-            ret.AcknowledgementNumber = ExpectedSequenceNumber;
+            ret.AcknowledgementNumber = expectedSequenceNumber;
 
             //ret.WindowSize = 16 * 1024;
-            ret.WindowSize = (UInt16)(2 * MaxSegmentSize); //default 2920B (2.85MB)
+            ret.WindowSize = (UInt16)(2 * maxSegmentSize); //default 2920B (2.85MB)
 
-            if (SendTimeStamps)
+            if (sendTimeStamps)
             {
                 ret.Options.Add(new TCPopNOP());
                 ret.Options.Add(new TCPopNOP());
-                ret.Options.Add(new TCPopTS((UInt32)TimeStamp.Elapsed.TotalSeconds, LastRecivedTimeStamp));
+                ret.Options.Add(new TCPopTS((UInt32)timeStamp.Elapsed.TotalSeconds, lastRecivedTimeStamp));
             }
             return ret;
         }

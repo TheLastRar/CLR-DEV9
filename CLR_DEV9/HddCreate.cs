@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Windows.Forms;
-using System.Threading;
 using System.IO;
+using System.Threading;
+using System.Windows.Forms;
 
 namespace CLRDEV9
 {
@@ -33,9 +33,9 @@ namespace CLRDEV9
             fileThread.Start();
         }
 
-        private void WriteImage(string hddPath , int reqSizeMiB)
+        private void WriteImage(string hddPath, int reqSizeMiB)
         {
-            byte[] buff = new byte[4*1024]; //4kb
+            byte[] buff = new byte[4 * 1024]; //4kb
 
             FileStream newImage = new FileStream(hddPath, FileMode.CreateNew, FileAccess.ReadWrite);
 
@@ -51,13 +51,13 @@ namespace CLRDEV9
                 File.Delete(filePath);
                 return;
             }
-            
+
 
             for (int iMiB = 0; iMiB < reqSizeMiB; iMiB++)
             {
                 for (int i4kb = 0; i4kb < 256; i4kb++)
                 {
-                    newImage.Write(buff,0,buff.Length);
+                    newImage.Write(buff, 0, buff.Length);
                 }
                 SetFileProgress(iMiB + 1);
             }
@@ -72,9 +72,9 @@ namespace CLRDEV9
 
         private void SetFileProgress(int currentSize)
         {
-            if (this.InvokeRequired)
+            if (InvokeRequired)
             {
-                this.Invoke((Action)delegate()
+                Invoke((Action)delegate ()
                 {
                     SetFileProgress(currentSize);
                 });
@@ -88,11 +88,11 @@ namespace CLRDEV9
 
         private void SetError()
         {
-            if (this.InvokeRequired)
+            if (InvokeRequired)
             {
-                this.Invoke((Action)delegate()
+                Invoke((Action)delegate ()
                 {
-                    this.SetError();
+                    SetError();
                 });
             }
             else
@@ -106,16 +106,16 @@ namespace CLRDEV9
 
         private void SetClose()
         {
-            if (this.InvokeRequired)
+            if (InvokeRequired)
             {
-                this.Invoke((Action)delegate()
+                Invoke((Action)delegate ()
                 {
-                    this.Close();
+                    Close();
                 });
             }
             else
             {
-                this.Close();
+                Close();
             }
         }
 

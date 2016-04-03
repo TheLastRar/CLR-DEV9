@@ -8,42 +8,42 @@ namespace CLRDEV9.DEV9.ATA
     {
         DEV9_State dev9 = null;
 
-        FileStream hddimage = null;
+        FileStream hddImage = null;
 
-        public ATA_State(DEV9_State pardev9)
+        public ATA_State(DEV9_State parDev9)
         {
-            dev9 = pardev9;
+            dev9 = parDev9;
 
             //Fillout Command table (inspired from MegaDev9)
             //This is actully a pretty neat way of doing this
             for (int i = 0; i < 256; i++)
             {
-                HDDcmds[i] = HDDunk;
+                hddCmds[i] = HDD_Unk;
             }
 
-            HDDcmds[0x00] = HDDnop;
+            hddCmds[0x00] = HDD_Nop;
 
-            HDDcmds[0x20] = () => HDDreadPIO(false);
+            hddCmds[0x20] = () => HDD_ReadPIO(false);
 
-            HDDcmds[0xB0] = HDDsmart; HDDcmdDoesSeek[0xB0] = true;
+            hddCmds[0xB0] = HDD_Smart; hddCmdDoesSeek[0xB0] = true;
 
-            HDDcmds[0xC8] = () => HDDreadDMA(false);
-            HDDcmds[0xCA] = () => HDDwriteDMA(false);
+            hddCmds[0xC8] = () => HDD_ReadDMA(false);
+            hddCmds[0xCA] = () => HDD_WriteDMA(false);
             //HDDcmds[0x25] = HDDreadDMA48;
             /*	HDDcmds[0x35] = HDDwriteDMA_ext;*/
             //HDDcmdNames[0x35] = "DMA write (48-bit)";		// 48-bit
 
-            HDDcmds[0xE3] = HDDidle;
+            hddCmds[0xE3] = HDD_Idle;
 
-            HDDcmds[0xE7] = HDDflushCache;
+            hddCmds[0xE7] = HDD_FlushCache;
             /*	HDDcmds[0xEA] = HDDflushCacheExt;*/
             //HDDcmdNames[0xEA] = "flush cache (48-bit)";		// 48-bit
 
-            HDDcmds[0xEC] = HDDidentifyDevice;
+            hddCmds[0xEC] = HDD_IdentifyDevice;
             /*	HDDcmds[0xA1] = HDDidentifyPktDevice;*/
             //HDDcmdNames[0xA1] = "identify ATAPI device";	// For ATAPI devices
 
-            HDDcmds[0xEF] = HDDsetFeatures; HDDcmdDoesSeek[0xEF] = true;
+            hddCmds[0xEF] = HDD_SetFeatures; hddCmdDoesSeek[0xEF] = true;
 
             ///*	HDDcmds[0xF1] = HDDsecSetPassword;*/
             //HDDcmdNames[0xF1] = "security set password";
@@ -58,7 +58,9 @@ namespace CLRDEV9.DEV9.ATA
             /* The Sony HDD has a modified firmware that supports this command */
             /* Sending this command to a standard HDD will give an error */
             /* We roughly emulate it to make programs think the HDD is a Sony one */
-            HDDcmds[0x8E] = HDDsceSecCtrl; //HDDcmdNames[0x8E] = "SCE security control";
+            /* However, we only send null, if anyting checks the returned data */
+            /* it will fail */
+            hddCmds[0x8E] = HDD_sceSecCtrl; //HDDcmdNames[0x8E] = "SCE security control";
         }
 
         public int Open(string hddPath)
@@ -67,24 +69,24 @@ namespace CLRDEV9.DEV9.ATA
             sector = 1;
             status = 0x40;
 
-            CreateHDDid(DEV9Header.config.HddSize);
+            CreateHDDinfo(DEV9Header.config.HddSize);
 
             //Open File
             if (File.Exists(hddPath))
             {
-                hddimage = new FileStream(hddPath, FileMode.Open, FileAccess.ReadWrite);
+                hddImage = new FileStream(hddPath, FileMode.Open, FileAccess.ReadWrite);
             }
             else
             {
                 //Need to Zero fill the hdd image
-                HddCreate hddcreator = new HddCreate();
-                hddcreator.neededSize = DEV9Header.config.HddSize;
-                hddcreator.filePath = hddPath;
+                HddCreate hddCreator = new HddCreate();
+                hddCreator.neededSize = DEV9Header.config.HddSize;
+                hddCreator.filePath = hddPath;
 
-                hddcreator.ShowDialog();
-                hddcreator.Dispose();
+                hddCreator.ShowDialog();
+                hddCreator.Dispose();
 
-                hddimage = new FileStream(hddPath, FileMode.Open, FileAccess.ReadWrite);
+                hddImage = new FileStream(hddPath, FileMode.Open, FileAccess.ReadWrite);
             }
 
             return 0;
@@ -92,11 +94,11 @@ namespace CLRDEV9.DEV9.ATA
 
         public void Close()
         {
-            if (hddimage != null)
+            if (hddImage != null)
             {
-                hddimage.Close();
-                hddimage.Dispose();
-                hddimage = null;
+                hddImage.Close();
+                hddImage.Dispose();
+                hddImage = null;
             }
         }
 
@@ -108,16 +110,16 @@ namespace CLRDEV9.DEV9.ATA
             switch (addr)
             {
                 case DEV9Header.ATA_R_DATA:
-                    Log_Verb("*ATA_R_DATA 16bit read at address " + addr.ToString("x") + " pio_count " + data_ptr + " pio_size " + data_end);
-                    if (data_ptr < data_end)
+                    Log_Verb("*ATA_R_DATA 16bit read at address " + addr.ToString("x") + " pio_count " + dataPtr + " pio_size " + dataEnd);
+                    if (dataPtr < dataEnd)
                     {
-                        UInt16 ret = BitConverter.ToUInt16(pio_buffer, data_ptr * 2);
+                        UInt16 ret = BitConverter.ToUInt16(pioBuffer, dataPtr * 2);
                         //ret = (UInt16)System.Net.IPAddress.HostToNetworkOrder((Int16)ret);
                         Log_Verb("*ATA_R_DATA returned value is  " + ret.ToString("x"));
-                        data_ptr++;
-                        if (data_ptr == data_end) //Fnished transfer (Changed from MegaDev9)
+                        dataPtr++;
+                        if (dataPtr == dataEnd) //Fnished transfer (Changed from MegaDev9)
                         {
-                            end_transfer_func();
+                            endTransferFunc();
                         }
                         return ret;
                     }
@@ -129,7 +131,7 @@ namespace CLRDEV9.DEV9.ATA
                     if (!hob)
                         return (UInt16)(error);
                     else
-                        return hob_feature;
+                        return hobFeature;
                 case DEV9Header.ATA_R_NSECTOR:
                     Log_Verb("*ATA_R_NSECTOR 16bit read at address " + addr.ToString("x") + " value " + nsector.ToString("x") + " Active " + ((select & 0x10) == 0));
                     if ((select & 0x10) != 0)
@@ -137,7 +139,7 @@ namespace CLRDEV9.DEV9.ATA
                     if (!hob)
                         return (UInt16)(nsector & 0xff);
                     else
-                        return hob_nsector;
+                        return hobNsector;
                 case DEV9Header.ATA_R_SECTOR:
                     Log_Verb("*ATA_R_NSECTOR 16bit read at address " + addr.ToString("x") + " value " + sector.ToString("x") + " Active " + ((select & 0x10) == 0));
                     if ((select & 0x10) != 0)
@@ -145,7 +147,7 @@ namespace CLRDEV9.DEV9.ATA
                     if (!hob)
                         return (UInt16)(sector);
                     else
-                        return hob_sector;
+                        return hobSector;
                 case DEV9Header.ATA_R_LCYL:
                     Log_Verb("*ATA_R_LCYL 16bit read at address " + addr.ToString("x") + " value " + lcyl.ToString("x") + " Active " + ((select & 0x10) == 0));
                     if ((select & 0x10) != 0)
@@ -153,7 +155,7 @@ namespace CLRDEV9.DEV9.ATA
                     if (!hob)
                         return (UInt16)(lcyl);
                     else
-                        return hob_lcyl;
+                        return hobLcyl;
                 case DEV9Header.ATA_R_HCYL:
                     Log_Verb("*ATA_R_HCYL 16bit read at address " + addr.ToString("x") + " value " + hcyl.ToString("x") + " Active " + ((select & 0x10) == 0));
                     if ((select & 0x10) != 0)
@@ -161,7 +163,7 @@ namespace CLRDEV9.DEV9.ATA
                     if (!hob)
                         return (UInt16)(hcyl);
                     else
-                        return hob_hcyl;
+                        return hobHcyl;
                 case DEV9Header.ATA_R_SELECT:
                     Log_Verb("*ATA_R_SELECT 16bit read at address " + addr.ToString("x") + " value " + select.ToString("x") + " Active " + ((select & 0x10) == 0));
                     //if ((select & 0x10) != 0)
@@ -170,7 +172,7 @@ namespace CLRDEV9.DEV9.ATA
                 case DEV9Header.ATA_R_STATUS:
                     Log_Verb("*ATA_R_STATUS (redirecting to ATA_R_ALT_STATUS)");
                     //Clear irqcause
-                    dev9.irqcause &= ~(1 | 3);
+                    dev9.irqCause &= ~(1 | 3);
                     return ATAread16(DEV9Header.ATA_R_ALT_STATUS);
                 case DEV9Header.ATA_R_ALT_STATUS:
                     Log_Verb("*ATA_R_ALT_STATUS 16bit read at address " + addr.ToString("x") + " value " + status.ToString("x") + " Active " + ((select & 0x10) == 0));
@@ -198,32 +200,32 @@ namespace CLRDEV9.DEV9.ATA
             {
                 case DEV9Header.ATA_R_FEATURE:
                     Log_Verb("*ATA_R_FEATURE 16bit write at address " + addr.ToString("x") + " value " + value.ToString("x"));
-                    ide_clear_hob();
-                    hob_feature = feature;
+                    IDE_ClearHOB();
+                    hobFeature = feature;
                     feature = (byte)value;
                     break;
                 case DEV9Header.ATA_R_NSECTOR:
                     Log_Verb("*ATA_R_NSECTOR 16bit write at address " + addr.ToString("x") + " value " + value.ToString("x"));
-                    ide_clear_hob();
-                    hob_nsector = (byte)nsector;
+                    IDE_ClearHOB();
+                    hobNsector = (byte)nsector;
                     nsector = value;
                     break;
                 case DEV9Header.ATA_R_SECTOR:
                     Log_Verb("*ATA_R_SECTOR 16bit write at address " + addr.ToString("x") + " value " + value.ToString("x"));
-                    ide_clear_hob();
-                    hob_sector = sector;
+                    IDE_ClearHOB();
+                    hobSector = sector;
                     sector = (byte)value;
                     break;
                 case DEV9Header.ATA_R_LCYL:
                     Log_Verb("*ATA_R_LCYL 16bit write at address " + addr.ToString("x") + " value " + value.ToString("x"));
-                    ide_clear_hob();
-                    hob_lcyl = lcyl;
+                    IDE_ClearHOB();
+                    hobLcyl = lcyl;
                     lcyl = (byte)value;
                     break;
                 case DEV9Header.ATA_R_HCYL:
                     Log_Verb("*ATA_R_HCYL 16bit write at address " + addr.ToString("x") + " value " + value.ToString("x"));
-                    ide_clear_hob();
-                    hob_hcyl = hcyl;
+                    IDE_ClearHOB();
+                    hobHcyl = hcyl;
                     hcyl = (byte)value;
                     break;
                 case DEV9Header.ATA_R_SELECT:
@@ -238,7 +240,7 @@ namespace CLRDEV9.DEV9.ATA
                     break;
                 case DEV9Header.ATA_R_CONTROL:
                     Log_Verb("*ATA_R_CONTROL 16bit write at address " + addr.ToString("x") + " value " + value.ToString("x"));
-                    dev9.dev9Wu16((int)DEV9Header.ATA_R_CONTROL, value);
+                    dev9.Dev9Wu16((int)DEV9Header.ATA_R_CONTROL, value);
                     if ((value & 0x2) != 0)
                     {
                         //Supress all IRQ
@@ -258,14 +260,14 @@ namespace CLRDEV9.DEV9.ATA
                         lcyl = 0;
                         hcyl = 0;
                         feature = 0;
-                        xfer_mode = 0;
-                        data_end = 0;
+                        xferMode = 0;
+                        dataEnd = 0;
                         //command = 0;
                     }
                     break;
                 case DEV9Header.ATA_R_CMD:
                     Log_Verb("*ATA_R_CMD 16bit write at address " + addr.ToString("x") + " value " + value.ToString("x"));
-                    ide_exec_cmd(value);
+                    IDE_ExecCmd(value);
                     break;
                 default:
                     Log_Error("*UNKOWN 16bit write at address " + addr.ToString("x") + " value " + value.ToString("x"));
@@ -274,68 +276,68 @@ namespace CLRDEV9.DEV9.ATA
             }
         }
 
-        static int rd_transferred;
-        static int wr_transferred;
-        public void ATAreadDMA8Mem(System.IO.UnmanagedMemoryStream pMem, int size)
+        static int rdTransferred;
+        static int wrTransferred;
+        public void ATAreadDMA8Mem(UnmanagedMemoryStream pMem, int size)
         {
-            if (((xfer_mode & 0xF0) == 0x40) &&
-                (dev9.dev9Ru16((int)DEV9Header.SPD_R_IF_CTRL) & DEV9Header.SPD_IF_DMA_ENABLE) != 0)
+            if (((xferMode & 0xF0) == 0x40) &&
+                (dev9.Dev9Ru16((int)DEV9Header.SPD_R_IF_CTRL) & DEV9Header.SPD_IF_DMA_ENABLE) != 0)
             {
                 size >>= 1;
-                Log_Verb("DEV9 : DMA read, size " + size + ", transferred " + rd_transferred + ", total size " + nsector * 512);
+                Log_Verb("DEV9 : DMA read, size " + size + ", transferred " + rdTransferred + ", total size " + nsector * 512);
 
                 //read
                 byte[] temp = new byte[size];
-                hddimage.Read(temp, 0, size);
+                hddImage.Read(temp, 0, size);
                 pMem.Write(temp, 0, size);
 
-                rd_transferred += size;
-                if (rd_transferred >= nsector * 512)
+                rdTransferred += size;
+                if (rdTransferred >= nsector * 512)
                 {
                     //Set Sector
-                    long currSect = HDDgetLBA();
+                    long currSect = HDD_GetLBA();
                     currSect += nsector;
-                    HDDsetLBA(currSect);
+                    HDD_SetLBA(currSect);
 
                     nsector = 0;
                     status = DEV9Header.ATA_STAT_READY | DEV9Header.ATA_STAT_SEEK;
                     if (sendIRQ) dev9.DEV9irq(3, 1); //0x6c
-                    rd_transferred = 0;
+                    rdTransferred = 0;
                 }
             }
         }
-        public void ATAwriteDMA8Mem(System.IO.UnmanagedMemoryStream pMem, int size)
+        public void ATAwriteDMA8Mem(UnmanagedMemoryStream pMem, int size)
         {
-            if (((xfer_mode & 0xF0) == 0x40) &&
-                (dev9.dev9Ru16((int)DEV9Header.SPD_R_IF_CTRL) & DEV9Header.SPD_IF_DMA_ENABLE) != 0)
+            if (((xferMode & 0xF0) == 0x40) &&
+                (dev9.Dev9Ru16((int)DEV9Header.SPD_R_IF_CTRL) & DEV9Header.SPD_IF_DMA_ENABLE) != 0)
             {
                 size >>= 1;
-                Log_Verb("DEV9 : DMA write, size " + size + ", transferred " + wr_transferred + ", total size " + nsector * 512);
+                Log_Verb("DEV9 : DMA write, size " + size + ", transferred " + wrTransferred + ", total size " + nsector * 512);
 
                 //write
                 byte[] temp = new byte[size];
                 pMem.Read(temp, 0, size);
-                hddimage.Write(temp, 0, size);
+                hddImage.Write(temp, 0, size);
 
-                wr_transferred += size;
-                if (wr_transferred >= nsector * 512)
+                wrTransferred += size;
+                if (wrTransferred >= nsector * 512)
                 {
-                    hddimage.Flush();
+                    hddImage.Flush();
 
                     //Set Sector
-                    long currSect = HDDgetLBA();
+                    long currSect = HDD_GetLBA();
                     currSect += nsector;
-                    HDDsetLBA(currSect);
+                    HDD_SetLBA(currSect);
 
                     nsector = 0;
                     status = DEV9Header.ATA_STAT_READY | DEV9Header.ATA_STAT_SEEK;
                     if (sendIRQ) dev9.DEV9irq(3, 1); //0x6C
-                    wr_transferred = 0;
+                    wrTransferred = 0;
                 }
             }
         }
 
-        long HDDgetLBA()
+        long HDD_GetLBA()
         {
             if ((select & 0x40) != 0)
             {
@@ -348,9 +350,9 @@ namespace CLRDEV9.DEV9.ATA
                 }
                 else
                 {
-                    return ((long)hob_hcyl << 40) |
-                            ((long)hob_lcyl << 32) |
-                            ((long)hob_sector << 24) |
+                    return ((long)hobHcyl << 40) |
+                            ((long)hobLcyl << 32) |
+                            ((long)hobSector << 24) |
                             ((long)hcyl << 16) |
                             ((long)lcyl << 8) | sector;
                 }
@@ -367,25 +369,25 @@ namespace CLRDEV9.DEV9.ATA
             //return -1;
         }
 
-        void HDDsetLBA(long sector_num)
+        void HDD_SetLBA(long sectorNum)
         {
             if ((select & 0x40) != 0)
             {
                 if (!lba48)
                 {
-                    select = (byte)((select & 0xf0) | ((int)sector_num >> 24));
-                    hcyl = (byte)(sector_num >> 16);
-                    lcyl = (byte)(sector_num >> 8);
-                    sector = (byte)(sector_num);
+                    select = (byte)((select & 0xf0) | ((int)sectorNum >> 24));
+                    hcyl = (byte)(sectorNum >> 16);
+                    lcyl = (byte)(sectorNum >> 8);
+                    sector = (byte)(sectorNum);
                 }
                 else
                 {
-                    sector = (byte)sector_num;
-                    lcyl = (byte)(sector_num >> 8);
-                    hcyl = (byte)(sector_num >> 16);
-                    hob_sector = (byte)(sector_num >> 24);
-                    hob_lcyl = (byte)(sector_num >> 32);
-                    hob_hcyl = (byte)(sector_num >> 40);
+                    sector = (byte)sectorNum;
+                    lcyl = (byte)(sectorNum >> 8);
+                    hcyl = (byte)(sectorNum >> 16);
+                    hobSector = (byte)(sectorNum >> 24);
+                    hobLcyl = (byte)(sectorNum >> 32);
+                    hobHcyl = (byte)(sectorNum >> 40);
                 }
             }
             else
@@ -397,80 +399,80 @@ namespace CLRDEV9.DEV9.ATA
             }
         }
 
-        int HDDseek()
+        int HDD_Seek()
         {
             long lba;
             long pos;
 
-            lba = HDDgetLBA();
+            lba = HDD_GetLBA();
             if (lba == -1)
                 return -1;
             Log_Verb("LBA :" + lba);
             pos = ((long)lba * 512);
-            hddimage.Seek(pos, SeekOrigin.Begin);
+            hddImage.Seek(pos, SeekOrigin.Begin);
 
             return 0;
         }
 
-        void CreateHDDid(int sizeMb)
+        void CreateHDDinfo(int sizeMb)
         {
             int sectorSize = 512;
             Log_Verb("HddSize : " + DEV9Header.config.HddSize);
             long nbSectors = (((long)sizeMb / (long)sectorSize) * 1024L * 1024L);
             Log_Verb("nbSectors : " + nbSectors);
 
-            identify_data = new byte[512];
+            identifyData = new byte[512];
             UInt16 heads = 255;
             UInt16 sectors = 63;
             UInt16 cylinders = (UInt16)(nbSectors / heads / sectors);
             int oldsize = cylinders * heads * sectors;
 
             //M-General configuration bit-significant information:
-            Utils.memcpy(ref identify_data, 0 * 2, BitConverter.GetBytes((UInt16)0x0040), 0, 2);
+            Utils.memcpy(ref identifyData, 0 * 2, BitConverter.GetBytes((UInt16)0x0040), 0, 2);
             //Obsolete
-            Utils.memcpy(ref identify_data, 1 * 2, BitConverter.GetBytes((UInt16)cylinders), 0, 2);
+            Utils.memcpy(ref identifyData, 1 * 2, BitConverter.GetBytes((UInt16)cylinders), 0, 2);
             //Specific configuration
             //2
             //Obsolete
-            Utils.memcpy(ref identify_data, 3 * 2, BitConverter.GetBytes((UInt16)heads), 0, 2);
+            Utils.memcpy(ref identifyData, 3 * 2, BitConverter.GetBytes((UInt16)heads), 0, 2);
             //Retired
-            Utils.memcpy(ref identify_data, 4 * 2, BitConverter.GetBytes((UInt16)(sectorSize * sectors)), 0, 2);
+            Utils.memcpy(ref identifyData, 4 * 2, BitConverter.GetBytes((UInt16)(sectorSize * sectors)), 0, 2);
             //Retired
-            Utils.memcpy(ref identify_data, 5 * 2, BitConverter.GetBytes((UInt16)sectorSize), 0, 2);
+            Utils.memcpy(ref identifyData, 5 * 2, BitConverter.GetBytes((UInt16)sectorSize), 0, 2);
             //Obsolete
-            Utils.memcpy(ref identify_data, 6 * 2, BitConverter.GetBytes((UInt16)sectors), 0, 2);
+            Utils.memcpy(ref identifyData, 6 * 2, BitConverter.GetBytes((UInt16)sectors), 0, 2);
             //Reserved for assignment by the CompactFlash™ Association
             //7-8
             //M-Serial number (20 ASCII characters)
-            Utils.memcpy(ref identify_data, 10 * 2,
+            Utils.memcpy(ref identifyData, 10 * 2,
                 new byte[] {
-                	    (byte)'C', (byte)'L', // serial
+                        (byte)'C', (byte)'L', // serial
 	                    (byte)'R', (byte)'-',
-	                    (byte)'D', (byte)'E',
-	                    (byte)'V', (byte)'9',
-	                    (byte)'-', (byte)'A',
-	                    (byte)'I', (byte)'R',
-	                    (byte)' ', (byte)' ',
-	                    (byte)' ', (byte)' ',
-	                    (byte)' ', (byte)' ',
-	                    (byte)' ', (byte)' ',
+                        (byte)'D', (byte)'E',
+                        (byte)'V', (byte)'9',
+                        (byte)'-', (byte)'A',
+                        (byte)'I', (byte)'R',
+                        (byte)' ', (byte)' ',
+                        (byte)' ', (byte)' ',
+                        (byte)' ', (byte)' ',
+                        (byte)' ', (byte)' ',
                             }, 0, 20);
             //Retired
-            Utils.memcpy(ref identify_data, 20 * 2, BitConverter.GetBytes((UInt16)/*3*/0), 0, 2); //??
+            Utils.memcpy(ref identifyData, 20 * 2, BitConverter.GetBytes((UInt16)/*3*/0), 0, 2); //??
             //Retired
-            Utils.memcpy(ref identify_data, 21 * 2, BitConverter.GetBytes((UInt16)/*512*/ 0), 0, 2); //cache size in sectors
+            Utils.memcpy(ref identifyData, 21 * 2, BitConverter.GetBytes((UInt16)/*512*/ 0), 0, 2); //cache size in sectors
             //Obsolete
-            Utils.memcpy(ref identify_data, 22 * 2, BitConverter.GetBytes((UInt16)/*4*/0), 0, 2); //ecc bytes
+            Utils.memcpy(ref identifyData, 22 * 2, BitConverter.GetBytes((UInt16)/*4*/0), 0, 2); //ecc bytes
             //M-Firmware revision (8 ASCII characters)
-            Utils.memcpy(ref identify_data, 23 * 2,
+            Utils.memcpy(ref identifyData, 23 * 2,
                 new byte[] {
-	                    (byte)'F', (byte)'I', // firmware
+                        (byte)'F', (byte)'I', // firmware
 	                    (byte)'R', (byte)'M',
-	                    (byte)'1', (byte)'0',
-	                    (byte)'0', (byte)' ',
+                        (byte)'1', (byte)'0',
+                        (byte)'0', (byte)' ',
                             }, 0, 8);
             //M-Model number (40 ASCII characters)
-            Utils.memcpy(ref identify_data, 27 * 2,
+            Utils.memcpy(ref identifyData, 27 * 2,
                 new byte[] {
                         (byte)'C', (byte)'L', // model
                         (byte)'R', (byte)'-',
@@ -496,47 +498,47 @@ namespace CLRDEV9.DEV9.ATA
             //M-READ/WRIE MULI max sectors
             //47
             //Trusted Computing feature set options
-            Utils.memcpy(ref identify_data, 48 * 2, BitConverter.GetBytes((UInt16)1), 0, 2); //dword IO
+            Utils.memcpy(ref identifyData, 48 * 2, BitConverter.GetBytes((UInt16)1), 0, 2); //dword IO
             //M-Capabilities (8-DMA, 9-LBA, 10-IORDY may be disabled, 11-IORDY supported, 13 - Standby timer values as specified in this standard are supported)
-            Utils.memcpy(ref identify_data, 49 * 2, BitConverter.GetBytes((UInt16)((1 << 11) | (1 << 9) | (1 << 8))), 0, 2); //DMA and LBA supported
+            Utils.memcpy(ref identifyData, 49 * 2, BitConverter.GetBytes((UInt16)((1 << 11) | (1 << 9) | (1 << 8))), 0, 2); //DMA and LBA supported
             //M-Capabilities (0-Shall be set to one to indicate a device specific Standby timer value minimum)
             //50
             //Obsolete
-            Utils.memcpy(ref identify_data, 51 * 2, BitConverter.GetBytes((UInt16)0x200), 0, 2); //PIO transfer cycle
+            Utils.memcpy(ref identifyData, 51 * 2, BitConverter.GetBytes((UInt16)0x200), 0, 2); //PIO transfer cycle
             //Obsolete
-            Utils.memcpy(ref identify_data, 52 * 2, BitConverter.GetBytes((UInt16)0x200), 0, 2); //DMA transfer cycle
+            Utils.memcpy(ref identifyData, 52 * 2, BitConverter.GetBytes((UInt16)0x200), 0, 2); //DMA transfer cycle
             //M-2 = the fields reported in word 88 are valid, 1 = the fields reported in words (70:64) are valid
-            Utils.memcpy(ref identify_data, 53 * 2, BitConverter.GetBytes((UInt16)(1 | (1 << 1) | (1 << 2))), 0, 2); // words 54-58,64-70,88 are valid (??)
+            Utils.memcpy(ref identifyData, 53 * 2, BitConverter.GetBytes((UInt16)(1 | (1 << 1) | (1 << 2))), 0, 2); // words 54-58,64-70,88 are valid (??)
             //Obsolete
-            Utils.memcpy(ref identify_data, 54 * 2, BitConverter.GetBytes((UInt16)cylinders), 0, 2);
+            Utils.memcpy(ref identifyData, 54 * 2, BitConverter.GetBytes((UInt16)cylinders), 0, 2);
             //Obsolete
-            Utils.memcpy(ref identify_data, 55 * 2, BitConverter.GetBytes((UInt16)heads), 0, 2);
+            Utils.memcpy(ref identifyData, 55 * 2, BitConverter.GetBytes((UInt16)heads), 0, 2);
             //Obsolete
-            Utils.memcpy(ref identify_data, 56 * 2, BitConverter.GetBytes((UInt16)sectors), 0, 2);
+            Utils.memcpy(ref identifyData, 56 * 2, BitConverter.GetBytes((UInt16)sectors), 0, 2);
             //Obsolete
-            Utils.memcpy(ref identify_data, 57 * 2, BitConverter.GetBytes((UInt16)oldsize), 0, 2);
+            Utils.memcpy(ref identifyData, 57 * 2, BitConverter.GetBytes((UInt16)oldsize), 0, 2);
             //Obsolete
-            Utils.memcpy(ref identify_data, 58 * 2, BitConverter.GetBytes((UInt16)(oldsize >> 16)), 0, 2);
+            Utils.memcpy(ref identifyData, 58 * 2, BitConverter.GetBytes((UInt16)(oldsize >> 16)), 0, 2);
             //M-8 - Multiple sector setting is valid, 7:0  xxh = Current setting for number of logical sectors that shall be transferred per DRQ data block on READ/WRITE Multiple commands
             //59
             //Total number of user addressable logical sectors
-            Utils.memcpy(ref identify_data, 60 * 2, BitConverter.GetBytes((UInt16)nbSectors), 0, 2);
+            Utils.memcpy(ref identifyData, 60 * 2, BitConverter.GetBytes((UInt16)nbSectors), 0, 2);
             //Total number of user addressable logical sectors(part 2)
-            Utils.memcpy(ref identify_data, 61 * 2, BitConverter.GetBytes((UInt16)(nbSectors >> 16)), 0, 2);
+            Utils.memcpy(ref identifyData, 61 * 2, BitConverter.GetBytes((UInt16)(nbSectors >> 16)), 0, 2);
             //Obsolete
-            Utils.memcpy(ref identify_data, 62 * 2, BitConverter.GetBytes((UInt16)0x07), 0, 2); //single word dma0-2 supported
+            Utils.memcpy(ref identifyData, 62 * 2, BitConverter.GetBytes((UInt16)0x07), 0, 2); //single word dma0-2 supported
             //M-bit 0-2-Multiword DMA0-2 supported, 8-10, Multiword DMA0-2 selected
-            Utils.memcpy(ref identify_data, 63 * 2, BitConverter.GetBytes((UInt16)0x07), 0, 2); //mdma0-2 supported
+            Utils.memcpy(ref identifyData, 63 * 2, BitConverter.GetBytes((UInt16)0x07), 0, 2); //mdma0-2 supported
             //M-Bit 0-7-PIO modes supported
-            Utils.memcpy(ref identify_data, 64 * 2, BitConverter.GetBytes((UInt16)0x03), 0, 2); //pio3-4 supported
+            Utils.memcpy(ref identifyData, 64 * 2, BitConverter.GetBytes((UInt16)0x03), 0, 2); //pio3-4 supported
             //M-Minimum Multiword DMA transfer cycle time per word
-            Utils.memcpy(ref identify_data, 65 * 2, BitConverter.GetBytes((UInt16)120), 0, 2);
+            Utils.memcpy(ref identifyData, 65 * 2, BitConverter.GetBytes((UInt16)120), 0, 2);
             //M-Manufacturer’s recommended Multiword DMA transfer cycle time
-            Utils.memcpy(ref identify_data, 66 * 2, BitConverter.GetBytes((UInt16)120), 0, 2);
+            Utils.memcpy(ref identifyData, 66 * 2, BitConverter.GetBytes((UInt16)120), 0, 2);
             //M-Minimum PIO transfer cycle time without flow control
-            Utils.memcpy(ref identify_data, 67 * 2, BitConverter.GetBytes((UInt16)120), 0, 2);
+            Utils.memcpy(ref identifyData, 67 * 2, BitConverter.GetBytes((UInt16)120), 0, 2);
             //M-Minimum PIO transfer cycle time with IORDY flow control
-            Utils.memcpy(ref identify_data, 68 * 2, BitConverter.GetBytes((UInt16)120), 0, 2);
+            Utils.memcpy(ref identifyData, 68 * 2, BitConverter.GetBytes((UInt16)120), 0, 2);
             //Reserved
             //69-70
             //Reserved
@@ -546,45 +548,45 @@ namespace CLRDEV9.DEV9.ATA
             //Reserved
             //76-79
             //M-Major revision number (1-3-Obsolete, 4-8-ATA4-8 supported)
-            Utils.memcpy(ref identify_data, 80 * 2, BitConverter.GetBytes((UInt16)0xf0), 0, 2);
+            Utils.memcpy(ref identifyData, 80 * 2, BitConverter.GetBytes((UInt16)0xf0), 0, 2);
             //M-Minor revision numbe
-            Utils.memcpy(ref identify_data, 81 * 2, BitConverter.GetBytes((UInt16)0x16), 0, 2);
+            Utils.memcpy(ref identifyData, 81 * 2, BitConverter.GetBytes((UInt16)0x16), 0, 2);
             //M-Command set supported (14-NOP, 13-READ BUFFER, 12-WRITE BUFFER, 10-Host Protected Area feature set supported,
             //9-DEVICE RESET command supported, 8-SERVICE interrupt supported, 7-release interrupt supported, 6-look-ahead supported
             //5-write cache supported, 4-ATAPI support, 3-mandatory Power Management feature set supported
             //1-Security Mode feature set supported, 0-SMART)
-            Utils.memcpy(ref identify_data, 82 * 2, BitConverter.GetBytes((UInt16)((1 << 14) | (1 << 5) | /*(1 << 1) | (1 << 10) |*/ 1)), 0, 2); //1-security, 10-Host Protected Area feature set
+            Utils.memcpy(ref identifyData, 82 * 2, BitConverter.GetBytes((UInt16)((1 << 14) | (1 << 5) | /*(1 << 1) | (1 << 10) |*/ 1)), 0, 2); //1-security, 10-Host Protected Area feature set
             //M-Command sets supported. (14-Set to one, 13-FLUSH CACHE EXT command supported, 12-FLUSH CACHE command supported,
             //11-Device Configuration Overlay feature set supported, 10-48-bit Address feature set supported, 
             //9-Automatic Acoustic Management feature set supported, 8-SET MAX security extension supported, 
             //7-See Address Offset Reserved Area Boot, INCITS TR27:2001, 6-SET FEATURES subcommand required to spin-up after power-up
             //5-Power-Up In Standby feature set supported, 3-Advanced Power Management feature set supported, 2-CFA feature set supported,
             //1-READ/WRITE DMA QUEUED supported, 0-DOWNLOAD MICROCODE command supported)
-            Utils.memcpy(ref identify_data, 83 * 2, BitConverter.GetBytes((UInt16)((1 << 14) | (1 << 13) | (1 << 12) /*| (1 << 8)*/ /*| (1 << 10)*/)), 0, 2); //48bit, 8-SET MAX security extension supported
+            Utils.memcpy(ref identifyData, 83 * 2, BitConverter.GetBytes((UInt16)((1 << 14) | (1 << 13) | (1 << 12) /*| (1 << 8)*/ /*| (1 << 10)*/)), 0, 2); //48bit, 8-SET MAX security extension supported
             //M-Command set/feature supported (14-Set to one, 13-1 = IDLE IMMEDIATE with UNLOAD FEATURE supported, 8-64-bit World wide name supported,
             //7-WRITE DMA QUEUED FUA EXT command supported, 6-WRITE DMA FUA EXT and WRITE MULTIPLE FUA EXT commands supported
             //5-General Purpose Logging feature set supported, 4-Streaming feature set supported, 3-Media Card Pass Through Command feature set supported
             //2-Media serial number supported, 1-SMART self-test supported, 0-SMART error logging supported)
-            Utils.memcpy(ref identify_data, 84 * 2, BitConverter.GetBytes((UInt16)((1 << 14) | (1 << 1) | 1)), 0, 2); //no WWN
+            Utils.memcpy(ref identifyData, 84 * 2, BitConverter.GetBytes((UInt16)((1 << 14) | (1 << 1) | 1)), 0, 2); //no WWN
             //M-Command set/feature enabled/supported (14-NOP supported, 13-READ BUFFER command supported, 12-WRITE BUFFER command supported
             //10-host Protected Area has been established (i.e., the maximum LBA is less than the maximum native LBA, DEVICE RESET command supported, 
             //8-SERVICE interrupt enabled, 7-release interrupt enabled, 6-look-ahead enabled, 5-write cache enabled, 4-ATAPI, 
             //3-Power Management feature set enabled, 1-Security Mode feature set enabled, 0-SMART enabled)
-            Utils.memcpy(ref identify_data, 85 * 2, BitConverter.GetBytes((UInt16)((1 << 14) | (1 << 1) | 1)), 0, 2); //no WCACHE 8-security 
+            Utils.memcpy(ref identifyData, 85 * 2, BitConverter.GetBytes((UInt16)((1 << 14) | (1 << 1) | 1)), 0, 2); //no WCACHE 8-security 
             //M-Command set/feature enabled/supported. (15-Words 120:119 are valid, 13-FLUSH CACHE EXT command supported, 12-FLUSH CACHE command supported,
             //11-Device Configuration Overlay feature set supported, 10-48-bit Address feature set supported, 
             //9-Automatic Acoustic Management feature set enabled, 8-SET MAX security extension enabled by SET MAX SET PASSWORD, 
             //6-SET FEATURES subcommand required to spin-up after power-up, 5-Power-Up In Standby feature set enabled, 
             //3-Advanced Power Management feature set enabled, 2-CFA feature set supported,
             //1-READ/WRITE DMA QUEUED supported, 0-DOWNLOAD MICROCODE command supported)
-            Utils.memcpy(ref identify_data, 86 * 2, BitConverter.GetBytes((UInt16)((1 << 13) | (1 << 12) /*| (1 << 10)*/)), 0, 2); //48bit
+            Utils.memcpy(ref identifyData, 86 * 2, BitConverter.GetBytes((UInt16)((1 << 13) | (1 << 12) /*| (1 << 10)*/)), 0, 2); //48bit
             //M-Command set/feature enabled/supported (14-Set to one, 13-1 = IDLE IMMEDIATE with UNLOAD FEATURE supported, 8-64-bit World wide name supported,
             //7-WRITE DMA QUEUED FUA EXT command supported, 6-WRITE DMA FUA EXT and WRITE MULTIPLE FUA EXT commands supported
             //5-General Purpose Logging feature set supported, 3-Media Card Pass Through Command feature set supported
             //2-Media serial number is valid, 1-SMART self-test supported, 0-SMART error logging supported)
-            Utils.memcpy(ref identify_data, 87 * 2, BitConverter.GetBytes((UInt16)((1 << 14) | (1 << 1) | 1)), 0, 2); //no WWN
+            Utils.memcpy(ref identifyData, 87 * 2, BitConverter.GetBytes((UInt16)((1 << 14) | (1 << 1) | 1)), 0, 2); //no WWN
             //Ultra DMA modes (8-14-Ultra DMA 0-6 selected, 0-6-Ultra DMA0-6 supported
-            Utils.memcpy(ref identify_data, 88 * 2, BitConverter.GetBytes((UInt16)(0x3f | (1 << 13))), 0, 2); //udma5 set and supported
+            Utils.memcpy(ref identifyData, 88 * 2, BitConverter.GetBytes((UInt16)(0x3f | (1 << 13))), 0, 2); //udma5 set and supported
             //Time required for security erase unit completion
             //89
             // Time required for Enhanced security erase completion
@@ -598,7 +600,7 @@ namespace CLRDEV9.DEV9.ATA
             //14-Set to one, 13-device detected CBLID- above ViH, 12-8 Dev1 results
             //7-0, Device 0 hardware reset result. Device 1 shall clear these bits to zero. Device 0 shall set these bits as follows
             //0-set to one.
-            Utils.memcpy(ref identify_data, 93 * 2, BitConverter.GetBytes((UInt16)(1 | (1 << 14) | 0x2000)), 0, 2);
+            Utils.memcpy(ref identifyData, 93 * 2, BitConverter.GetBytes((UInt16)(1 | (1 << 14) | 0x2000)), 0, 2);
             //Vendor’s recommended acoustic management value.
             //94
             //Stream Minimum Request Size
@@ -610,10 +612,10 @@ namespace CLRDEV9.DEV9.ATA
             //Streaming Performance Granularity
             //98-99
             //Total Number of User Addressable Sectors for the 48-bit Address feature set.
-            Utils.memcpy(ref identify_data, 100 * 2, BitConverter.GetBytes((UInt16)nbSectors), 0, 2);
-            Utils.memcpy(ref identify_data, 101 * 2, BitConverter.GetBytes((UInt16)(nbSectors >> 16)), 0, 2);
-            Utils.memcpy(ref identify_data, 102 * 2, BitConverter.GetBytes((UInt16)(nbSectors >> 32)), 0, 2);
-            Utils.memcpy(ref identify_data, 103 * 2, BitConverter.GetBytes((UInt16)(nbSectors >> 48)), 0, 2);
+            Utils.memcpy(ref identifyData, 100 * 2, BitConverter.GetBytes((UInt16)nbSectors), 0, 2);
+            Utils.memcpy(ref identifyData, 101 * 2, BitConverter.GetBytes((UInt16)(nbSectors >> 16)), 0, 2);
+            Utils.memcpy(ref identifyData, 102 * 2, BitConverter.GetBytes((UInt16)(nbSectors >> 32)), 0, 2);
+            Utils.memcpy(ref identifyData, 103 * 2, BitConverter.GetBytes((UInt16)(nbSectors >> 48)), 0, 2);
             //Streaming Transfer Time - PIO
             //104
             //Reserved
@@ -621,7 +623,7 @@ namespace CLRDEV9.DEV9.ATA
             //Physical sector size / Logical Sector Size
             //(14-set to one, 13-Device has multiple logical sectors per physical sector, 12-Device Logical Sector Longer than 256 Words
             //3-0, 2^X logical sectors per physical sector
-            Utils.memcpy(ref identify_data, 106 * 2, BitConverter.GetBytes((UInt16)((1 << 14) | 0)), 0, 2);
+            Utils.memcpy(ref identifyData, 106 * 2, BitConverter.GetBytes((UInt16)((1 << 14) | 0)), 0, 2);
             //Inter-seek delay for ISO-7779acoustic testing in microseconds
             //107
             //M-WNN
@@ -693,27 +695,27 @@ namespace CLRDEV9.DEV9.ATA
             //236-254
             //M-Integrity word
             //15:8 Checksum, 7:0 Signature
-            CreateHDDidCsum();
+            CreateHDDinfoCsum();
         }
-        void CreateHDDidCsum() //Is this correct?
+        void CreateHDDinfoCsum() //Is this correct?
         {
             byte counter = 0;
             unchecked
             {
-                for (int i = 0; i < (512-1); i++)
+                for (int i = 0; i < (512 - 1); i++)
                 {
-                    counter += identify_data[i];
+                    counter += identifyData[i];
                 }
                 counter += 0xA5;
             }
-            identify_data[510] = 0xA5;
-            identify_data[511] = (byte)(255-counter + 1);
+            identifyData[510] = 0xA5;
+            identifyData[511] = (byte)(255 - counter + 1);
             counter = 0;
             unchecked
             {
                 for (int i = 0; i < (512); i++)
                 {
-                    counter += identify_data[i];
+                    counter += identifyData[i];
                 }
                 Log_Error(counter.ToString());
             }
@@ -726,7 +728,7 @@ namespace CLRDEV9.DEV9.ATA
         }
 
         //QEMU stuff
-        void ide_clear_hob()
+        void IDE_ClearHOB()
         {
             /* any write clears HOB high bit of device control register */
             select &= unchecked((byte)(~(1 << 7)));

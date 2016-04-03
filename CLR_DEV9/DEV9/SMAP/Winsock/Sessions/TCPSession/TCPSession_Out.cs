@@ -48,21 +48,21 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 ret.SequenceNumber = GetMyNumber();
                 IncrementMyNumber(1);
 
-                ret.AcknowledgementNumber = ExpectedSequenceNumber;
+                ret.AcknowledgementNumber = expectedSequenceNumber;
 
                 ret.SYN = true;
                 ret.ACK = true;
-                ret.WindowSize = (UInt16)(2 * MaxSegmentSize);
-                ret.Options.Add(new TCPopMSS(MaxSegmentSize));
+                ret.WindowSize = (UInt16)(2 * maxSegmentSize);
+                ret.Options.Add(new TCPopMSS(maxSegmentSize));
 
                 ret.Options.Add(new TCPopNOP());
                 ret.Options.Add(new TCPopWS(0));
 
-                if (SendTimeStamps)
+                if (sendTimeStamps)
                 {
                     ret.Options.Add(new TCPopNOP());
                     ret.Options.Add(new TCPopNOP());
-                    ret.Options.Add(new TCPopTS((UInt32)TimeStamp.Elapsed.Seconds, LastRecivedTimeStamp));
+                    ret.Options.Add(new TCPopTS((UInt32)timeStamp.Elapsed.Seconds, lastRecivedTimeStamp));
                 }
                 PushRecvBuff(ret);
             }
@@ -76,9 +76,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         public override bool Send(IPPayload payload)
         {
             TCP tcp = (TCP)payload;
-            if (DestPort != 0)
+            if (destPort != 0)
             {
-                if (!(tcp.DestinationPort == DestPort && tcp.SourcePort == SrcPort))
+                if (!(tcp.DestinationPort == destPort && tcp.SourcePort == srcPort))
                 {
                     Log_Error("TCP packet invalid for current session (Duplicate key?)");
                     return false;
@@ -135,8 +135,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         private bool sendConnect(TCP tcp)
         {
             //Expect SYN Packet
-            DestPort = tcp.DestinationPort;
-            SrcPort = tcp.SourcePort;
+            destPort = tcp.DestinationPort;
+            srcPort = tcp.SourcePort;
 
             if (tcp.SYN == false)
             {
@@ -144,14 +144,14 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 Log_Error("Attempt To Send Data On Non Connected Connection");
                 return true;
             }
-            ExpectedSequenceNumber = tcp.SequenceNumber + 1;
+            expectedSequenceNumber = tcp.SequenceNumber + 1;
             //Fill out last received numbers
-            ReceivedPS2SequenceNumbers.Clear();
-            ReceivedPS2SequenceNumbers.Add(tcp.SequenceNumber);
-            ReceivedPS2SequenceNumbers.Add(tcp.SequenceNumber);
-            ReceivedPS2SequenceNumbers.Add(tcp.SequenceNumber);
-            ReceivedPS2SequenceNumbers.Add(tcp.SequenceNumber);
-            ReceivedPS2SequenceNumbers.Add(tcp.SequenceNumber);
+            receivedPS2SequenceNumbers.Clear();
+            receivedPS2SequenceNumbers.Add(tcp.SequenceNumber);
+            receivedPS2SequenceNumbers.Add(tcp.SequenceNumber);
+            receivedPS2SequenceNumbers.Add(tcp.SequenceNumber);
+            receivedPS2SequenceNumbers.Add(tcp.SequenceNumber);
+            receivedPS2SequenceNumbers.Add(tcp.SequenceNumber);
 
             for (int i = 0; i < tcp.Options.Count; i++)
             {
@@ -161,35 +161,35 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     case 1: //Nop
                         continue;
                     case 2: //MSS
-                        MaxSegmentSize = ((TCPopMSS)(tcp.Options[i])).MaxSegmentSize;
+                        maxSegmentSize = ((TCPopMSS)(tcp.Options[i])).MaxSegmentSize;
                         break;
                     case 3: //WinScale
                         Log_Info("Got WinScale (Not Supported)");
                         // = ((TCPopWS)(tcp.Options[i])).WindowScale;
                         break;
                     case 8: //TimeStamp
-                        LastRecivedTimeStamp = ((TCPopTS)(tcp.Options[i])).SenderTimeStamp;
-                        SendTimeStamps = true;
-                        TimeStamp.Start();
+                        lastRecivedTimeStamp = ((TCPopTS)(tcp.Options[i])).SenderTimeStamp;
+                        sendTimeStamps = true;
+                        timeStamp.Start();
                         break;
                     default:
                         Log_Error("Got Unknown Option " + tcp.Options[i].Code);
                         throw new Exception("Got Unknown Option " + tcp.Options[i].Code);
-                    //break;
+                        //break;
                 }
             }
 
-            
+
             lock (clientSentry)
             {
                 if (client != null)
-                client.Close();
+                    client.Close();
                 client = null;
             }
             netStream = null;
-            client = new TcpClient(new IPEndPoint(adapterIP,0));
+            client = new TcpClient(new IPEndPoint(adapterIP, 0));
             IPAddress address = new IPAddress(DestIP);
-            client.BeginConnect(address, DestPort, new AsyncCallback(AsyncConnectComplete), tcp);
+            client.BeginConnect(address, destPort, new AsyncCallback(AsyncConnectComplete), tcp);
             state = TCPState.SendingSYN_ACK;
             open = true;
             return true;
@@ -214,12 +214,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     case 1: //Nop
                         continue;
                     case 8: //Timestamp
-                        LastRecivedTimeStamp = ((TCPopTS)(tcp.Options[i])).SenderTimeStamp;
+                        lastRecivedTimeStamp = ((TCPopTS)(tcp.Options[i])).SenderTimeStamp;
                         break;
                     default:
                         Log_Error("Got Unknown Option " + tcp.Options[i].Code);
                         throw new Exception("Got Unknown Option " + tcp.Options[i].Code);
-                    //break;
+                        //break;
                 }
             }
             //Next packet will be data
@@ -244,12 +244,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                         continue;
                     case 8:
                         //Error.WriteLine("Got TimeStamp");
-                        LastRecivedTimeStamp = ((TCPopTS)(tcp.Options[i])).SenderTimeStamp;
+                        lastRecivedTimeStamp = ((TCPopTS)(tcp.Options[i])).SenderTimeStamp;
                         break;
                     default:
                         Log_Error("Got Unknown Option " + tcp.Options[i].Code);
                         throw new Exception("Got Unknown Option " + tcp.Options[i].Code);
-                    //break;
+                        //break;
                 }
             }
             NumCheckResult Result = CheckNumbers(tcp);
@@ -261,8 +261,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             if (Result == NumCheckResult.Bad) { Log_Error("Bad TCP Numbers Received"); throw new Exception("Bad TCP Numbers Received"); }
             if (tcp.GetPayload().Length != 0)
             {
-                ReceivedPS2SequenceNumbers.RemoveAt(0);
-                ReceivedPS2SequenceNumbers.Add(ExpectedSequenceNumber);
+                receivedPS2SequenceNumbers.RemoveAt(0);
+                receivedPS2SequenceNumbers.Add(expectedSequenceNumber);
                 //Send the Data
                 try
                 {
@@ -279,7 +279,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 }
                 unchecked
                 {
-                    ExpectedSequenceNumber += ((uint)tcp.GetPayload().Length);
+                    expectedSequenceNumber += ((uint)tcp.GetPayload().Length);
                 }
                 //Done send
 
@@ -308,8 +308,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         private bool SendResponseToClosedServer(TCP tcp, bool HasACKedFIN)
         {
             NumCheckResult ResultFIN = CheckNumbers(tcp);
-            ReceivedPS2SequenceNumbers.RemoveAt(0);
-            ReceivedPS2SequenceNumbers.Add(ExpectedSequenceNumber);
+            receivedPS2SequenceNumbers.RemoveAt(0);
+            receivedPS2SequenceNumbers.Add(expectedSequenceNumber);
 
             //Expect FIN + ACK
             if (tcp.FIN & (HasACKedFIN | tcp.ACK))
@@ -321,7 +321,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
                 unchecked
                 {
-                    ExpectedSequenceNumber += 1;
+                    expectedSequenceNumber += 1;
                 }
                 TCP ret = CreateBasePacket();
 
@@ -342,7 +342,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     Log_Error("Invalid Packet");
                     throw new Exception("Invalid Packet");
                 }
-                if (MyNumberACKed.WaitOne(0))
+                if (myNumberACKed.WaitOne(0))
                 {
                     Log_Info("ACK was for FIN");
                     state = TCPState.ConnectionClosedByRemoteAcknowledged;
@@ -362,7 +362,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
             Log_Verb("CHECK_NUMBERS");
             Log_Verb("[SRV]CurrSeqNumber = " + seqNum + " [PS2]Ack Number = " + tcp.AcknowledgementNumber);
-            Log_Verb("[SRV]CurrAckNumber = " + ExpectedSequenceNumber + " [PS2]Seq Number = " + tcp.SequenceNumber);
+            Log_Verb("[SRV]CurrAckNumber = " + expectedSequenceNumber + " [PS2]Seq Number = " + tcp.SequenceNumber);
             Log_Verb("[PS2]Data Length = " + tcp.GetPayload().Length);
 
             if (tcp.AcknowledgementNumber != seqNum)
@@ -376,26 +376,26 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             }
             else
             {
-                MyNumberACKed.Set();
+                myNumberACKed.Set();
             }
 
-            if (tcp.SequenceNumber != ExpectedSequenceNumber)
+            if (tcp.SequenceNumber != expectedSequenceNumber)
             {
                 if (tcp.GetPayload().Length == 0)
                 {
-                    Log_Verb("Unexpected Sequence Number From ACK Packet, Got " + tcp.SequenceNumber + " Expected " + ExpectedSequenceNumber);
+                    Log_Verb("Unexpected Sequence Number From ACK Packet, Got " + tcp.SequenceNumber + " Expected " + expectedSequenceNumber);
                 }
                 else
                 {
-                    if (ReceivedPS2SequenceNumbers.Contains(tcp.SequenceNumber))
+                    if (receivedPS2SequenceNumbers.Contains(tcp.SequenceNumber))
                     {
                         Log_Error("Got an Old Seq Number on an Data packet");
                         return NumCheckResult.GotOldData;
                     }
                     else
                     {
-                        Log_Error("Unexpected Sequence Number From Data Packet, Got " + tcp.SequenceNumber + " Expected " + ExpectedSequenceNumber);
-                        throw new Exception("Unexpected Sequence Number From Data Packet, Got " + tcp.SequenceNumber + " Expected " + ExpectedSequenceNumber);
+                        Log_Error("Unexpected Sequence Number From Data Packet, Got " + tcp.SequenceNumber + " Expected " + expectedSequenceNumber);
+                        throw new Exception("Unexpected Sequence Number From Data Packet, Got " + tcp.SequenceNumber + " Expected " + expectedSequenceNumber);
                     }
                 }
             }
@@ -412,11 +412,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             netStream = null;
             Log_Info("PS2 has closed connection");
             //Connection Close Part 2, Send ACK to PS2
-            ReceivedPS2SequenceNumbers.RemoveAt(0);
-            ReceivedPS2SequenceNumbers.Add(ExpectedSequenceNumber);
+            receivedPS2SequenceNumbers.RemoveAt(0);
+            receivedPS2SequenceNumbers.Add(expectedSequenceNumber);
             unchecked
             {
-                ExpectedSequenceNumber += 1;
+                expectedSequenceNumber += 1;
             }
 
             TCP ret = CreateBasePacket();

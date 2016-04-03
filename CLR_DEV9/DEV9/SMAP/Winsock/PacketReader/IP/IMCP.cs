@@ -6,7 +6,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
     {
         public byte Type;
         public byte Code;
-        protected UInt16 Checksum;
+        protected UInt16 checksum;
         public override byte Protocol
         {
             get { return 0x01; }
@@ -41,7 +41,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             //Error.WriteLine("Type = " + Type);
             NetLib.ReadByte08(buffer, ref offset, out Code);
             //Error.WriteLine("Code = " + Code);
-            NetLib.ReadUInt16(buffer, ref offset, out Checksum);
+            NetLib.ReadUInt16(buffer, ref offset, out checksum);
             NetLib.ReadByteArray(buffer, ref offset, 4, out HeaderData);
 
             NetLib.ReadByteArray(buffer, ref offset, Length - 8, out Data);
@@ -58,10 +58,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             byte[] headerSegment = new byte[pHeaderLen];
             int counter = 0;
 
-            Checksum = 0;
+            checksum = 0;
             NetLib.WriteByteArray(ref headerSegment, ref counter, GetBytes());
 
-            Checksum = IPPacket.InternetChecksum(headerSegment);
+            checksum = IPPacket.InternetChecksum(headerSegment);
         }
         public override bool VerifyCheckSum(byte[] srcIP, byte[] dstIP)
         {
@@ -86,7 +86,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             int counter = 0;
             NetLib.WriteByte08(ref ret, ref counter, Type);
             NetLib.WriteByte08(ref ret, ref counter, Code);
-            NetLib.WriteUInt16(ref ret, ref counter, Checksum);
+            NetLib.WriteUInt16(ref ret, ref counter, checksum);
             NetLib.WriteByteArray(ref ret, ref counter, HeaderData);
             NetLib.WriteByteArray(ref ret, ref counter, Data);
             return ret;
