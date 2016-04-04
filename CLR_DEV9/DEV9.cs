@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using PSE;
 
 namespace CLRDEV9
 {
@@ -16,21 +17,22 @@ namespace CLRDEV9
             {
                 if (LogFolderPath.EndsWith(System.IO.Path.DirectorySeparatorChar.ToString()))
                 {
-                    PSE.CLR_PSE_PluginLog.Open(LogFolderPath.TrimEnd('/'), "CLR_DEV9.log");
+                    CLR_PSE_PluginLog.Open(LogFolderPath.TrimEnd('/'), "CLR_DEV9.log");
                 }
                 else
                 {
-                    PSE.CLR_PSE_PluginLog.Open(LogFolderPath, "CLR_DEV9.log");
+                    CLR_PSE_PluginLog.Open(LogFolderPath, "CLR_DEV9.log");
                 }
                 //TODO Set Log Options
 #if DEBUG
-                PSE.CLR_PSE_PluginLog.SetLogLevel(SourceLevels.All, (int)DEV9LogSources.ATA);
-                PSE.CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Error, (int)DEV9LogSources.Dev9);
-                PSE.CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Error, (int)DEV9LogSources.PluginInterface);
-                PSE.CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Error, (int)DEV9LogSources.SMAP);
-                PSE.CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Error, (int)DEV9LogSources.Tap);
-                PSE.CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Verbose, (int)DEV9LogSources.TCP);
-                PSE.CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Information, (int)DEV9LogSources.Winsock);
+                CLR_PSE_PluginLog.SetFileLevel(SourceLevels.All);
+                CLR_PSE_PluginLog.SetLogLevel(SourceLevels.All, (int)DEV9LogSources.ATA);
+                CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Error, (int)DEV9LogSources.Dev9);
+                CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Error, (int)DEV9LogSources.PluginInterface);
+                CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Error, (int)DEV9LogSources.SMAP);
+                CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Error, (int)DEV9LogSources.Tap);
+                CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Verbose, (int)DEV9LogSources.TCP);
+                CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Information, (int)DEV9LogSources.Winsock);
 #endif
             }
         }
@@ -47,7 +49,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxError(e);
                 return -1;
             }
         }
@@ -65,7 +67,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxError(e);
                 return -1;
             }
         }
@@ -77,7 +79,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
         }
@@ -86,7 +88,7 @@ namespace CLRDEV9
             try
             {
                 Log_Info("Shutdown");
-                PSE.CLR_PSE_PluginLog.Close();
+                CLR_PSE_PluginLog.Close();
                 //PluginLog.Close(); //fclose(dev9Log);
 
                 if (irqHandle.IsAllocated)
@@ -97,7 +99,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
         }
@@ -109,7 +111,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
         }
@@ -122,7 +124,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
         }
@@ -135,7 +137,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
         }
@@ -147,7 +149,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
         }
@@ -159,7 +161,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
         }
@@ -172,7 +174,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
         }
@@ -184,7 +186,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
         }
@@ -196,7 +198,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
         }
@@ -210,7 +212,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
         }
@@ -223,7 +225,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
         }
@@ -236,7 +238,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
         }
@@ -249,7 +251,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
         }
@@ -262,7 +264,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
         }
@@ -282,7 +284,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
         }
@@ -299,7 +301,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxError(e);
                 return 1;
             }
         }
@@ -313,22 +315,22 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                PSE.CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxError(e);
                 throw e;
             }
         }
 
         private static void Log_Error(string str)
         {
-            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.PluginInterface, "Plugin", str);
+            CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.PluginInterface, "Plugin", str);
         }
         private static void Log_Info(string str)
         {
-            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "Plugin", str);
+            CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "Plugin", str);
         }
         private static void Log_Verb(string str)
         {
-            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.PluginInterface, "Plugin", str);
+            CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.PluginInterface, "Plugin", str);
         }
     }
 }

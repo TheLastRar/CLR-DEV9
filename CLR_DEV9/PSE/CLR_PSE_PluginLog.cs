@@ -11,7 +11,7 @@ namespace PSE
         static SourceSwitch defualtSwicth = new SourceSwitch("Default");
         static SourceLevels ConsoleStdLevel = SourceLevels.Information & ~(SourceLevels.Error);
         static SourceLevels ConsoleErrLevel = SourceLevels.Error;
-        static SourceLevels FileLevel = SourceLevels.All;
+        static SourceLevels FileLevel = SourceLevels.Critical;
         static string currentLogPath = "";
 
         static CLR_PSE_PluginLog()
@@ -119,11 +119,11 @@ namespace PSE
                     Console.Error.WriteLine("Failed to Open Log File :" + e.ToString());
                 }
                 //Console Normal
-                ConsoleTraceListener consoleLog = new ConsoleTraceListener(true);
+                TextWriterTraceListener consoleLog = new TextWriterTraceListener(new CLR_PSE_NativeLogger(false));
                 consoleLog.Filter = new EventTypeFilter(ConsoleStdLevel); //information
                 consoleLog.Name = "StdOut";
                 //Console Error
-                ConsoleTraceListener consoleError = new ConsoleTraceListener(true);
+                TextWriterTraceListener consoleError = new TextWriterTraceListener(new CLR_PSE_NativeLogger(true));
                 consoleError.Filter = new EventTypeFilter(ConsoleErrLevel);
                 consoleError.Name = "StdErr";
                 //Add Sources

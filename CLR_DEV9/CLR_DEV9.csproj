@@ -96,6 +96,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PSE\CLR_PSE_NativeLogger.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="ConfigDirectIP.cs" />
     <Compile Include="ConfigFormEth.cs">
