@@ -7,21 +7,187 @@ namespace PSE
 {
     class CLR_PSE_PluginLog
     {
-        static TraceSource mySource = null;
-        static SourceSwitch defualtSwicth = new SourceSwitch("Default");
-        static SourceLevels ConsoleStdLevel = SourceLevels.Information & ~(SourceLevels.Error);
-        static SourceLevels ConsoleErrLevel = SourceLevels.Error;
-        static SourceLevels FileLevel = SourceLevels.Critical;
-        static string currentLogPath = "";
+        //Constants
+        const int UNKOWN = -1;
+        const int ERRTRAP = -2;
+        const SourceLevels consoleStdLevel = SourceLevels.Information & ~(SourceLevels.Error);
+        const SourceLevels consoleErrLevel = SourceLevels.Error;
+        const SourceLevels FileLevel = SourceLevels.Critical;
 
+        //current path to detech if log path has changed
+        static string currentLogPath = "";
+        //all then loggers
+        static Dictionary<int, TraceSource> sources = null;
+        static TraceListener fileAll; //both out and error go to same file
+        static TraceListener stdOut;
+        static TraceListener stdErr;
+
+        //Enable AutoFlush
         static CLR_PSE_PluginLog()
         {
-            defualtSwicth.Level = SourceLevels.Error;
             Trace.AutoFlush = true;
-            SetLogLevel(SourceLevels.Critical, -1);
         }
 
-        static Dictionary<int, SourceSwitch> enabledLogLevels = new Dictionary<int, SourceSwitch>();
+        //Set filter of Source
+        public static void SetSourceLogLevel(SourceLevels eLevel, int logSource)
+        {
+            if (sources.ContainsKey(logSource))
+            {
+                sources[logSource].Switch.Level = eLevel;
+            }
+            else
+            {
+                throw new KeyNotFoundException();
+            }
+        }
+        public static void SetSourceUseStdOut(bool use, int logSource)
+        {
+            if (sources.ContainsKey(logSource))
+            {
+                if (!use)
+                {
+                    sources[logSource].Listeners.Remove(stdOut);
+                }
+                else if (!sources[logSource].Listeners.Contains(stdOut))
+                {
+                    sources[logSource].Listeners.Add(stdOut);
+                }
+            }
+            else
+            {
+                throw new KeyNotFoundException();
+            }
+        }
+        //Change filter of Listerners (effects all connected sources)
+        public static void SetStdOutLevel(SourceLevels eLevel)
+        {
+            stdOut.Filter = new EventTypeFilter(eLevel);
+        }
+        public static void SetStdErrLevel(SourceLevels eLevel)
+        {
+            stdErr.Filter = new EventTypeFilter(eLevel);
+            //consoleErrLevel = eLevel;
+            //if (defualtSource != null)
+            //{
+            //    defualtSource.Listeners["StdErr"].Filter = new EventTypeFilter(consoleErrLevel);
+            //}
+        }
+        public static void SetFileLevel(SourceLevels eLevel)
+        {
+            fileAll.Filter = new EventTypeFilter(eLevel);
+            //FileLevel = eLevel;
+            //if (defualtSource != null)
+            //{
+            //    defualtSource.Listeners["File"].Filter = new EventTypeFilter(FileLevel);
+            //}
+        }
+
+        //Add Source to sources, only used in Open()
+        private static void AddSource(int id, string name)
+        {
+            TraceSource newSource = new TraceSource("CLR_DEV9:" + name);
+            newSource.Switch = new SourceSwitch("CLR_DEV9:" + name + "SS");
+            newSource.Switch.Level = SourceLevels.Information;
+            newSource.Listeners.Remove("Default");
+            newSource.Listeners.Add(fileAll);
+            newSource.Listeners.Add(stdErr);
+
+            sources.Add(id, newSource);
+        }
+        public static void Open(string logFolderPath, string logFileName, Dictionary<ushort, string> sourceIDs)
+        {
+            if (sourceIDs == null)
+            {
+                throw new NullReferenceException();
+            }
+            //TODO validate logFolderPath(?)
+            if (sources == null || (currentLogPath != logFolderPath + "\\" + logFileName))
+            {
+                Close();
+
+                if (File.Exists(logFolderPath + "\\" + logFileName))
+                {
+                    try
+                    {
+                        File.Delete(logFolderPath + "\\" + logFileName);
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                //Console Normal
+                stdOut = new TextWriterTraceListener(new CLR_PSE_NativeLogger(false));
+                stdOut.Filter = new EventTypeFilter(consoleStdLevel); //information
+                stdOut.Name = "StdOut";
+                //Console Error
+                stdErr = new TextWriterTraceListener(new CLR_PSE_NativeLogger(true));
+                stdErr.Filter = new EventTypeFilter(consoleErrLevel);
+                stdErr.Name = "StdErr";
+
+                currentLogPath = logFolderPath + "\\" + logFileName;
+                //Text File
+                try
+                {
+                    fileAll = new TextWriterTraceListener(currentLogPath);
+                    fileAll.Filter = new EventTypeFilter(FileLevel);
+                    fileAll.Name = "File";
+                    //defualtSource.Listeners.Add(textListener);
+                }
+                catch (Exception e)
+                {
+                    //Console.Error.WriteLine("Failed to Open Log File :" + e.ToString());
+                    stdErr.WriteLine("Failed to Open Log File :" + e.ToString());
+                }
+
+                //Create sources
+                sources = new Dictionary<int, TraceSource>();
+                //Defualt Sources
+                AddSource(UNKOWN, "UnkownSource");
+                SetSourceLogLevel(SourceLevels.All, UNKOWN);
+                SetSourceUseStdOut(true, UNKOWN);
+                AddSource(ERRTRAP, "ErrorTrapper");
+                SetSourceUseStdOut(true, ERRTRAP);
+
+                foreach (KeyValuePair<ushort, string> sourceID in sourceIDs)
+                {
+                    AddSource(sourceID.Key, sourceID.Value);
+                }
+            }
+        }
+        public static void Close()
+        {
+            if (sources == null) return;
+            foreach (KeyValuePair<int, TraceSource> source in sources)
+            {
+                //will close all listerners
+                source.Value.Close();
+            }
+            sources.Clear();
+            sources = null;
+        }
+
+        //public static void Write(TraceEventType eType, int logSource, string prefix, string str)
+        //{
+        //    if (defualtSource == null) return;
+        //    if ((sources.ContainsKey(logSource) && sources[logSource].ShouldTrace(eType)) ||
+        //            defualtSwicth.ShouldTrace(eType))
+        //    {
+        //        defualtSource.TraceEvent(eType, logSource, "[" + prefix + "] " + str);
+        //    }
+        //}
+        public static void WriteLine(TraceEventType eType, int logSource, string str)
+        {
+            if (sources == null) return;
+            if (sources.ContainsKey(logSource))
+            {
+                sources[logSource].TraceEvent(eType, logSource, str);
+            }
+            else
+            {
+                sources[UNKOWN].TraceEvent(eType, logSource, str);
+            }
+        }
 
         public static void MsgBoxError(Exception e)
         {
@@ -30,9 +196,9 @@ namespace PSE
             try
             {
                 //System.IO.File.WriteAllLines(logPath + "\\" + libraryName + " ERR.txt", new string[] { e.Message + Environment.NewLine + e.StackTrace });
-                if (mySource != null)
+                if (sources != null)
                 {
-                    WriteLine(TraceEventType.Critical, -1, "ERROR", e.Message + Environment.NewLine + e.StackTrace);
+                    WriteLine(TraceEventType.Critical, ERRTRAP, e.Message + Environment.NewLine + e.StackTrace);
                 }
                 else
                 {
@@ -42,120 +208,6 @@ namespace PSE
             catch
             {
                 Console.Error.WriteLine("Error while writing ErrorLog");
-            }
-        }
-
-        public static void SetLogLevel(SourceLevels eLevel, int logSource)
-        {
-            if (enabledLogLevels.ContainsKey(logSource))
-            {
-                enabledLogLevels[logSource].Level = eLevel;
-            } 
-            else
-            {
-                SourceSwitch newSwicth = new SourceSwitch("ID: " + logSource);
-                newSwicth.Level = eLevel;
-                enabledLogLevels.Add(logSource, newSwicth);
-            }
-        }
-
-        public static void SetStdOutLevel(SourceLevels eLevel)
-        {
-            ConsoleStdLevel = eLevel;
-            if (mySource != null)
-            {
-                mySource.Listeners["StdOut"].Filter = new EventTypeFilter(ConsoleStdLevel);
-            }
-        }
-        public static void SetStdErrLevel(SourceLevels eLevel)
-        {
-            ConsoleErrLevel = eLevel;
-            if (mySource != null)
-            {
-                mySource.Listeners["StdErr"].Filter = new EventTypeFilter(ConsoleErrLevel);
-            }
-        }
-        public static void SetFileLevel(SourceLevels eLevel)
-        {
-            FileLevel = eLevel;
-            if (mySource != null)
-            {
-                mySource.Listeners["File"].Filter = new EventTypeFilter(FileLevel);
-            }
-        }
-
-        public static void Open(string logFolderPath , string logFileName)
-        {
-            if (mySource == null || (currentLogPath != logFolderPath + "\\" + logFileName))
-            {
-                Close();
-
-                if (File.Exists(logFolderPath + "\\" + logFileName))
-                {
-                    try
-                    {
-                        File.Delete(logFolderPath + "\\" + logFileName);
-                    } catch
-                    {
-                    }
-                }
-
-                mySource = new TraceSource("CLR_DEV9");
-                mySource.Switch = new SourceSwitch("Accept All");
-                mySource.Listeners.Remove("Default");
-                mySource.Switch.Level = SourceLevels.All;
-
-                currentLogPath = logFolderPath + "\\" + logFileName;
-                //Text File
-                try
-                {
-                    TextWriterTraceListener textListener = new TextWriterTraceListener(currentLogPath);
-                    textListener.Filter = new EventTypeFilter(FileLevel);
-                    textListener.Name = "File";
-                    mySource.Listeners.Add(textListener);
-                }
-                catch (Exception e)
-                {
-                    Console.Error.WriteLine("Failed to Open Log File :" + e.ToString());
-                }
-                //Console Normal
-                TextWriterTraceListener consoleLog = new TextWriterTraceListener(new CLR_PSE_NativeLogger(false));
-                consoleLog.Filter = new EventTypeFilter(ConsoleStdLevel); //information
-                consoleLog.Name = "StdOut";
-                //Console Error
-                TextWriterTraceListener consoleError = new TextWriterTraceListener(new CLR_PSE_NativeLogger(true));
-                consoleError.Filter = new EventTypeFilter(ConsoleErrLevel);
-                consoleError.Name = "StdErr";
-                //Add Sources
-
-                mySource.Listeners.Add(consoleLog);
-                mySource.Listeners.Add(consoleError);
-            }
-        }
-
-        public static void Close()
-        {
-            if (mySource == null) return;
-            mySource.Close();
-            mySource = null;
-        }
-
-        public static void Write(TraceEventType eType, int logSource, string prefix, string str)
-        {
-            if (mySource == null) return;
-            if ((enabledLogLevels.ContainsKey(logSource) && enabledLogLevels[logSource].ShouldTrace(eType)) ||
-                    defualtSwicth.ShouldTrace(eType))
-            {
-                mySource.TraceEvent(eType, logSource, "[" + prefix + "] " + str);
-            }
-        }
-        public static void WriteLine(TraceEventType eType, int logSource, string prefix, string str)
-        {
-            if (mySource == null) return;
-            if ((enabledLogLevels.ContainsKey(logSource) && enabledLogLevels[logSource].ShouldTrace(eType)) ||
-                    defualtSwicth.ShouldTrace(eType))
-            {
-                mySource.TraceEvent(eType, logSource, "[" + prefix + "] " + str);
             }
         }
     }

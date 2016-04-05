@@ -101,7 +101,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader
                     throw new NotImplementedException();
                 //break;
                 default:
-                    PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.Winsock, "ETH", "Unkown Ethernet Protocol " + proto.ToString("X4"));
+                    PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.ETHFrame, "Unkown Ethernet Protocol " + proto.ToString("X4"));
                     break;
             }
         }

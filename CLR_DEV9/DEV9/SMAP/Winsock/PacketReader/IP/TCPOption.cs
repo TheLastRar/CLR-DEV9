@@ -17,15 +17,15 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
 
         protected void Log_Error(string str)
         {
-            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.TCP, "TCPOption", str);
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.TCPOption, str);
         }
         protected void Log_Info(string str)
         {
-            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.TCP, "TCPOption", str);
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.TCPOption, str);
         }
         protected void Log_Verb(string str)
         {
-            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.TCP, "TCPOption", str);
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.TCPOption, str);
         }
     }
     //class TCPopEOO : TCPOption

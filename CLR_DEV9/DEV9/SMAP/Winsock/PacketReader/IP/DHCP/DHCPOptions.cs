@@ -360,7 +360,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
             NetLib.ReadByteArray(data, ref offset, len, out msgBytes);
 
             Encoding enc = Encoding.ASCII;
-            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.Winsock, "DCHP", enc.GetString(msgBytes));
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.DHCPOption, enc.GetString(msgBytes));
         }
         public override byte Length { get { return (byte)(2 + len); } }
         public override byte Code { get { return 56; } }

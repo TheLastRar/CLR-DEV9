@@ -62,9 +62,9 @@ namespace CLRDEV9.DEV9.SMAP
             {
                 RxRunning = false;
                 nif.Close();
-                LOG.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "NetAdapter", "Waiting for RX-net thread to terminate..");
+                LOG.WriteLine(TraceEventType.Information, (int)DEV9LogSources.NetAdapter, "Waiting for RX-net thread to terminate..");
                 rxThread.Join();
-                LOG.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "NetAdapter", "Done");
+                LOG.WriteLine(TraceEventType.Information, (int)DEV9LogSources.NetAdapter, "Done");
                 nif.Dispose();
                 nif = null;
             }

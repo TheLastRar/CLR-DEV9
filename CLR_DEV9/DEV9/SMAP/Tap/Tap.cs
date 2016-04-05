@@ -118,15 +118,15 @@ namespace CLRDEV9.DEV9.SMAP.Tap
 
         protected override void Log_Error(string str)
         {
-            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.Tap, "TAP", str);
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.Tap, str);
         }
         protected override void Log_Info(string str)
         {
-            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.Tap, "TAP", str);
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.Tap, str);
         }
         protected override void Log_Verb(string str)
         {
-            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.Tap, "TAP", str);
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.Tap, str);
         }
 
         public override void Close()

@@ -1,7 +1,9 @@
-﻿using System;
+﻿using PSE;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
-using PSE;
 
 namespace CLRDEV9
 {
@@ -15,25 +17,33 @@ namespace CLRDEV9
         {
             if (doLog)
             {
+                //some legwork to setup the logger
+                Dictionary<ushort, string> logsources = new Dictionary<ushort, string>();
+                IEnumerable<DEV9LogSources> sources = Enum.GetValues(typeof(DEV9LogSources)).Cast<DEV9LogSources>();
+
+                foreach (DEV9LogSources source in sources)
+                {
+                    logsources.Add((ushort)source, source.ToString());
+                }
+
                 if (LogFolderPath.EndsWith(System.IO.Path.DirectorySeparatorChar.ToString()))
                 {
-                    CLR_PSE_PluginLog.Open(LogFolderPath.TrimEnd('/'), "CLR_DEV9.log");
+                    CLR_PSE_PluginLog.Open(LogFolderPath.TrimEnd('/'), "CLR_DEV9.log", logsources);
                 }
                 else
                 {
-                    CLR_PSE_PluginLog.Open(LogFolderPath, "CLR_DEV9.log");
+                    CLR_PSE_PluginLog.Open(LogFolderPath, "CLR_DEV9.log", logsources);
                 }
                 //TODO Set Log Options
 #if DEBUG
+                //Info is defualt
                 CLR_PSE_PluginLog.SetFileLevel(SourceLevels.All);
-                CLR_PSE_PluginLog.SetLogLevel(SourceLevels.All, (int)DEV9LogSources.ATA);
-                CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Error, (int)DEV9LogSources.Dev9);
-                CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Error, (int)DEV9LogSources.PluginInterface);
-                CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Error, (int)DEV9LogSources.SMAP);
-                CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Error, (int)DEV9LogSources.Tap);
-                CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Verbose, (int)DEV9LogSources.TCP);
-                CLR_PSE_PluginLog.SetLogLevel(SourceLevels.Information, (int)DEV9LogSources.Winsock);
+                CLR_PSE_PluginLog.SetSourceLogLevel(SourceLevels.All, (int)DEV9LogSources.ATA);
 #endif
+                CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.Dev9);
+                CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.SMAP);
+                CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.Winsock);
+                CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.NetAdapter);
             }
         }
 
@@ -95,7 +105,7 @@ namespace CLRDEV9
                 {
                     irqHandle.Free(); //allow garbage collection
                 }
-                //Do dispose()?
+                //Do dispose()? (of what?)
             }
             catch (Exception e)
             {
@@ -322,15 +332,15 @@ namespace CLRDEV9
 
         private static void Log_Error(string str)
         {
-            CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.PluginInterface, "Plugin", str);
+            CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.PluginInterface, str);
         }
         private static void Log_Info(string str)
         {
-            CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "Plugin", str);
+            CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, str);
         }
         private static void Log_Verb(string str)
         {
-            CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.PluginInterface, "Plugin", str);
+            CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.PluginInterface, str);
         }
     }
 }

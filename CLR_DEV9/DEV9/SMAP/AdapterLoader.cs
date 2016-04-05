@@ -50,7 +50,7 @@ namespace CLRDEV9.DEV9.SMAP
             NetAdapter na = GetNetAdapter();
             if (na == null)
             {
-                LOG.WriteLine(TraceEventType.Critical, (int)DEV9LogSources.PluginInterface, "NetAdapter", "Failed to GetNetAdapter()");
+                LOG.WriteLine(TraceEventType.Critical, (int)DEV9LogSources.NetAdapter, "Failed to GetNetAdapter()");
             }
             else
             {
