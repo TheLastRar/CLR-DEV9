@@ -36,6 +36,8 @@ namespace PSE
             {
                 std = 1;
             }
+            //printf will auto-expand it to a \r\n
+            NewLine = "\n";
         }
 
         public override void Write(char value)
