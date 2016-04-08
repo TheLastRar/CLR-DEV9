@@ -5,7 +5,7 @@ using System.IO;
 
 namespace PSE
 {
-    class CLR_PSE_PluginLog
+    internal class CLR_PSE_PluginLog
     {
         //Constants
         const int UNKOWN = -1;
@@ -83,10 +83,10 @@ namespace PSE
         }
 
         //Add Source to sources, only used in Open()
-        private static void AddSource(int id, string name)
+        private static void AddSource(int id, string name, string prefix)
         {
-            TraceSource newSource = new TraceSource("CLR_DEV9:" + name);
-            newSource.Switch = new SourceSwitch("CLR_DEV9:" + name + "SS");
+            TraceSource newSource = new TraceSource(prefix + ":" + name);
+            newSource.Switch = new SourceSwitch(prefix + ":" + name + ".SS");
             newSource.Switch.Level = SourceLevels.Information;
             newSource.Listeners.Remove("Default");
             newSource.Listeners.Add(fileAll);
@@ -94,22 +94,24 @@ namespace PSE
 
             sources.Add(id, newSource);
         }
-        public static void Open(string logFolderPath, string logFileName, Dictionary<ushort, string> sourceIDs)
+        public static void Open(string logFolderPath, string logFileName, string prefix, Dictionary<ushort, string> sourceIDs)
         {
+            logFolderPath = logFolderPath.TrimEnd(Path.DirectorySeparatorChar);
+            logFolderPath = logFolderPath.TrimEnd(Path.AltDirectorySeparatorChar);
             if (sourceIDs == null)
             {
                 throw new NullReferenceException();
             }
-            //TODO validate logFolderPath(?)
-            if (sources == null || (currentLogPath != logFolderPath + "\\" + logFileName))
+
+            if (sources == null || (currentLogPath != logFolderPath + Path.DirectorySeparatorChar + logFileName))
             {
                 Close();
 
-                if (File.Exists(logFolderPath + "\\" + logFileName))
+                if (File.Exists(logFolderPath + Path.DirectorySeparatorChar + logFileName))
                 {
                     try
                     {
-                        File.Delete(logFolderPath + "\\" + logFileName);
+                        File.Delete(logFolderPath + Path.DirectorySeparatorChar + logFileName);
                     }
                     catch
                     {
@@ -143,15 +145,15 @@ namespace PSE
                 //Create sources
                 sources = new Dictionary<int, TraceSource>();
                 //Defualt Sources
-                AddSource(UNKOWN, "UnkownSource");
+                AddSource(UNKOWN, "UnkownSource", prefix);
                 SetSourceLogLevel(SourceLevels.All, UNKOWN);
                 SetSourceUseStdOut(true, UNKOWN);
-                AddSource(ERRTRAP, "ErrorTrapper");
+                AddSource(ERRTRAP, "ErrorTrapper", prefix);
                 SetSourceUseStdOut(true, ERRTRAP);
 
                 foreach (KeyValuePair<ushort, string> sourceID in sourceIDs)
                 {
-                    AddSource(sourceID.Key, sourceID.Value);
+                    AddSource(sourceID.Key, sourceID.Value, prefix);
                 }
             }
         }
@@ -167,15 +169,6 @@ namespace PSE
             sources = null;
         }
 
-        //public static void Write(TraceEventType eType, int logSource, string prefix, string str)
-        //{
-        //    if (defualtSource == null) return;
-        //    if ((sources.ContainsKey(logSource) && sources[logSource].ShouldTrace(eType)) ||
-        //            defualtSwicth.ShouldTrace(eType))
-        //    {
-        //        defualtSource.TraceEvent(eType, logSource, "[" + prefix + "] " + str);
-        //    }
-        //}
         public static void WriteLine(TraceEventType eType, int logSource, string str)
         {
             if (sources == null) return;

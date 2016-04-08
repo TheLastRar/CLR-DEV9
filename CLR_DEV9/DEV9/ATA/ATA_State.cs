@@ -267,6 +267,7 @@ namespace CLRDEV9.DEV9.ATA
                     break;
                 case DEV9Header.ATA_R_CMD:
                     Log_Verb("*ATA_R_CMD 16bit write at address " + addr.ToString("x") + " value " + value.ToString("x"));
+                    command = value;
                     IDE_ExecCmd(value);
                     break;
                 default:

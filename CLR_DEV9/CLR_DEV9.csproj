@@ -178,6 +178,8 @@
     <Compile Include="DEV9\SMAP\Winsock\Sessions\TCPSession\TCPSession_Out.cs" />
     <Compile Include="DEV9\SMAP\Winsock\Sessions\UDPSession.cs" />
     <Compile Include="DEV9\SMAP\Tap\Tap.cs" />
+    <Compile Include="PSE\CLR_PSE_SudoPtr.cs" />
+    <Compile Include="PSE\CLR_PSE_Version.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="DEV9\SMAP\Winsock\Winsock.cs" />
   </ItemGroup>

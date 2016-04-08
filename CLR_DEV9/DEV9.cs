@@ -1,4 +1,5 @@
 ﻿using PSE;
+using PSE.CLR_PSE_Callbacks;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,38 +8,41 @@ using System.Runtime.InteropServices;
 
 namespace CLRDEV9
 {
-    class CLR_DEV9
+    internal class CLR_DEV9
     {
-        private static string LogFolderPath = "logs";
-        private static string IniFolderPath = "inis";
+        private static readonly CLR_PSE_Version_Plugin version = new CLR_PSE_Version_Plugin(0, 4, 0);
+#if DEBUG
+        private const string libraryName = "CLR DEV9 DEBUG";
+#else
+        private const string libraryName = "CLR DEV9";
+#endif
+
+        private static string logFolderPath = "logs";
+        private static string iniFolderPath = "inis";
         private static DEV9.DEV9_State dev9 = null;
         const bool doLog = true;
+
+        public static CLR_PSE_Version_Plugin Version { get { return version; } }
+        public static string Name { get { return libraryName; } }
+
         private static void LogInit()
         {
             if (doLog)
             {
                 //some legwork to setup the logger
-                Dictionary<ushort, string> logsources = new Dictionary<ushort, string>();
+                Dictionary<ushort, string> logSources = new Dictionary<ushort, string>();
                 IEnumerable<DEV9LogSources> sources = Enum.GetValues(typeof(DEV9LogSources)).Cast<DEV9LogSources>();
 
                 foreach (DEV9LogSources source in sources)
                 {
-                    logsources.Add((ushort)source, source.ToString());
+                    logSources.Add((ushort)source, source.ToString());
                 }
 
-                if (LogFolderPath.EndsWith(System.IO.Path.DirectorySeparatorChar.ToString()))
-                {
-                    CLR_PSE_PluginLog.Open(LogFolderPath.TrimEnd('/'), "CLR_DEV9.log", logsources);
-                }
-                else
-                {
-                    CLR_PSE_PluginLog.Open(LogFolderPath, "CLR_DEV9.log", logsources);
-                }
-                //TODO Set Log Options
+                CLR_PSE_PluginLog.Open(logFolderPath, "CLR_DEV9.log", "CLR_DEV9", logSources);
 #if DEBUG
                 //Info is defualt
                 CLR_PSE_PluginLog.SetFileLevel(SourceLevels.All);
-                CLR_PSE_PluginLog.SetSourceLogLevel(SourceLevels.All, (int)DEV9LogSources.ATA);
+                //CLR_PSE_PluginLog.SetSourceLogLevel(SourceLevels.All, (int)DEV9LogSources.ATA);
 #endif
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.Dev9);
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.SMAP);
@@ -68,12 +72,12 @@ namespace CLRDEV9
             try
             {
                 Log_Info("Open");
-                Config.LoadConf(IniFolderPath, "CLR_DEV9.ini");
+                Config.LoadConf(iniFolderPath, "CLR_DEV9.ini");
 
                 if (DEV9Header.config.Hdd.Contains("\\") || DEV9Header.config.Hdd.Contains("/"))
                     return dev9.Open(DEV9Header.config.Hdd);
                 else
-                    return dev9.Open(IniFolderPath + "\\" + DEV9Header.config.Hdd);
+                    return dev9.Open(iniFolderPath + "\\" + DEV9Header.config.Hdd);
             }
             catch (Exception e)
             {
@@ -117,7 +121,7 @@ namespace CLRDEV9
         {
             try
             {
-                IniFolderPath = dir;
+                iniFolderPath = dir;
             }
             catch (Exception e)
             {
@@ -129,7 +133,7 @@ namespace CLRDEV9
         {
             try
             {
-                LogFolderPath = dir;
+                logFolderPath = dir;
                 //LogInit();
             }
             catch (Exception e)
@@ -253,7 +257,7 @@ namespace CLRDEV9
             }
         }
 
-        public static void DEV9irqCallback(PSE.CLR_PSE_Callbacks.CLR_CyclesCallback callback)
+        public static void DEV9irqCallback(CLR_CyclesCallback callback)
         {
             try
             {
@@ -278,7 +282,7 @@ namespace CLRDEV9
                 throw e;
             }
         }
-        public static PSE.CLR_PSE_Callbacks.CLR_IRQHandler DEV9irqHandler()
+        public static CLR_IRQHandler DEV9irqHandler()
         {
             try
             {
@@ -307,7 +311,19 @@ namespace CLRDEV9
         {
             try
             {
-                return 0;
+                CLR_PSE_Version_PCSX2 minVer = new CLR_PSE_Version_PCSX2(0, 3, 1);
+                if (CLR_PSE.EmuName != "PCSX2")
+                {
+                    return 0; //Hope it works
+                }
+                if (CLR_PSE.EmuVersion >= minVer)
+                {
+                    return 0;
+                }
+                else
+                {
+                    return -1;
+                }
             }
             catch (Exception e)
             {
@@ -319,9 +335,9 @@ namespace CLRDEV9
         {
             try
             {
-                Config.LoadConf(IniFolderPath, "CLR_DEV9.ini");
-                Config.DoConfig(IniFolderPath, "CLR_DEV9.ini");
-                Config.SaveConf(IniFolderPath, "CLR_DEV9.ini");
+                Config.LoadConf(iniFolderPath, "CLR_DEV9.ini");
+                Config.DoConfig(iniFolderPath, "CLR_DEV9.ini");
+                Config.SaveConf(iniFolderPath, "CLR_DEV9.ini");
             }
             catch (Exception e)
             {

@@ -1,6 +1,7 @@
 ﻿using RGiesecke.DllExport;
 using System;
 using System.Runtime.InteropServices;
+using Plugin = CLRDEV9.CLR_DEV9;
 
 namespace PSE
 {
@@ -49,9 +50,9 @@ namespace PSE
         private static void nat_DEV9async(UInt32 cycles) { DEV9async(cycles); }
 
         [DllExport("DEV9irqCallback", CallingConvention = CallingConvention.StdCall)]
-        private static void nat_DEV9irqCallback(PSE.CLR_PSE_Callbacks.CLR_CyclesCallback callback) { DEV9irqCallback(callback); }
+        private static void nat_DEV9irqCallback(CLR_PSE_Callbacks.CLR_CyclesCallback callback) { DEV9irqCallback(callback); }
         [DllExport("DEV9irqHandler", CallingConvention = CallingConvention.StdCall)]
-        private static PSE.CLR_PSE_Callbacks.CLR_IRQHandler nat_DEV9irqHandler() { return DEV9irqHandler(); }
+        private static CLR_PSE_Callbacks.CLR_IRQHandler nat_DEV9irqHandler() { return DEV9irqHandler(); }
 
         [DllExport("DEV9freeze", CallingConvention = CallingConvention.StdCall)]
         private static Int32 nat_DEV9freeze(CLR_PSE_FreezeMode mode, ref CLR_PSE_FreezeData data) { return DEV9freeze(mode, ref data); }
@@ -65,52 +66,52 @@ namespace PSE
 
         public static Int32 DEV9init()
         {
-            return CLRDEV9.CLR_DEV9.Init();
+            return Plugin.Init();
         }
         public static Int32 DEV9open(IntPtr pDsp)
         {
-            return CLRDEV9.CLR_DEV9.Open(pDsp);
+            return Plugin.Open(pDsp);
         }
         public static void DEV9close()
         {
-            CLRDEV9.CLR_DEV9.Close();
+            Plugin.Close();
         }
         public static void DEV9shutdown()
         {
-            CLRDEV9.CLR_DEV9.Shutdown();
+            Plugin.Shutdown();
         }
         public static void DEV9setSettingsDir(string dir)
         {
-            CLRDEV9.CLR_DEV9.SetSettingsDir(dir);
+            Plugin.SetSettingsDir(dir);
         }
         public static void DEV9setLogDir(string dir)
         {
-            CLRDEV9.CLR_DEV9.SetLogDir(dir);
+            Plugin.SetLogDir(dir);
         }
 
         public static byte DEV9read8(UInt32 addr)
         {
-            return CLRDEV9.CLR_DEV9.DEV9read8(addr);
+            return Plugin.DEV9read8(addr);
         }
         public static UInt16 DEV9read16(UInt32 addr)
         {
-            return CLRDEV9.CLR_DEV9.DEV9read16(addr);
+            return Plugin.DEV9read16(addr);
         }
         public static UInt32 DEV9read32(UInt32 addr)
         {
-            return CLRDEV9.CLR_DEV9.DEV9read32(addr);
+            return Plugin.DEV9read32(addr);
         }
         public static void DEV9write8(UInt32 addr, byte value)
         {
-            CLRDEV9.CLR_DEV9.DEV9write8(addr, value);
+            Plugin.DEV9write8(addr, value);
         }
         public static void DEV9write16(UInt32 addr, UInt16 value)
         {
-            CLRDEV9.CLR_DEV9.DEV9write16(addr, value);
+            Plugin.DEV9write16(addr, value);
         }
         public static void DEV9write32(UInt32 addr, UInt32 value)
         {
-            CLRDEV9.CLR_DEV9.DEV9write32(addr, value);
+            Plugin.DEV9write32(addr, value);
         }
 
         private static Int32 DEV9dmaRead(Int32 channel, IntPtr data, UInt32 bytesLeft, ref UInt32 bytesProcessed)
@@ -130,29 +131,29 @@ namespace PSE
         {
             unsafe
             {
-                CLRDEV9.CLR_DEV9.DEV9readDMA8Mem((byte*)memPointer.ToPointer(), size);
+                Plugin.DEV9readDMA8Mem((byte*)memPointer.ToPointer(), size);
             }
         }
         public static void DEV9writeDMA8Mem(IntPtr memPointer, int size)
         {
             unsafe
             {
-                CLRDEV9.CLR_DEV9.DEV9writeDMA8Mem((byte*)memPointer.ToPointer(), size);
+                Plugin.DEV9writeDMA8Mem((byte*)memPointer.ToPointer(), size);
             }
         }
 
         public static void DEV9async(UInt32 cycles)
         {
-            CLRDEV9.CLR_DEV9.DEV9async(cycles);
+            Plugin.DEV9async(cycles);
         }
 
-        public static void DEV9irqCallback(PSE.CLR_PSE_Callbacks.CLR_CyclesCallback callback)
+        public static void DEV9irqCallback(CLR_PSE_Callbacks.CLR_CyclesCallback callback)
         {
-            CLRDEV9.CLR_DEV9.DEV9irqCallback(callback);
+            Plugin.DEV9irqCallback(callback);
         }
-        public static PSE.CLR_PSE_Callbacks.CLR_IRQHandler DEV9irqHandler()
+        public static CLR_PSE_Callbacks.CLR_IRQHandler DEV9irqHandler()
         {
-            return CLRDEV9.CLR_DEV9.DEV9irqHandler();
+            return Plugin.DEV9irqHandler();
         }
 
         public static Int32 DEV9freeze(CLR_PSE_FreezeMode mode, ref CLR_PSE_FreezeData data)
@@ -161,14 +162,14 @@ namespace PSE
         }
         public static void DEV9configure()
         {
-            CLRDEV9.CLR_DEV9.Configure();
+            Plugin.Configure();
         }
         public static void DEV9about() //(When is this called?)
         {
         }
         public static Int32 DEV9test()
         {
-            return CLRDEV9.CLR_DEV9.Test();
+            return Plugin.Test();
         }
     }
 }

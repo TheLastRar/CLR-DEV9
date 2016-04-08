@@ -5,7 +5,7 @@ using System.Text;
 
 namespace PSE
 {
-    public class CLR_PSE_NativeLogger : TextWriter
+    internal class CLR_PSE_NativeLogger : TextWriter
     {
         const UInt16 STDIN = 0;
         const UInt16 STDOUT = 1;
