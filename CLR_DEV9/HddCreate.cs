@@ -5,7 +5,7 @@ using System.Windows.Forms;
 
 namespace CLRDEV9
 {
-    public partial class HddCreate : Form
+    partial class HddCreate : Form
     {
         public string filePath;
         public int neededSize;

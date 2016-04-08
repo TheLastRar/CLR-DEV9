@@ -5,7 +5,7 @@ using System.Windows.Forms;
 
 namespace CLRDEV9
 {
-    public partial class ConfigFormHdd : Form
+    partial class ConfigFormHdd : Form
     {
         public ConfigFormHdd()
         {

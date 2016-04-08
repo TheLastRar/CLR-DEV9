@@ -9,7 +9,7 @@ using System.Windows.Forms;
 
 namespace CLRDEV9
 {
-    public partial class ConfigFormEth : Form
+    partial class ConfigFormEth : Form
     {
         List<string[]> winsockAdapters = null;
         List<string[]> tapAdapters = null;

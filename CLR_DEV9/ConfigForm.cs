@@ -3,7 +3,7 @@ using System.Windows.Forms;
 
 namespace CLRDEV9
 {
-    public partial class ConfigForm : Form
+    partial class ConfigForm : Form
     {
         public ConfigForm()
         {
