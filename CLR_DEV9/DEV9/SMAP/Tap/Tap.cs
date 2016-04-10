@@ -5,11 +5,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net.NetworkInformation;
-using System.Runtime.InteropServices;
 
 namespace CLRDEV9.DEV9.SMAP.Tap
 {
-    partial class TAPAdapter : DirectAdapter
+    sealed partial class TAPAdapter : DirectAdapter
     {
         SafeFileHandle htap = null;
         FileStream htapstream = null;
@@ -109,7 +108,7 @@ namespace CLRDEV9.DEV9.SMAP.Tap
 
             if (writen != pkt.size)
             {
-                Log_Error("incomplete Send " + Marshal.GetLastWin32Error());
+                Log_Error("incomplete Send");
                 return false;
             }
 

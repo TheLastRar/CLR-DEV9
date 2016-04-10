@@ -5,17 +5,19 @@ using System.Text;
 
 namespace PSE
 {
-    internal class CLR_PSE_NativeLogger : TextWriter
+    internal sealed class CLR_PSE_NativeLogger : TextWriter
     {
         const UInt16 STDIN = 0;
         const UInt16 STDOUT = 1;
         const UInt16 STDERR = 2;
 
-        [DllImport("ucrtbase.dll", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr __acrt_iob_func(UInt16 var);
-
-        [DllImport("ucrtbase.dll", CallingConvention = CallingConvention.Cdecl)]
-        private static extern Int32 __stdio_common_vfprintf(UInt64 _Options, IntPtr _Stream, byte[] _Format, IntPtr _Local, IntPtr[] _ArgList);
+        private class NativeMethods
+        {
+            [DllImport("ucrtbase.dll", CallingConvention = CallingConvention.Cdecl)]
+            public static extern IntPtr __acrt_iob_func(UInt16 var);
+            [DllImport("ucrtbase.dll", CallingConvention = CallingConvention.Cdecl)]
+            public static extern Int32 __stdio_common_vfprintf(UInt64 _Options, IntPtr _Stream, byte[] _Format, IntPtr _Local, IntPtr[] _ArgList);
+        }
 
         Encoding enc = new UTF8Encoding();
         byte[] fmtBytes;
@@ -52,7 +54,7 @@ namespace PSE
             try
             {
                 //write bytes to stdstream
-                __stdio_common_vfprintf(0, __acrt_iob_func(std), fmtBytes, IntPtr.Zero, new IntPtr[] { strHandle.AddrOfPinnedObject() });
+                NativeMethods.__stdio_common_vfprintf(0, NativeMethods.__acrt_iob_func(std), fmtBytes, IntPtr.Zero, new IntPtr[] { strHandle.AddrOfPinnedObject() });
             }
             finally
             {

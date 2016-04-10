@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Net;
 
 namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
 {
-    class UDP : IPPayload
+    sealed class UDP : IPPayload
     {
         public UInt16 SourcePort;
         public UInt16 DestinationPort;
-        protected UInt16 _Length;
+        private UInt16 _Length;
         public override UInt16 Length
         {
             get
@@ -19,8 +18,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
                 _Length = value;
             }
         }
-        protected UInt16 checksum;
-        protected int HeaderLength
+        private UInt16 checksum;
+        private int HeaderLength
         {
             get
             {

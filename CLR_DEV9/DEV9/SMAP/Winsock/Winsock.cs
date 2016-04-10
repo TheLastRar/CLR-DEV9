@@ -64,7 +64,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
         }
     }
 
-    class Winsock : NetAdapter
+    sealed class Winsock : NetAdapter
     {
         List<NetPacket> vRecBuffer = new List<NetPacket>(); //Non IP packets
         UDP_DHCPsession dhcpServer;

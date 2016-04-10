@@ -9,7 +9,7 @@ using System.Net.NetworkInformation;
 
 namespace CLRDEV9.DEV9.SMAP.WinPcap
 {
-    partial class WinPcapAdapter : DirectAdapter
+    sealed partial class WinPcapAdapter : DirectAdapter
     {
         IntPtr adHandle;
         bool switched = false;

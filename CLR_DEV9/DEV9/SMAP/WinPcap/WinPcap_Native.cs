@@ -13,32 +13,35 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
 
         #region 'PInvoke mess'
         const string PCAP_LIB_NAME = "wpcap.dll";
-        [DllImport("kernel32", SetLastError = true)]
-        static extern IntPtr LoadLibrary(string lpFileName);
-        [DllImport("kernel32", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool FreeLibrary(IntPtr hModule);
+        private class NativeMethods
+        {
+            [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
+            public static extern IntPtr LoadLibrary(string lpFileName);
+            [DllImport("kernel32", SetLastError = true)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            public static extern bool FreeLibrary(IntPtr hModule);
 
-        [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi)]
-        static extern string pcap_lib_version();
-        [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi)]
-        static extern IntPtr pcap_open_live(string device, int snaplen, int promisc, int to_ms, StringBuilder errbuf);
-        [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi)]
-        static extern int pcap_datalink(IntPtr p);
-        [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi)]
-        static extern IntPtr pcap_datalink_val_to_name(int dlt);
-        [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi)]
-        static extern int pcap_setnonblock(IntPtr p, int nonblock, StringBuilder errbuf);
-        [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi)]
-        static extern int pcap_next_ex(IntPtr p, out IntPtr ptr_pkt_header, out IntPtr ptr_pkt_data);
-        [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi)]
-        static extern int pcap_sendpacket(IntPtr p, byte[] buf, int size);
-        [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi)]
-        static extern int pcap_close(IntPtr p);
-        [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi)]
-        static extern int pcap_findalldevs(ref IntPtr alldevsp, StringBuilder errbuf);
-        [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi)]
-        static extern void pcap_freealldevs(IntPtr alldevsp);
+            [DllImport(PCAP_LIB_NAME)]
+            public static extern string pcap_lib_version();
+            [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
+            public static extern IntPtr pcap_open_live(string device, int snaplen, int promisc, int to_ms, StringBuilder errbuf);
+            [DllImport(PCAP_LIB_NAME)]
+            public static extern int pcap_datalink(IntPtr p);
+            [DllImport(PCAP_LIB_NAME)]
+            public static extern IntPtr pcap_datalink_val_to_name(int dlt);
+            [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
+            public static extern int pcap_setnonblock(IntPtr p, int nonblock, [MarshalAs(UnmanagedType.LPStr)] StringBuilder errbuf);
+            [DllImport(PCAP_LIB_NAME)]
+            public static extern int pcap_next_ex(IntPtr p, out IntPtr ptr_pkt_header, out IntPtr ptr_pkt_data);
+            [DllImport(PCAP_LIB_NAME)]
+            public static extern int pcap_sendpacket(IntPtr p, byte[] buf, int size);
+            [DllImport(PCAP_LIB_NAME)]
+            public static extern int pcap_close(IntPtr p);
+            [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
+            public static extern int pcap_findalldevs(ref IntPtr alldevsp, StringBuilder errbuf);
+            [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi)]
+            public static extern void pcap_freealldevs(IntPtr alldevsp);
+        }
         #endregion
 
         [StructLayout(LayoutKind.Sequential)]
@@ -218,12 +221,12 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
 
         static bool PcapAvailable()
         {
-            IntPtr hmod = LoadLibrary(PCAP_LIB_NAME);
+            IntPtr hmod = NativeMethods.LoadLibrary(PCAP_LIB_NAME);
             if (hmod == IntPtr.Zero)
             {
                 return false;
             }
-            FreeLibrary(hmod);
+            NativeMethods.FreeLibrary(hmod);
             return true;
         }
 
@@ -233,7 +236,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
 
             IntPtr rawPcapAdapter = IntPtr.Zero;
             StringBuilder errbuf = new StringBuilder(PCAP_ERRBUF_SIZE);
-            if (pcap_findalldevs(ref rawPcapAdapter, errbuf) == -1)
+            if (NativeMethods.pcap_findalldevs(ref rawPcapAdapter, errbuf) == -1)
             {
                 return null;
             }
@@ -245,13 +248,13 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
                     devices.Add(new string[] { d.description, d.name });
                 }
             }
-            catch (Exception e)
-            {
-                throw e;
-            }
+            //catch (Exception e)
+            //{
+            //    throw e;
+            //}
             finally
             {
-                pcap_freealldevs(rawPcapAdapter);
+                NativeMethods.pcap_freealldevs(rawPcapAdapter);
             }
             return devices;
         }
@@ -286,7 +289,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             int dlt;
             string dlt_name;
             //Set PS2 MAC Based on Adapter MAC
-            if ((adHandle = pcap_open_live(adapter,
+            if ((adHandle = NativeMethods.pcap_open_live(adapter,
                                             65536,
                                             switched ? 1 : 0,
                                             1,
@@ -297,8 +300,8 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
                 return false;
             }
 
-            dlt = pcap_datalink(adHandle);
-            dlt_name = Marshal.PtrToStringAnsi(pcap_datalink_val_to_name(dlt));
+            dlt = NativeMethods.pcap_datalink(adHandle);
+            dlt_name = Marshal.PtrToStringAnsi(NativeMethods.pcap_datalink_val_to_name(dlt));
 
             Log_Info("Device uses DLT " + dlt + ": " + dlt_name);
             switch (dlt)
@@ -310,7 +313,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
                     return false;
             }
 
-            if (pcap_setnonblock(adHandle, 1, errbuf) == -1)
+            if (NativeMethods.pcap_setnonblock(adHandle, 1, errbuf) == -1)
             {
                 Log_Error("WARNING: Error setting non-blocking mode. Default mode will be used");
             }
@@ -334,7 +337,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
                 return -1;
             }
 
-            if ((res = pcap_next_ex(adHandle, out headerPtr, out pkt_dataPtr)) > 0)
+            if ((res = NativeMethods.pcap_next_ex(adHandle, out headerPtr, out pkt_dataPtr)) > 0)
             {
                 header = (pcap_pkthdr)Marshal.PtrToStructure(headerPtr, typeof(pcap_pkthdr));
                 Marshal.Copy(pkt_dataPtr, data, 0, Math.Min((int)header.len, max_len));
@@ -354,7 +357,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             }
             Log_Verb(" * pcap io: Sending " + len + " byte packet");
 
-            if (pcap_sendpacket(adHandle, data, len) == 0)
+            if (NativeMethods.pcap_sendpacket(adHandle, data, len) == 0)
             {
                 return true;
             }
@@ -368,7 +371,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             //Close logs (not ported)
             if (adHandle != IntPtr.Zero)
             {
-                pcap_close(adHandle);
+                NativeMethods.pcap_close(adHandle);
                 adHandle = IntPtr.Zero;
             }
             pcapRunning = false;

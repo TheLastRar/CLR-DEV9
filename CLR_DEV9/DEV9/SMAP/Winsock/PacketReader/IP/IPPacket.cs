@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
 {
-    class IPPacket : EthernetPayload //IPv4 Only
+    sealed class IPPacket : EthernetPayload //IPv4 Only
     {
         const byte _verHi = 4 << 4; //Assume it is always 4
         int hLen; //convert this back to num of 32bit words
@@ -20,9 +20,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
                 _Length = value;
             }
         }
-        protected UInt16 id;
+        private UInt16 id;
         #region "Fragment"
-        protected UInt16 FragmentFlags;
+        private UInt16 FragmentFlags;
         public UInt16 FragmentOffset
         {
             get
@@ -50,9 +50,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             }
         }
         #endregion
-        protected byte ttl = 128;
+        private byte ttl = 128;
         public byte Protocol;
-        protected UInt16 checksum;
+        private UInt16 checksum;
         public byte[] SourceIP = new byte[4];
         public byte[] DestinationIP = new byte[4];
 

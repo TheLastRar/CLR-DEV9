@@ -92,7 +92,7 @@ namespace CLRDEV9
             catch (Exception e)
             {
                 CLR_PSE_PluginLog.MsgBoxError(e);
-                throw e;
+                throw;
             }
         }
         public static void Shutdown()
@@ -112,7 +112,7 @@ namespace CLRDEV9
             catch (Exception e)
             {
                 CLR_PSE_PluginLog.MsgBoxError(e);
-                throw e;
+                throw;
             }
         }
         public static void SetSettingsDir(string dir)
@@ -124,7 +124,7 @@ namespace CLRDEV9
             catch (Exception e)
             {
                 CLR_PSE_PluginLog.MsgBoxError(e);
-                throw e;
+                throw;
             }
         }
         public static void SetLogDir(string dir)
@@ -137,7 +137,7 @@ namespace CLRDEV9
             catch (Exception e)
             {
                 CLR_PSE_PluginLog.MsgBoxError(e);
-                throw e;
+                throw;
             }
         }
 
@@ -150,7 +150,7 @@ namespace CLRDEV9
             catch (Exception e)
             {
                 CLR_PSE_PluginLog.MsgBoxError(e);
-                throw e;
+                throw;
             }
         }
         public static ushort DEV9read16(uint addr)
@@ -162,7 +162,7 @@ namespace CLRDEV9
             catch (Exception e)
             {
                 CLR_PSE_PluginLog.MsgBoxError(e);
-                throw e;
+                throw;
             }
         }
         public static uint DEV9read32(uint addr)
@@ -174,7 +174,7 @@ namespace CLRDEV9
             catch (Exception e)
             {
                 CLR_PSE_PluginLog.MsgBoxError(e);
-                throw e;
+                throw;
             }
         }
 
@@ -187,7 +187,7 @@ namespace CLRDEV9
             catch (Exception e)
             {
                 CLR_PSE_PluginLog.MsgBoxError(e);
-                throw e;
+                throw;
             }
         }
         public static void DEV9write16(uint addr, ushort value)
@@ -199,7 +199,7 @@ namespace CLRDEV9
             catch (Exception e)
             {
                 CLR_PSE_PluginLog.MsgBoxError(e);
-                throw e;
+                throw;
             }
         }
         public static void DEV9write32(uint addr, uint value)
@@ -211,7 +211,7 @@ namespace CLRDEV9
             catch (Exception e)
             {
                 CLR_PSE_PluginLog.MsgBoxError(e);
-                throw e;
+                throw;
             }
         }
 
@@ -225,7 +225,7 @@ namespace CLRDEV9
             catch (Exception e)
             {
                 CLR_PSE_PluginLog.MsgBoxError(e);
-                throw e;
+                throw;
             }
         }
         unsafe public static void DEV9writeDMA8Mem(byte* memPointer, int size)
@@ -238,7 +238,7 @@ namespace CLRDEV9
             catch (Exception e)
             {
                 CLR_PSE_PluginLog.MsgBoxError(e);
-                throw e;
+                throw;
             }
         }
 
@@ -251,7 +251,7 @@ namespace CLRDEV9
             catch (Exception e)
             {
                 CLR_PSE_PluginLog.MsgBoxError(e);
-                throw e;
+                throw;
             }
         }
 
@@ -264,7 +264,7 @@ namespace CLRDEV9
             catch (Exception e)
             {
                 CLR_PSE_PluginLog.MsgBoxError(e);
-                throw e;
+                throw;
             }
         }
         static GCHandle irqHandle;
@@ -277,7 +277,7 @@ namespace CLRDEV9
             catch (Exception e)
             {
                 CLR_PSE_PluginLog.MsgBoxError(e);
-                throw e;
+                throw;
             }
         }
         public static CLR_IRQHandler DEV9irqHandler()
@@ -297,7 +297,7 @@ namespace CLRDEV9
             catch (Exception e)
             {
                 CLR_PSE_PluginLog.MsgBoxError(e);
-                throw e;
+                throw;
             }
         }
 
@@ -340,7 +340,7 @@ namespace CLRDEV9
             catch (Exception e)
             {
                 CLR_PSE_PluginLog.MsgBoxError(e);
-                throw e;
+                throw;
             }
         }
 

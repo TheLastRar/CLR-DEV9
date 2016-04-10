@@ -100,7 +100,9 @@ namespace CLRDEV9.DEV9.ATA
         //enum ide_dma_cmd dma_cmd;
         /* SMART */
         bool smartEnabled;
+#pragma warning disable CS0414 // The field 'ATA_State.smartAutosave' is assigned but its value is never used
         bool smartAutosave;
+#pragma warning restore CS0414 // The field 'ATA_State.smartAutosave' is assigned but its value is never used
         bool smartErrors = false;
         byte smartSelfTestCount;
         //uint8_t *smart_selftest_data;

@@ -76,12 +76,12 @@ namespace CLRDEV9
                 IndentChars = "\t"
             };
 
-            FileStream Writer = new FileStream(filePath, FileMode.Create, FileAccess.ReadWrite);
-            using (var writer = XmlWriter.Create(Writer, settings))
+            FileStream fileWriter = new FileStream(filePath, FileMode.Create, FileAccess.ReadWrite);
+            using (XmlWriter xmlWriter = XmlWriter.Create(fileWriter, settings))
             {
-                ConfSerializer.WriteObject(writer, DEV9Header.config);
+                ConfSerializer.WriteObject(xmlWriter, DEV9Header.config);
             }
-            Writer.Close();
+            fileWriter.Close();
         }
 
         public static void LoadConf(string iniFolderPath, string iniFileName)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace PSE
@@ -14,6 +15,7 @@ namespace PSE
     public struct CLR_PSE_FreezeData
     {
         public int size;
+        [SuppressMessage("Microsoft.Security", "CA2111:PointersShouldNotBeVisible")]
         public IntPtr data;
     }
 

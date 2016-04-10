@@ -20,19 +20,24 @@ namespace CLRDEV9.DEV9.SMAP.Tap
         }
 
         #region 'PInvoke mess'
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        static extern SafeFileHandle CreateFile(string lpFileName, UInt32 dwDesiredAccess, UInt32 dwShareMode, IntPtr pSecurityAttributes, UInt32 dwCreationDisposition, UInt32 dwFlagsAndAttributes, IntPtr hTemplateFile);
+
+        private class NativeMethods
+        {
+            [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+            public static extern SafeFileHandle CreateFile(string lpFileName, UInt32 dwDesiredAccess, UInt32 dwShareMode, IntPtr pSecurityAttributes, UInt32 dwCreationDisposition, UInt32 dwFlagsAndAttributes, IntPtr hTemplateFile);
+
+            [DllImport("kernel32.dll", SetLastError = true)]
+            public static extern bool DeviceIoControl(SafeFileHandle hDevice, UInt32 dwIoControlCode, ref Version lpInBuffer, UInt32 nInBufferSize, ref Version lpOutBuffer, UInt32 nOutBufferSize, ref UInt32 lpbytesReturned, IntPtr lpOverlapped);
+            [DllImport("kernel32.dll", SetLastError = true)]
+            public static extern bool DeviceIoControl(SafeFileHandle hDevice, UInt32 dwIoControlCode, ref bool lpInBuffer, UInt32 nInBufferSize, out bool lpOutBuffer, UInt32 nOutBufferSize, out UInt32 lpbytesReturned, IntPtr lpOverlapped);
+        }
+        //CreateFile
         const UInt32 GENERIC_READ = (0x80000000);
         const UInt32 GENERIC_WRITE = (0x40000000);
         const UInt32 OPEN_EXISTING = 3;
         const UInt32 FILE_ATTRIBUTE_SYSTEM = 0x00000004;
         const UInt32 FILE_FLAG_OVERLAPPED = 0x40000000;
-
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        static extern bool DeviceIoControl(SafeFileHandle hDevice, UInt32 dwIoControlCode, ref Version lpInBuffer, UInt32 nInBufferSize, ref Version lpOutBuffer, UInt32 nOutBufferSize, ref UInt32 lpbytesReturned, IntPtr lpOverlapped);
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        static extern bool DeviceIoControl(SafeFileHandle hDevice, UInt32 dwIoControlCode, ref bool lpInBuffer, UInt32 nInBufferSize, out bool lpOutBuffer, UInt32 nOutBufferSize, out UInt32 lpbytesReturned, IntPtr lpOverlapped);
-
+        //DeviceIoControl
         const UInt32 FILE_DEVICE_UNKNOWN = 0x00000022;
         const UInt32 FILE_ANY_ACCESS = 0;
         const UInt32 METHOD_BUFFERED = 0;
@@ -46,12 +51,13 @@ namespace CLRDEV9.DEV9.SMAP.Tap
             UInt32 len = 0;
 
             IntPtr nullPtr = IntPtr.Zero;
-            return DeviceIoControl(handle, TAP_IOCTL_SET_MEDIA_STATUS,
+            return NativeMethods.DeviceIoControl(handle, TAP_IOCTL_SET_MEDIA_STATUS,
                 ref status, (UInt32)Marshal.SizeOf(status),
                 out status, (UInt32)Marshal.SizeOf(status), out len, nullPtr);
         }
 
         //Open the TAP adapter and set the connection to enabled :)
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Interoperability", "CA1404:CallGetLastErrorImmediatelyAfterPInvoke")]
         SafeFileHandle TAPOpen(string deviceGUID)
         {
             string devicePath;
@@ -64,7 +70,7 @@ namespace CLRDEV9.DEV9.SMAP.Tap
             //          TAPSUFFIX);
             devicePath = USERMODEDEVICEDIR + deviceGUID + TAPSUFFIX;
 
-            SafeFileHandle handle = CreateFile(
+            SafeFileHandle handle = NativeMethods.CreateFile(
                 devicePath,
                 GENERIC_READ | GENERIC_WRITE,
                 0,
@@ -82,7 +88,7 @@ namespace CLRDEV9.DEV9.SMAP.Tap
             Version ver = new Version();
 
             IntPtr nullptr = IntPtr.Zero;
-            bool bret = DeviceIoControl(handle, TAP_IOCTL_GET_VERSION,
+            bool bret = NativeMethods.DeviceIoControl(handle, TAP_IOCTL_GET_VERSION,
                                    ref ver, (UInt32)Marshal.SizeOf(ver),
                                    ref ver, (UInt32)Marshal.SizeOf(ver), ref versionLen, nullptr);
             if (bret == false)
