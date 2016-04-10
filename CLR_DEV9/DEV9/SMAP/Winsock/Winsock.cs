@@ -119,7 +119,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 adapter = GetAdapterFromGuid(parDevice);
                 if (adapter == null)
                 {
-                    throw new NullReferenceException();
+                    //System.Windows.Forms.MessageBox.Show("Failed to GetAdapter");
+                    throw new NullReferenceException("Failed to GetAdapter");
                 }
                 adapterIP = (from ip in adapter.GetIPProperties().UnicastAddresses
                              where ip.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork
@@ -376,12 +377,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
 
             Key.PS2Port = udp.SourcePort; Key.SRVPort = udp.DestinationPort;
 
-            if (udp.DestinationPort == 67)
-            { //DHCP
-                return dhcpServer.Send(ipPkt.Payload);
-            }
             lock (sentry)
             {
+                if (udp.DestinationPort == 67)
+                { //DHCP
+                    return dhcpServer.Send(ipPkt.Payload);
+                }
+
                 int res = SendFromConnection(Key, ipPkt);
                 if (res == 1)
                     return true;
@@ -389,7 +391,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     return false;
                 else
                 {
-
                     Log_Verb("Creating New Connection with key " + Key);
                     Log_Info("Creating New UDP Connection with Dest Port " + udp.DestinationPort);
                     UDPSession s = new UDPSession(adapterIP, dhcpServer.Broadcast);

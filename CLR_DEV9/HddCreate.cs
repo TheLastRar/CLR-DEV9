@@ -61,10 +61,20 @@ namespace CLRDEV9
                 }
                 SetFileProgress(iMiB + 1);
             }
-
-            newImage.Flush();
-            newImage.Close();
-            newImage.Dispose();
+            try
+            {
+                newImage.Flush();
+            }
+            catch
+            {
+                SetError();
+                return;
+            }
+            finally
+            {
+                newImage.Close();
+                newImage.Dispose();
+            }
 
             compleated.Set();
             SetClose();

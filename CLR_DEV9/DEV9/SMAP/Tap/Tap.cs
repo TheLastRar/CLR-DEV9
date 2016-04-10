@@ -38,6 +38,11 @@ namespace CLRDEV9.DEV9.SMAP.Tap
                         hostAdapter = GetAdapterFromGuid(BridgeHelper.GetBridgeGUID());
                     }
                 }
+                if (hostAdapter == null)
+                {
+                    //System.Windows.Forms.MessageBox.Show("Failed to GetAdapter");
+                    throw new NullReferenceException("Failed to GetAdapter");
+                }
                 InitDHCP(hostAdapter);
             }
         }
@@ -144,7 +149,7 @@ namespace CLRDEV9.DEV9.SMAP.Tap
                     htapstream.Close();
                     htapstream = null;
                 }
-                if (htap == null)
+                if (htap != null)
                 {
                     TAPSetStatus(htap, false);
                     htap.Close();

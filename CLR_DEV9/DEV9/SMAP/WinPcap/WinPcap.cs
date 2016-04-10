@@ -29,6 +29,11 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
 
             List<string[]> pcapDevs = PcapListAdapters();
 
+            if (pcapDevs == null)
+            {
+                return null;
+            }
+
             List<string[]> names = new List<string[]>();
 
             foreach (string[] adapter in pcapDevs)
@@ -57,6 +62,11 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
                 {
                     hostAdapter = GetAdapterFromGuid(BridgeHelper.GetBridgeGUID());
                 }
+            }
+            if (hostAdapter == null)
+            {
+                //System.Windows.Forms.MessageBox.Show("Failed to GetAdapter");
+                throw new NullReferenceException("Failed to GetAdapter");
             }
             hostMAC = hostAdapter.GetPhysicalAddress().GetAddressBytes();
 
