@@ -51,7 +51,9 @@ namespace PSE
 
         public static int PS2EgetLibVersion2(CLR_PSE_Type type)
         {
-            return Plugin.Version.ToInt32(type);
+            Version pluginVer = typeof(Plugin).Assembly.GetName().Version;
+            CLR_PSE_Version_Plugin version = new CLR_PSE_Version_Plugin((byte)pluginVer.Major, (byte)pluginVer.Minor, (byte)pluginVer.Build);
+            return version.ToInt32(type);
         }
 
         //Only Used on Windows

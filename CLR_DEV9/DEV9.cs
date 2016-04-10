@@ -10,7 +10,6 @@ namespace CLRDEV9
 {
     internal class CLR_DEV9
     {
-        private static readonly CLR_PSE_Version_Plugin version = new CLR_PSE_Version_Plugin(0, 4, 0);
 #if DEBUG
         private const string libraryName = "CLR DEV9 DEBUG";
 #else
@@ -22,7 +21,6 @@ namespace CLRDEV9
         private static DEV9.DEV9_State dev9 = null;
         const bool doLog = true;
 
-        public static CLR_PSE_Version_Plugin Version { get { return version; } }
         public static string Name { get { return libraryName; } }
 
         private static void LogInit()
@@ -38,7 +36,7 @@ namespace CLRDEV9
                     logSources.Add((ushort)source, source.ToString());
                 }
 
-                CLR_PSE_PluginLog.Open(logFolderPath, "CLR_DEV9.log", "CLR_DEV9", logSources);
+                CLR_PSE_PluginLog.Open(logFolderPath, "DEV9_CLR.log", "CLR_DEV9", logSources);
 #if DEBUG
                 //Info is defualt
                 CLR_PSE_PluginLog.SetFileLevel(SourceLevels.All);

@@ -61,25 +61,18 @@ namespace PSE
         //Change filter of Listerners (effects all connected sources)
         public static void SetStdOutLevel(SourceLevels eLevel)
         {
-            stdOut.Filter = new EventTypeFilter(eLevel);
+            if (stdOut != null)
+                stdOut.Filter = new EventTypeFilter(eLevel);
         }
         public static void SetStdErrLevel(SourceLevels eLevel)
         {
-            stdErr.Filter = new EventTypeFilter(eLevel);
-            //consoleErrLevel = eLevel;
-            //if (defualtSource != null)
-            //{
-            //    defualtSource.Listeners["StdErr"].Filter = new EventTypeFilter(consoleErrLevel);
-            //}
+            if (stdErr != null)
+                stdErr.Filter = new EventTypeFilter(eLevel);
         }
         public static void SetFileLevel(SourceLevels eLevel)
         {
-            fileAll.Filter = new EventTypeFilter(eLevel);
-            //FileLevel = eLevel;
-            //if (defualtSource != null)
-            //{
-            //    defualtSource.Listeners["File"].Filter = new EventTypeFilter(FileLevel);
-            //}
+            if (fileAll != null)
+                fileAll.Filter = new EventTypeFilter(eLevel);
         }
 
         //Add Source to sources, only used in Open()
