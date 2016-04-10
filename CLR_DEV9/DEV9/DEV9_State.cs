@@ -84,14 +84,7 @@ namespace CLRDEV9.DEV9
         {
             //DEV9_LOG("DEV9read8");
             byte hard;
-            //if (addr >= DEV9Header.ATA_DEV9_HDD_BASE && addr < DEV9Header.ATA_DEV9_HDD_END)
-            //{
-            //    //#ifdef ENABLE_ATA
-            //    //        return ata_read<1>(addr);
-            //    //#else
-            //    return 0; //ATA only has 16bit regs
-            //    //#endif
-            //}
+            //ATA does not support 8bit read
             if (addr >= DEV9Header.SMAP_REGBASE && addr < DEV9Header.FLASH_REGBASE)
             {
                 //smap
@@ -235,14 +228,7 @@ namespace CLRDEV9.DEV9
         {
             //DEV9_LOG("DEV9read32");
             UInt32 hard;
-            //if (addr >= DEV9Header.ATA_DEV9_HDD_BASE && addr < DEV9Header.ATA_DEV9_HDD_END)
-            //{
-            //    //#ifdef ENABLE_ATA
-            //    //        return ata_read<4>(addr);
-            //    //#else
-            //    return 0;
-            //    //#endif
-            //}
+            //ATA does not support 32bit read
             if (addr >= DEV9Header.SMAP_REGBASE && addr < DEV9Header.FLASH_REGBASE)
             {
                 //smap
@@ -268,14 +254,7 @@ namespace CLRDEV9.DEV9
 
         public void DEV9_Write8(uint addr, byte value)
         {
-            //Error.WriteLine("DEV9write8");
-            //if (addr >= DEV9Header.ATA_DEV9_HDD_BASE && addr < DEV9Header.ATA_DEV9_HDD_END)
-            //{
-            //    //#ifdef ENABLE_ATA
-            //    //        ata_write<1>(addr,value);
-            //    //#endif
-            //    return;
-            //}
+            //ATA does not support 8bit write
             if (addr >= DEV9Header.SMAP_REGBASE && addr < DEV9Header.FLASH_REGBASE)
             {
                 //smap
@@ -298,7 +277,6 @@ namespace CLRDEV9.DEV9
 
                 case DEV9Header.SPD_R_PIO_DIR:
                     //DEV9.DEV9_LOG("SPD_R_PIO_DIR 8bit write " + value.ToString("X"));
-
                     if ((value & 0xc0) != 0xc0)
                         return;
 
@@ -452,9 +430,7 @@ namespace CLRDEV9.DEV9
             //Error.WriteLine("DEV9write32");
             if (addr >= DEV9Header.ATA_DEV9_HDD_BASE && addr < DEV9Header.ATA_DEV9_HDD_END)
             {
-                //#ifdef ENABLE_ATA
-                //        ata_write<4>(addr,value);
-                //#endif
+                //ATA does not support 32bit write
                 return;
             }
             if (addr >= DEV9Header.SMAP_REGBASE && addr < DEV9Header.FLASH_REGBASE)

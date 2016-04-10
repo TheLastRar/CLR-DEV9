@@ -2,6 +2,7 @@
 
 namespace CLRDEV9.DEV9.ATA
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1001:TypesThatOwnDisposableFieldsShouldBeDisposable")]
     partial class ATA_State
     {
         //cache
