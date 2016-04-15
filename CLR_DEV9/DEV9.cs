@@ -41,6 +41,7 @@ namespace CLRDEV9
                 //Info is defualt
                 CLR_PSE_PluginLog.SetFileLevel(SourceLevels.All);
                 //CLR_PSE_PluginLog.SetSourceLogLevel(SourceLevels.All, (int)DEV9LogSources.ATA);
+                CLR_PSE_PluginLog.SetSourceLogLevel(SourceLevels.All, (int)DEV9LogSources.TCPSession);
 #endif
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.Dev9);
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.SMAP);

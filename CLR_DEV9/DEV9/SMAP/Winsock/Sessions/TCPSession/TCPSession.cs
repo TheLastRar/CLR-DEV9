@@ -141,6 +141,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         private TCP CreateBasePacket(byte[] data = null)
         {
+            Log_Verb("Creating Base Packet");
             if (data == null) { data = new byte[0]; }
             TCP ret = new TCP(data);
 
@@ -149,8 +150,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             ret.DestinationPort = srcPort;
 
             ret.SequenceNumber = GetMyNumber();
-
+            Log_Verb("With MySeq: " + ret.SequenceNumber);
             ret.AcknowledgementNumber = expectedSequenceNumber;
+            Log_Verb("With MyAck: " + ret.AcknowledgementNumber);
 
             //ret.WindowSize = 16 * 1024;
             ret.WindowSize = (UInt16)(2 * maxSegmentSize); //default 2920B (2.85MB)

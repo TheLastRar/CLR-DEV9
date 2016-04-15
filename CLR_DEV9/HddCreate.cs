@@ -52,29 +52,29 @@ namespace CLRDEV9
                 return;
             }
 
-
-            for (int iMiB = 0; iMiB < reqSizeMiB; iMiB++)
-            {
-                for (int i4kb = 0; i4kb < 256; i4kb++)
-                {
-                    newImage.Write(buff, 0, buff.Length);
-                }
-                SetFileProgress(iMiB + 1);
-            }
             try
             {
+                for (int iMiB = 0; iMiB < reqSizeMiB; iMiB++)
+                {
+                    for (int i4kb = 0; i4kb < 256; i4kb++)
+                    {
+                        newImage.Write(buff, 0, buff.Length);
+                    }
+                    SetFileProgress(iMiB + 1);
+                }
                 newImage.Flush();
             }
             catch
             {
-                SetError();
-                return;
-            }
-            finally
-            {
                 newImage.Close();
                 newImage.Dispose();
+                SetError();
+                File.Delete(filePath);
+                return;
             }
+
+            newImage.Close();
+            newImage.Dispose();
 
             compleated.Set();
             SetClose();

@@ -261,6 +261,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             if (Result == NumCheckResult.Bad) { Log_Error("Bad TCP Numbers Received"); throw new Exception("Bad TCP Numbers Received"); }
             if (tcp.GetPayload().Length != 0)
             {
+                Log_Verb("[PS2] Sending :" + tcp.GetPayload().Length + " bytes");
                 receivedPS2SequenceNumbers.RemoveAt(0);
                 receivedPS2SequenceNumbers.Add(expectedSequenceNumber);
                 //Send the Data
@@ -284,6 +285,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 //Done send
 
                 //ACK data
+                Log_Verb("[SRV] ACK Data: " + expectedSequenceNumber);
                 TCP ret = CreateBasePacket();
                 ret.ACK = true;
 
@@ -367,7 +369,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
             if (tcp.AcknowledgementNumber != seqNum)
             {
-                Log_Verb("Outdated Acknowledgement Number, Got " + tcp.AcknowledgementNumber + " Expected " + seqNum);
+                Log_Verb("[PS2]Sent Outdated Acknowledgement Number, Got " + tcp.AcknowledgementNumber + " Expected " + seqNum);
                 if (tcp.AcknowledgementNumber != oldSeqNum)
                 {
                     Log_Error("Unexpected Acknowledgement Number did not Match Old Number of " + oldSeqNum);
@@ -376,6 +378,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             }
             else
             {
+                Log_Verb("[PS2]CurrSeqNumber Acknowleged By PS2");
                 myNumberACKed.Set();
             }
 
@@ -383,18 +386,18 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             {
                 if (tcp.GetPayload().Length == 0)
                 {
-                    Log_Verb("Unexpected Sequence Number From ACK Packet, Got " + tcp.SequenceNumber + " Expected " + expectedSequenceNumber);
+                    Log_Verb("[PS2]Sent Unexpected Sequence Number From ACK Packet, Got " + tcp.SequenceNumber + " Expected " + expectedSequenceNumber);
                 }
                 else
                 {
                     if (receivedPS2SequenceNumbers.Contains(tcp.SequenceNumber))
                     {
-                        Log_Error("Got an Old Seq Number on an Data packet");
+                        Log_Error("[PS2]Sent an Old Seq Number on an Data packet");
                         return NumCheckResult.GotOldData;
                     }
                     else
                     {
-                        Log_Error("Unexpected Sequence Number From Data Packet, Got " + tcp.SequenceNumber + " Expected " + expectedSequenceNumber);
+                        Log_Error("[PS2]Sent Unexpected Sequence Number With Data Packet, Got " + tcp.SequenceNumber + " Expected " + expectedSequenceNumber);
                         throw new Exception("Unexpected Sequence Number From Data Packet, Got " + tcp.SequenceNumber + " Expected " + expectedSequenceNumber);
                     }
                 }

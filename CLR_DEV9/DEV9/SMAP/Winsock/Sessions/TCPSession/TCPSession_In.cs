@@ -36,7 +36,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 byte[] recived = new byte[avaData];
                 Log_Verb("Received " + avaData);
                 netStream.Read(recived, 0, avaData);
-
+                Log_Verb("[SRV]Sending " + avaData + " bytes");
                 TCP iRet = CreateBasePacket(recived);
                 IncrementMyNumber((uint)avaData);
 
@@ -44,6 +44,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 iRet.PSH = true;
 
                 myNumberACKed.Reset();
+                Log_Verb("myNumberACKed Reset");
                 return iRet;
             }
 
