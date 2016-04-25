@@ -123,7 +123,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     throw new NullReferenceException("Failed to GetAdapter");
                 }
                 adapterIP = (from ip in adapter.GetIPProperties().UnicastAddresses
-                             where ip.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork
+                             where ip.Address.AddressFamily == AddressFamily.InterNetwork
                              select ip.Address).SingleOrDefault();
             }
 
@@ -222,7 +222,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             {
                 case (int)EtherFrameType.NULL:
                     //Adapter Reset
-                    //TODO close all open connections
+
+                    Log_Verb("Reset " + connections.Count + " Connections");
+                    foreach (ConnectionKey key in connections.Keys)
+                    {
+                        connections[key].Reset();
+                    }
+
                     break;
                 case (int)EtherFrameType.IPv4:
                     result = SendIP((IPPacket)ef.Payload);
