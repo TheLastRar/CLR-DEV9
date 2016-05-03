@@ -36,24 +36,28 @@ namespace CLRDEV9
             apiIndex.Add(Config.EthAPI.Winsock, curIndex);
             cbAPI.Items.Add("Sockets (Winsock)");
             curIndex++;
-            //Tap
-            tapAdapters = TAPAdapter.GetAdapters();
-            if (tapAdapters != null)
+            //Windows Only
+            if (PSE.CLR_PSE_Utils.IsWindows())
             {
-                cbAPI.Items.Add("Tap");
-                apiIndex.Add(Config.EthAPI.Tap, curIndex);
-                curIndex++;
-            }
-            //WinPcap
-            winPcapAdapters = WinPcapAdapter.GetAdapters();
-            if (winPcapAdapters != null)
-            {
-                cbAPI.Items.Add("WinPcap Bridged");
-                apiIndex.Add(Config.EthAPI.WinPcapBridged, curIndex);
-                curIndex++;
-                cbAPI.Items.Add("WinPcap Switched (Promiscuous)");
-                apiIndex.Add(Config.EthAPI.WinPcapSwitched, curIndex);
-                curIndex++;
+                //Tap
+                tapAdapters = TAPAdapter.GetAdapters();
+                if (tapAdapters != null)
+                {
+                    cbAPI.Items.Add("Tap");
+                    apiIndex.Add(Config.EthAPI.Tap, curIndex);
+                    curIndex++;
+                }
+                //WinPcap
+                winPcapAdapters = WinPcapAdapter.GetAdapters();
+                if (winPcapAdapters != null)
+                {
+                    cbAPI.Items.Add("WinPcap Bridged");
+                    apiIndex.Add(Config.EthAPI.WinPcapBridged, curIndex);
+                    curIndex++;
+                    cbAPI.Items.Add("WinPcap Switched (Promiscuous)");
+                    apiIndex.Add(Config.EthAPI.WinPcapSwitched, curIndex);
+                    curIndex++;
+                }
             }
 
             cbAPI.SelectedIndex = apiIndex[DEV9Header.config.EthType] - 1;

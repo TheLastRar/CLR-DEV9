@@ -291,7 +291,7 @@ namespace CLRDEV9
                     irqHandle.Free(); //allow garbage collection
                 }
                 Log_Info("Get IRQ");
-                PSE.CLR_PSE_Callbacks.CLR_IRQHandler fp = new PSE.CLR_PSE_Callbacks.CLR_IRQHandler(_DEV9irqHandler);
+                CLR_IRQHandler fp = new CLR_IRQHandler(_DEV9irqHandler);
                 irqHandle = GCHandle.Alloc(fp); //prevent GC
                 return fp;
             }
