@@ -95,7 +95,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             HandleBroadcast(PS2IP, NetMask);
             #region ICS
             //Special case for ICS
-            if (Gateway == null)
+            if (Gateway == null & PSE.CLR_PSE_Utils.IsWindows())
             {
                 //Retrive ICS IP from Regs
                 byte[] icsIP;
