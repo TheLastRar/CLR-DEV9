@@ -444,7 +444,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         }
         public override void Reset()
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public override bool isOpen() { return true; }
