@@ -84,7 +84,13 @@ namespace CLRDEV9.DEV9
         {
             //DEV9_LOG("DEV9read8");
             byte hard;
-            //ATA does not support 8bit read
+            //ATA
+            if (addr >= DEV9Header.ATA_DEV9_HDD_BASE && addr < DEV9Header.ATA_DEV9_HDD_END)
+            {
+                Log_Error("ATA does not support 8bit reads");
+                return 0;
+            }
+            //SMAP
             if (addr >= DEV9Header.SMAP_REGBASE && addr < DEV9Header.FLASH_REGBASE)
             {
                 //smap
@@ -92,7 +98,12 @@ namespace CLRDEV9.DEV9
                 byte ret = smap.SMAP_Read8(addr);
                 return ret;
             }
-
+            //FLASH
+            if ((addr >= DEV9Header.FLASH_REGBASE) && (addr < (DEV9Header.FLASH_REGBASE + DEV9Header.FLASH_REGSIZE)))
+            {
+                return (byte)flash.FLASHread(addr, 1);
+            }
+            //Other
             switch (addr)
             {
                 case DEV9Header.SPD_R_PIO_DATA:
@@ -129,11 +140,6 @@ namespace CLRDEV9.DEV9
                     hard = 0x32; // expansion bay
                     return hard;
                 default:
-                    if ((addr >= DEV9Header.FLASH_REGBASE) && (addr < (DEV9Header.FLASH_REGBASE + DEV9Header.FLASH_REGSIZE)))
-                    {
-                        return (byte)flash.FLASHread(addr, 1);
-                    }
-
                     hard = Dev9Ru8((int)addr);
                     Log_Error("*Unknown 8bit read at address " + addr.ToString("X") + " value " + hard.ToString("X"));
                     return hard;
@@ -148,18 +154,26 @@ namespace CLRDEV9.DEV9
         {
             //DEV9_LOG("DEV9read16");
             UInt16 hard;
+            //ATA
             if (addr >= DEV9Header.ATA_DEV9_HDD_BASE && addr < DEV9Header.ATA_DEV9_HDD_END)
             {
                 //ata
                 return ata.ATAread16(addr);
             }
+            //SMAP
             if (addr >= DEV9Header.SMAP_REGBASE && addr < DEV9Header.FLASH_REGBASE)
             {
                 //smap
                 //DEV9_LOG("DEV9read16(SMAP)");
                 return smap.SMAP_Read16(addr);
             }
-
+            //FLASH
+            if ((addr >= DEV9Header.FLASH_REGBASE) && (addr < (DEV9Header.FLASH_REGBASE + DEV9Header.FLASH_REGSIZE)))
+            {
+                //DEV9_LOG("DEV9read16(FLASH)");
+                return (UInt16)flash.FLASHread(addr, 2);
+            }
+            //OTHER
             switch (addr)
             {
                 case DEV9Header.SPD_R_INTR_STAT:
@@ -208,11 +222,6 @@ namespace CLRDEV9.DEV9
                 case DEV9Header.SPD_R_IF_CTRL:
                     return Dev9Ru16((int)DEV9Header.SPD_R_IF_CTRL);
                 default:
-                    if ((addr >= DEV9Header.FLASH_REGBASE) && (addr < (DEV9Header.FLASH_REGBASE + DEV9Header.FLASH_REGSIZE)))
-                    {
-                        //DEV9_LOG("DEV9read16(FLASH)");
-                        return (UInt16)flash.FLASHread(addr, 2);
-                    }
                     // DEV9_LOG("DEV9read16");
                     hard = Dev9Ru16((int)addr);
                     Log_Error("*Unknown 16bit read at address " + addr.ToString("x") + " value " + hard.ToString("x"));
@@ -228,39 +237,54 @@ namespace CLRDEV9.DEV9
         {
             //DEV9_LOG("DEV9read32");
             UInt32 hard;
-            //ATA does not support 32bit read
+            //ATA
+            if (addr >= DEV9Header.ATA_DEV9_HDD_BASE && addr < DEV9Header.ATA_DEV9_HDD_END)
+            {
+                Log_Error("ATA does not support 32bit reads");
+                return 0;
+            }
+            //SMAP
             if (addr >= DEV9Header.SMAP_REGBASE && addr < DEV9Header.FLASH_REGBASE)
             {
-                //smap
                 return smap.SMAP_Read32(addr);
             }
+            //FLASH
+            if ((addr >= DEV9Header.FLASH_REGBASE) && (addr < (DEV9Header.FLASH_REGBASE + DEV9Header.FLASH_REGSIZE)))
+            {
+                return (UInt32)flash.FLASHread(addr, 4);
+            }
+            //OTHER
             switch (addr)
             {
 
                 default:
-                    if ((addr >= DEV9Header.FLASH_REGBASE) && (addr < (DEV9Header.FLASH_REGBASE + DEV9Header.FLASH_REGSIZE)))
-                    {
-                        return (UInt32)flash.FLASHread(addr, 4);
-                    }
-
                     hard = Dev9Ru32((int)addr);
                     Log_Error("*Unknown 32bit read at address " + addr.ToString("x") + " value " + hard.ToString("X"));
                     return hard;
             }
-
-            //PluginLog.LogWriteLine("*Known 32bit read at address " + addr.ToString("x") + " value " + hard.ToString("x"));
-            //return hard;
         }
 
         public void DEV9_Write8(uint addr, byte value)
         {
-            //ATA does not support 8bit write
+            //ATA
+            if (addr >= DEV9Header.ATA_DEV9_HDD_BASE && addr < DEV9Header.ATA_DEV9_HDD_END)
+            {
+                Log_Error("ATA does not support 8bit writes");
+                return;
+            }
+            //SMAP
             if (addr >= DEV9Header.SMAP_REGBASE && addr < DEV9Header.FLASH_REGBASE)
             {
-                //smap
                 smap.SMAP_Write8(addr, value);
                 return;
             }
+            //FLASH
+            if ((addr >= DEV9Header.FLASH_REGBASE) && (addr < (DEV9Header.FLASH_REGBASE + DEV9Header.FLASH_REGSIZE)))
+            {
+                flash.FLASHwrite(addr, (UInt32)value, 1);
+                return;
+            }
+            //OTHER
             switch (addr)
             {
                 case 0x10000020: //irqcause?
@@ -272,6 +296,7 @@ namespace CLRDEV9.DEV9
                     irqCause = value;
                     return;
                 case DEV9Header.SPD_R_INTR_MASK:
+                    Log_Error("SPD_R_INTR_MASK	, WTFH");
                     //emu_printf("SPD_R_INTR_MASK8	, WTFH ?\n");
                     break;
 
@@ -344,12 +369,6 @@ namespace CLRDEV9.DEV9
                     return;
 
                 default:
-                    if ((addr >= DEV9Header.FLASH_REGBASE) && (addr < (DEV9Header.FLASH_REGBASE + DEV9Header.FLASH_REGSIZE)))
-                    {
-                        flash.FLASHwrite(addr, (UInt32)value, 1);
-                        return;
-                    }
-
                     Dev9Wu8((int)addr, value);
                     Log_Error("*Unknown 8bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
                     return;
@@ -362,17 +381,25 @@ namespace CLRDEV9.DEV9
         public void DEV9_Write16(uint addr, ushort value)
         {
             //Error.WriteLine("DEV9write16");
+            //ATA
             if (addr >= DEV9Header.ATA_DEV9_HDD_BASE && addr < DEV9Header.ATA_DEV9_HDD_END)
             {
                 ata.ATAwrite16(addr, value);
                 //Error.WriteLine("DEV9write16 ATA");
                 return;
             }
+            //SMAP
             if (addr >= DEV9Header.SMAP_REGBASE && addr < DEV9Header.FLASH_REGBASE)
             {
-                //smap
                 //Error.WriteLine("DEV9write16 SMAP");
                 smap.SMAP_Write16(addr, value);
+                return;
+            }
+            //FLASH
+            if ((addr >= DEV9Header.FLASH_REGBASE) && (addr < (DEV9Header.FLASH_REGBASE + DEV9Header.FLASH_REGSIZE)))
+            {
+                //Log_Verb("DEV9write16 flash");
+                flash.FLASHwrite(addr, (UInt32)value, 2);
                 return;
             }
             switch (addr)
@@ -382,9 +409,10 @@ namespace CLRDEV9.DEV9
                     Dev9Wu16((int)DEV9Header.SPD_R_DMA_CTRL, value);
                     return;
                 case DEV9Header.SPD_R_INTR_MASK:
+                    Log_Verb("SPD_R_INTR_MASK16=0x" + value.ToString("X") + " , checking for masked/unmasked interrupts");
                     if ((Dev9Ru16((int)DEV9Header.SPD_R_INTR_MASK) != value) && (((Dev9Ru16((int)DEV9Header.SPD_R_INTR_MASK) | value) & irqCause) != 0))
                     {
-                        Log_Verb("SPD_R_INTR_MASK16=0x" + value.ToString("X") + " , checking for masked/unmasked interrupts");
+                        Log_Verb("SPD_R_INTR_MASK16 firing unmasked interrupts");
                         DEV9Header.DEV9irq(1);
                     }
                     Dev9Wu16((int)DEV9Header.SPD_R_INTR_MASK, value);
@@ -410,13 +438,6 @@ namespace CLRDEV9.DEV9
                     Dev9Wu16((int)DEV9Header.SPD_R_UDMA_MODE, value);
                     break;
                 default:
-
-                    if ((addr >= DEV9Header.FLASH_REGBASE) && (addr < (DEV9Header.FLASH_REGBASE + DEV9Header.FLASH_REGSIZE)))
-                    {
-                        Log_Verb("DEV9write16 flash");
-                        flash.FLASHwrite(addr, (UInt32)value, 2);
-                        return;
-                    }
                     Dev9Wu16((int)addr, value);
                     Log_Error("*Unknown 16bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
                     return;
@@ -428,15 +449,23 @@ namespace CLRDEV9.DEV9
         public void DEV9_Write32(uint addr, uint value)
         {
             //Error.WriteLine("DEV9write32");
+            //ATA
             if (addr >= DEV9Header.ATA_DEV9_HDD_BASE && addr < DEV9Header.ATA_DEV9_HDD_END)
             {
-                //ATA does not support 32bit write
+                Log_Error("ATA does not support 32bit writes");
                 return;
             }
+            //SMAP
             if (addr >= DEV9Header.SMAP_REGBASE && addr < DEV9Header.FLASH_REGBASE)
             {
                 //smap
                 smap.SMAP_Write32(addr, value);
+                return;
+            }
+            //FLASH
+            if ((addr >= DEV9Header.FLASH_REGBASE) && (addr < (DEV9Header.FLASH_REGBASE + DEV9Header.FLASH_REGSIZE)))
+            {
+                flash.FLASHwrite(addr, (UInt32)value, 4);
                 return;
             }
             switch (addr)
@@ -445,12 +474,6 @@ namespace CLRDEV9.DEV9
                     Log_Error("SPD_R_INTR_MASK	, WTFH ?\n");
                     break;
                 default:
-                    if ((addr >= DEV9Header.FLASH_REGBASE) && (addr < (DEV9Header.FLASH_REGBASE + DEV9Header.FLASH_REGSIZE)))
-                    {
-                        flash.FLASHwrite(addr, (UInt32)value, 4);
-                        return;
-                    }
-
                     Dev9Wu32((int)addr, value);
                     Log_Error("*Unknown 32bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
                     return;
