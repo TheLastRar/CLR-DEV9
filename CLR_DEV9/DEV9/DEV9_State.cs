@@ -82,7 +82,7 @@ namespace CLRDEV9.DEV9
 
         public byte DEV9read8(uint addr)
         {
-            //DEV9_LOG("DEV9read8");
+            Log_Verb("DEV9read8 @ " + addr.ToString("X"));
             byte hard;
             //ATA
             if (addr >= DEV9Header.ATA_DEV9_HDD_BASE && addr < DEV9Header.ATA_DEV9_HDD_END)
@@ -133,26 +133,23 @@ namespace CLRDEV9.DEV9
                         else hard = 0;
                     }
                     else hard = 0;
-                    Log_Verb("SPD_R_PIO_DATA read " + hard.ToString("X"));
+                    Log_Verb("SPD_R_PIO_DATA 8bit read " + hard.ToString("X"));
                     return hard;
 
                 case DEV9Header.DEV9_R_REV:
                     hard = 0x32; // expansion bay
+                    Log_Verb("DEV9_R_REV 8bit read " + hard.ToString("X"));
                     return hard;
                 default:
                     hard = Dev9Ru8((int)addr);
                     Log_Error("*Unknown 8bit read at address " + addr.ToString("X") + " value " + hard.ToString("X"));
                     return hard;
             }
-
-            //DEV9_LOG("DEV9read8");
-            //CLR_DEV9.DEV9_LOG("*Known 8bit read at address " + addr.ToString("X") + " value " + hard.ToString("X"));
-            //return hard;
         }
 
         public ushort DEV9_Read16(uint addr)
         {
-            //DEV9_LOG("DEV9read16");
+            Log_Verb("DEV9read16 @ " + addr.ToString("X"));
             UInt16 hard;
             //ATA
             if (addr >= DEV9Header.ATA_DEV9_HDD_BASE && addr < DEV9Header.ATA_DEV9_HDD_END)
@@ -178,21 +175,23 @@ namespace CLRDEV9.DEV9
             {
                 case DEV9Header.SPD_R_INTR_STAT:
                     //DEV9_LOG("DEV9read16");
-                    Log_Verb("SPD_R_INTR_STAT read " + irqCause.ToString("X"));
+                    Log_Verb("SPD_R_INTR_STAT 16bit read " + irqCause.ToString("X"));
                     return (UInt16)irqCause;
 
                 case DEV9Header.SPD_R_INTR_MASK:
-                    return Dev9Ru16((int)DEV9Header.SPD_R_INTR_MASK);
+                    hard = Dev9Ru16((int)DEV9Header.SPD_R_INTR_MASK);
+                    Log_Verb("SPD_R_INTR_MASK 16bit read " + hard.ToString("X"));
+                    return hard;
 
                 case DEV9Header.DEV9_R_REV:
                     //hard = 0x0030; // expansion bay
                     hard = 0x0032; // expansion bay
-                    //DEV9_LOG("DEV9_R_REV 16bit read " + hard.ToString("X"));
+                    Log_Verb("DEV9_R_REV 16bit read " + hard.ToString("X"));
                     return hard;
 
                 case DEV9Header.SPD_R_REV_1:
                     hard = 0x0011;
-                    //DEV9_LOG("STD_R_REV_1 16bit read " + hard.ToString("X"));
+                    Log_Verb("STD_R_REV_1 16bit read " + hard.ToString("X"));
                     return hard;
 
                 case DEV9Header.SPD_R_REV_3:
@@ -209,17 +208,24 @@ namespace CLRDEV9.DEV9
                         hard |= 0x1;
                     }
                     hard |= 0x20;//flash
+                    Log_Verb("SPD_R_REV_3 16bit read " + hard.ToString("X"));
                     return hard;
 
                 case DEV9Header.SPD_R_0e:
                     hard = 0x0002;
+                    Log_Verb("SPD_R_0e 16bit read " + hard.ToString("X"));
                     return hard;
                 case DEV9Header.SPD_R_XFR_CTRL: //??
-                    Log_Verb("SPD_R_XFR_CTRL=0x" + Dev9Ru16((int)DEV9Header.SPD_R_XFR_CTRL).ToString("X"));
-                    return Dev9Ru16((int)DEV9Header.SPD_R_XFR_CTRL);
+                    hard = Dev9Ru16((int)DEV9Header.SPD_R_XFR_CTRL);
+                    Log_Verb("SPD_R_XFR_CTRL 16bit read " + hard.ToString("X"));
+                    return hard;
                 case DEV9Header.SPD_R_38:
-                    return Dev9Ru16((int)DEV9Header.SPD_R_38);
+                    hard = Dev9Ru16((int)DEV9Header.SPD_R_38);
+                    Log_Verb("SPD_R_38 16bit read " + hard.ToString("X"));
+                    return hard;
                 case DEV9Header.SPD_R_IF_CTRL:
+                    hard = Dev9Ru16((int)DEV9Header.SPD_R_IF_CTRL);
+                    Log_Verb("SPD_R_IF_CTRL 16bit read " + hard.ToString("X"));
                     return Dev9Ru16((int)DEV9Header.SPD_R_IF_CTRL);
                 default:
                     // DEV9_LOG("DEV9read16");
@@ -235,7 +241,7 @@ namespace CLRDEV9.DEV9
 
         public uint DEV9_Read32(uint addr)
         {
-            //DEV9_LOG("DEV9read32");
+            Log_Verb("DEV9read32 @ " + addr.ToString("X"));
             UInt32 hard;
             //ATA
             if (addr >= DEV9Header.ATA_DEV9_HDD_BASE && addr < DEV9Header.ATA_DEV9_HDD_END)
@@ -301,7 +307,7 @@ namespace CLRDEV9.DEV9
                     break;
 
                 case DEV9Header.SPD_R_PIO_DIR:
-                    //DEV9.DEV9_LOG("SPD_R_PIO_DIR 8bit write " + value.ToString("X"));
+                    Log_Verb("SPD_R_PIO_DIR 8bit write " + value.ToString("X"));
                     if ((value & 0xc0) != 0xc0)
                         return;
 
@@ -314,7 +320,7 @@ namespace CLRDEV9.DEV9
                     return;
 
                 case DEV9Header.SPD_R_PIO_DATA:
-                    //DEV9.DEV9_LOG("SPD_R_PIO_DATA 8bit write " + value.ToString("X"));
+                    Log_Verb("SPD_R_PIO_DATA 8bit write " + value.ToString("X"));
 
                     if ((value & 0xc0) != 0xc0)
                         return;
@@ -405,11 +411,11 @@ namespace CLRDEV9.DEV9
             switch (addr)
             {
                 case DEV9Header.SPD_R_DMA_CTRL: //??
-                    Log_Verb("SPD_R_DMA_CTRL=0x" + value.ToString("X"));
+                    Log_Verb("SPD_R_DMA_CTRL 16bit write " + value.ToString("X"));
                     Dev9Wu16((int)DEV9Header.SPD_R_DMA_CTRL, value);
                     return;
                 case DEV9Header.SPD_R_INTR_MASK:
-                    Log_Verb("SPD_R_INTR_MASK16=0x" + value.ToString("X") + " , checking for masked/unmasked interrupts");
+                    Log_Verb("SPD_R_INTR_MASK16 16bit write " + value.ToString("X") + " , checking for masked/unmasked interrupts");
                     if ((Dev9Ru16((int)DEV9Header.SPD_R_INTR_MASK) != value) && (((Dev9Ru16((int)DEV9Header.SPD_R_INTR_MASK) | value) & irqCause) != 0))
                     {
                         Log_Verb("SPD_R_INTR_MASK16 firing unmasked interrupts");
@@ -418,23 +424,23 @@ namespace CLRDEV9.DEV9
                     Dev9Wu16((int)DEV9Header.SPD_R_INTR_MASK, value);
                     return;
                 case DEV9Header.SPD_R_XFR_CTRL:
-                    Log_Verb("SPD_R_XFR_CTRL=0x" + value.ToString("X"));
+                    Log_Verb("SPD_R_XFR_CTRL 16bit write " + value.ToString("X"));
                     Dev9Wu16((int)DEV9Header.SPD_R_XFR_CTRL, value);
                     break;
                 case DEV9Header.SPD_R_38:
-                    Log_Verb("SPD_R_38=0x" + value.ToString("X"));
+                    Log_Verb("SPD_R_38 16bit write " + value.ToString("X"));
                     Dev9Wu16((int)DEV9Header.SPD_R_38, value);
                     break;
                 case DEV9Header.SPD_R_IF_CTRL:
-                    Log_Verb("SPD_R_IF_CTRL=0x" + value.ToString("X"));
+                    Log_Verb("SPD_R_IF_CTRL 16bit write " + value.ToString("X"));
                     Dev9Wu16((int)DEV9Header.SPD_R_IF_CTRL, value);
                     break;
                 case DEV9Header.SPD_R_PIO_MODE: //??
-                    Log_Verb("SPD_R_PIO_MODE=0x" + value.ToString("X"));
+                    Log_Verb("SPD_R_PIO_MODE 16bit write " + value.ToString("X"));
                     Dev9Wu16((int)DEV9Header.SPD_R_PIO_MODE, value);
                     break;
                 case DEV9Header.SPD_R_UDMA_MODE:
-                    Log_Verb("SPD_R_UDMA_MODE=0x" + value.ToString("X"));
+                    Log_Verb("SPD_R_UDMA_MODE 16bit write " + value.ToString("X"));
                     Dev9Wu16((int)DEV9Header.SPD_R_UDMA_MODE, value);
                     break;
                 default:
@@ -442,8 +448,6 @@ namespace CLRDEV9.DEV9
                     Log_Error("*Unknown 16bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
                     return;
             }
-            //dev9Wu16((int)addr, value);
-            //CLR_DEV9.DEV9_LOG("*Known 16bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
         }
 
         public void DEV9_Write32(uint addr, uint value)
@@ -485,8 +489,9 @@ namespace CLRDEV9.DEV9
         public void DEV9_ReadDMA8Mem(System.IO.UnmanagedMemoryStream pMem, int size)
         {
             Log_Verb("*DEV9readDMA8Mem: size " + size.ToString("X"));
-            smap.SMAP_ReadDMA8Mem(pMem, size);
             Log_Info("rDMA");
+            smap.SMAP_ReadDMA8Mem(pMem, size);
+            
             //#ifdef ENABLE_ATA
             ata.ATAreadDMA8Mem(pMem, size);
             //#endif
@@ -495,8 +500,8 @@ namespace CLRDEV9.DEV9
         public void DEV9_WriteDMA8Mem(System.IO.UnmanagedMemoryStream pMem, int size)
         {
             Log_Verb("*DEV9writeDMA8Mem: size " + size.ToString("X"));
-            smap.SMAP_WriteDMA8Mem(pMem, size);
             Log_Info("wDMA");
+            smap.SMAP_WriteDMA8Mem(pMem, size);
             //#ifdef ENABLE_ATA
             ata.ATAwriteDMA8Mem(pMem, size);
             //#endif

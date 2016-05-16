@@ -40,10 +40,10 @@ namespace CLRDEV9.DEV9.SMAP
                 int rv = dev9.Dev9Ru16((int)addr);
                 if (dev9.bdSwap != 0)
                 {
-                    Log_Verb("SMAP : Generic TX read " + ((rv << 8) | (rv >> 8)).ToString("X"));
+                    Log_Verb("SMAP : Generic TX 16bit read " + ((rv << 8) | (rv >> 8)).ToString("X"));
                     return (UInt16)((rv << 8) | (rv >> 8));
                 }
-                Log_Verb("SMAP : Generic TX read " + rv.ToString("X"));
+                Log_Verb("SMAP : Generic TX 16bit read " + rv.ToString("X"));
                 return (UInt16)rv;
             }
             else if (addr >= DEV9Header.SMAP_BD_RX_BASE && addr < (DEV9Header.SMAP_BD_RX_BASE + DEV9Header.SMAP_BD_SIZE))
@@ -51,10 +51,10 @@ namespace CLRDEV9.DEV9.SMAP
                 int rv = dev9.Dev9Ru16((int)addr);
                 if (dev9.bdSwap != 0)
                 {
-                    Log_Verb("SMAP : Generic RX read " + ((rv << 8) | (rv >> 8)).ToString("X"));
+                    Log_Verb("SMAP : Generic RX 16bit read " + ((rv << 8) | (rv >> 8)).ToString("X"));
                     return (UInt16)((rv << 8) | (rv >> 8));
                 }
-                Log_Verb("SMAP : Generic RX read " + rv.ToString("X"));
+                Log_Verb("SMAP : Generic RX 16bit read " + rv.ToString("X"));
                 return (UInt16)rv;
             }
 
@@ -153,10 +153,10 @@ namespace CLRDEV9.DEV9.SMAP
             switch (addr)
             {
                 case DEV9Header.SMAP_R_TXFIFO_FRAME_CNT:
-                    //Error.WriteLine("SMAP_R_TXFIFO_FRAME_CNT read 32" + DEV9Header.dev9Ru32((int)addr).ToString("X"));
+                    Log_Verb("SMAP_R_TXFIFO_FRAME_CNT 32bit read" + dev9.Dev9Ru32((int)addr).ToString("X"));
                     return dev9.Dev9Ru32((int)addr);
                 case DEV9Header.SMAP_R_RXFIFO_FRAME_CNT:
-                    //Error.WriteLine("SMAP_R_RXFIFO_FRAME_CNT read 32\n" + DEV9Header.dev9Ru32((int)addr).ToString("X"));
+                    Log_Verb("SMAP_R_RXFIFO_FRAME_CNT read 32\n" + dev9.Dev9Ru32((int)addr).ToString("X"));
                     return dev9.Dev9Ru32((int)addr);
                 //This Case is handled in above if statement relating to EMAC regs
                 //case DEV9Header.SMAP_R_EMAC3_STA_CTRL_L:

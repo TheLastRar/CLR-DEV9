@@ -178,6 +178,7 @@ namespace CLRDEV9.DEV9.SMAP
         {
             if (addr >= DEV9Header.SMAP_BD_TX_BASE && addr < (DEV9Header.SMAP_BD_TX_BASE + DEV9Header.SMAP_BD_SIZE))
             {
+                Log_Verb("SMAP : Generic TX 16bit write " + value.ToString("X"));
                 if (dev9.bdSwap != 0)
                     value = (UInt16)((value >> 8) | (value << 8));
                 dev9.Dev9Wu16((int)addr, value);
@@ -186,7 +187,8 @@ namespace CLRDEV9.DEV9.SMAP
             }
             else if (addr >= DEV9Header.SMAP_BD_RX_BASE && addr < (DEV9Header.SMAP_BD_RX_BASE + DEV9Header.SMAP_BD_SIZE))
             {
-                int rx_index = (int)((addr - DEV9Header.SMAP_BD_RX_BASE) >> 3);
+                Log_Verb("SMAP : Generic RX 16bit write " + value.ToString("X"));
+                //int rx_index = (int)((addr - DEV9Header.SMAP_BD_RX_BASE) >> 3);
                 if (dev9.bdSwap != 0)
                     value = (UInt16)((value >> 8) | (value << 8));
                 dev9.Dev9Wu16((int)addr, value);
@@ -195,7 +197,6 @@ namespace CLRDEV9.DEV9.SMAP
 
             switch (addr)
             {
-
                 case DEV9Header.SMAP_R_RXFIFO_RD_PTR:
                     Log_Verb("SMAP: SMAP_R_RXFIFO_RD_PTR 16bit write " + value.ToString("X"));
                     dev9.Dev9Wu16((int)addr, value);
@@ -316,8 +317,10 @@ namespace CLRDEV9.DEV9.SMAP
         {
             if (addr >= DEV9Header.SMAP_EMAC3_REGBASE && addr < DEV9Header.SMAP_EMAC3_REGEND)
             {
+                Log_Verb("SMAP : 32bit write is double 16bit write");
                 SMAP_Write16(addr, (UInt16)(value & 0xFFFF));
                 SMAP_Write16(addr + 2, (UInt16)(value >> 16));
+                Log_Verb("SMAP : Double 16bit write combined value " + value.ToString("X"));
                 return;
             }
             switch (addr)
