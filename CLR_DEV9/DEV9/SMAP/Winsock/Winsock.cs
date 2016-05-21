@@ -222,13 +222,15 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             {
                 case (int)EtherFrameType.NULL:
                     //Adapter Reset
-
-                    Log_Verb("Reset " + connections.Count + " Connections");
-                    foreach (ConnectionKey key in connections.Keys)
+                    
+                    lock (sentry)
                     {
-                        connections[key].Reset();
+                        Log_Verb("Reset " + connections.Count + " Connections");
+                        foreach (ConnectionKey key in connections.Keys)
+                        {
+                            connections[key].Reset();
+                        }
                     }
-
                     break;
                 case (int)EtherFrameType.IPv4:
                     result = SendIP((IPPacket)ef.Payload);
