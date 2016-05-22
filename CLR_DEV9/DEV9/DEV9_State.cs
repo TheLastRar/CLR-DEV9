@@ -18,6 +18,8 @@ namespace CLRDEV9.DEV9
             smap = new SMAP_State(this);
             ata = new ATA_State(this);
 
+            dev9R = new byte[0x10000];
+
             eeprom = new ushort[initalEEPROM.Length / 2];
             for (int i = 0; i < initalEEPROM.Length; i += 2)
             {
@@ -34,8 +36,6 @@ namespace CLRDEV9.DEV9
         //Open
         public int Open(string hddPath)
         {
-            //Reset Regs
-            dev9R = new byte[0x10000];
             //flash.Open()
             int ret = 0;
             if (DEV9Header.config.HddEnable)
