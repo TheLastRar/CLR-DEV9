@@ -226,9 +226,19 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     lock (sentry)
                     {
                         Log_Verb("Reset " + connections.Count + " Connections");
+                        List<ConnectionKey> DeadConnections = new List<ConnectionKey>();
                         foreach (ConnectionKey key in connections.Keys)
                         {
                             connections[key].Reset();
+                            if (connections[key].isOpen() == false)
+                            {
+                                //Error.WriteLine("Removing Closed Connection : " + key);
+                                DeadConnections.Add(key);
+                            }
+                        }
+                        foreach (ConnectionKey key in DeadConnections)
+                        {
+                            connections.Remove(key);
                         }
                     }
                     break;

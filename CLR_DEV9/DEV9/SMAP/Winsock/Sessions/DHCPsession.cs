@@ -331,11 +331,14 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                         }
                         break;
                     case 56:
-                        Log_Verb("Got String Message (Not Suppported)");
+                        Log_Verb("Got String Message of "+ ((DHCPopMSGStr)dhcp.Options[i]).Message);
                         break;
                     case 57:
                         maxMs = ((DHCPopMMSGS)(dhcp.Options[i])).MaxMessageSize;
                         Log_Verb("Got Max Message Size of " + maxMs);
+                        break;
+                    case 60:
+                        Log_Verb("Got Class Id of " + ((DHCPopClassID)dhcp.Options[i]).ClassID);
                         break;
                     case 61:
                         Log_Verb("Got Client ID");
@@ -409,17 +412,22 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                                 break;
                             case 28:
                                 Log_Verb("Sending Broadcast Addr");
-                                //byte[] Broadcast = new byte[4];
-                                //for (int i2 = 0; i2 < 4; i2++)
-                                //{
-                                //    Broadcast[i2] = (byte)((PS2IP[i2]) | (~NetMask[i2]));
-                                //}
                                 retPay.Options.Add(new DHCPopBCIP(Broadcast));
                                 break;
+                            case 50:
+                                Log_Verb("Sending PS2 IP Addr");
+                                retPay.Options.Add(new DHCPopREQIP(PS2IP));
+                                break;
+                            case 53:
+                                Log_Verb("Sending MSG (Already Added)");
+                                break;
+                            case 77:
+                                //Isn't this surpossed to be sent by the client?
+                                Log_Verb("Request for User-Class, Ignoring");
+                                break;
                             default:
-                                Log_Error("Got Unknown Option " + reqList[i]);
+                                Log_Error("Got Unknown Req " + reqList[i]);
                                 throw new Exception();
-
                         }
                     }
                     retPay.Options.Add(new DHCPopIPLT(86400));

@@ -121,12 +121,21 @@ namespace CLRDEV9.DEV9.SMAP.Tap
                     foreach (ManagementObject netMO in netQueryCollection)
                     {
                         //Console.Error.WriteLine("Name {0}, PNPDevID {1} En {2}", netMO["Description"], netMO["PNPDeviceID"], netMO["GUID"]);
-
+                    
                         if (netMO["PNPDeviceID"] == null)
                             continue;
 
-                        if (netMO["ServiceName"] == null)
+                        try
+                        {
+                            if (netMO["ServiceName"] == null)
                             continue;
+                        }
+                        catch
+                        {
+                            //WINE hackfix
+                            break;
+
+                        }
 
                         //ServiceName == hardwareID?
                         if (((string)netMO["ServiceName"]).StartsWith("tap"))

@@ -141,9 +141,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
                         //Error.WriteLine("Got Max Message Size");
                         Options.Add(new DHCPopMMSGS(data, offset));
                         break;
+                    case 60:
+                        //Error.WriteLine("Got Max Message Size");
+                        Options.Add(new DHCPopClassID(data, offset));
+                        break;
                     case 61:
                         //Error.WriteLine("Got Client ID");
-                        Options.Add(new DHCPopCID(data, offset));
+                        Options.Add(new DHCPopClientID(data, offset));
                         break;
                     case 255:
                         //Error.WriteLine("Got END");

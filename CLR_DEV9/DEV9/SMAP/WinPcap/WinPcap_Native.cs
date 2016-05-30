@@ -240,6 +240,10 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             {
                 return null;
             }
+            if (rawPcapAdapter == IntPtr.Zero)
+            {
+                return null;
+            }
             try
             {
                 pcap_if d_0 = (pcap_if)Marshal.PtrToStructure(rawPcapAdapter, typeof(pcap_if));
