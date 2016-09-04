@@ -12,7 +12,7 @@ namespace PSE
         const int ERRTRAP = -2;
         const SourceLevels consoleStdLevel = SourceLevels.Information & ~(SourceLevels.Error);
         const SourceLevels consoleErrLevel = SourceLevels.Error;
-        const SourceLevels FileLevel = SourceLevels.Critical;
+        const SourceLevels FileLevel = SourceLevels.Error;
 
         //current path to detech if log path has changed
         static string currentLogPath = "";
