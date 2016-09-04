@@ -27,10 +27,12 @@ namespace CLRDEV9
 
         private void ConfigFormEth_Load(object sender, EventArgs e)
         {
+            //Done here to load settings
+            cbIntercept.Enabled = false;
 
             int curIndex = 1;
             cbAPI.Items.Clear();
-            //Detech which API's we have
+            //Detect which API's we have
             //Winsock
             winsockAdapters = Winsock.GetAdapters();
             apiIndex.Add(Config.EthAPI.Winsock, curIndex);
@@ -60,17 +62,14 @@ namespace CLRDEV9
                 }
             }
 
-            cbAPI.SelectedIndex = apiIndex[DEV9Header.config.EthType] - 1;
-
-            ////Find Selected Adapter in list
-            //for (int i = 0; i< selectedAPIAdapters.Count; i++)
-            //{
-            //    if (selectedAPIAdapters[i][2] == DEV9Header.config.Eth)
-            //    {
-            //        cbAdapter.SelectedIndex = i;
-            //        break;
-            //    }
-            //}
+            if (apiIndex.ContainsKey(DEV9Header.config.EthType))
+            {
+                cbAPI.SelectedIndex = apiIndex[DEV9Header.config.EthType] - 1;
+            }
+            else
+            {
+                cbAPI.SelectedIndex = (int)Config.EthAPI.Null;
+            }
         }
 
         private void cbAPI_SelectedIndexChanged(object sender, EventArgs e)
@@ -92,9 +91,11 @@ namespace CLRDEV9
 
             switch (ret.Key)
             {
+                case Config.EthAPI.Null:
+                    selectedAPIAdapters = new List<string[]>();
+                    break;
                 case Config.EthAPI.Winsock:
                     selectedAPIAdapters = winsockAdapters;
-                    //cbAdapter.Items.Add("Winock");
 
                     break;
                 case Config.EthAPI.Tap:
@@ -114,6 +115,7 @@ namespace CLRDEV9
 
             switch (ret.Key)
             {
+                case Config.EthAPI.Null:
                 case Config.EthAPI.Winsock:
                     cbIntercept.Enabled = false;
                     cbIntercept.Checked = true;
@@ -179,7 +181,6 @@ namespace CLRDEV9
                     tbDNS1.Enabled = false;
                     tbDNS2.Enabled = false;
                 }
-
             }
         }
         private void cbIntercept_EnabledChanged(object sender, EventArgs e)

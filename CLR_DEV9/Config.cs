@@ -51,6 +51,7 @@ namespace CLRDEV9
 
         public enum EthAPI : int
         {
+            Null = -1,
             Winsock = 0, //Sockets
             Tap = 1,
             WinPcapBridged = 2,

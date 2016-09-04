@@ -21,6 +21,8 @@ namespace CLRDEV9.DEV9.SMAP
             //TODO Make this use EthType
             switch (DEV9Header.config.EthType)
             {
+                case Config.EthAPI.Null:
+                    return null;
                 case Config.EthAPI.Winsock:
                     na = new Winsock.Winsock(dev9, DEV9Header.config.Eth);
                     break;
