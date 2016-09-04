@@ -1,4 +1,5 @@
 ﻿using CLRDEV9.DEV9.SMAP.Data;
+using System;
 using System.Diagnostics;
 using LOG = PSE.CLR_PSE_PluginLog;
 
@@ -21,17 +22,23 @@ namespace CLRDEV9.DEV9.SMAP
         //rx thread
         void NetRxThread()
         {
-            NetPacket tmp = new NetPacket();
-            while (RxRunning)
-            {
-                while (smap.RxFifoCanRx() && nif.Recv(ref tmp))
+            try {
+                NetPacket tmp = new NetPacket();
+                while (RxRunning)
                 {
-                    smap.RxProcess(ref tmp);
+                    while (smap.RxFifoCanRx() && nif.Recv(ref tmp))
+                    {
+                        smap.RxProcess(ref tmp);
+                    }
+
+                    System.Threading.Thread.Sleep(1);
                 }
-
-                System.Threading.Thread.Sleep(1);
             }
-
+            catch (Exception e)
+            {
+                LOG.MsgBoxError(e);
+                throw;
+            }
             //return 0;
         }
 
