@@ -102,7 +102,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             switch (state)
             {
                 case TCPState.None:
-                    return sendConnect(tcp);
+                    return SendConnect(tcp);
                 case TCPState.SendingSYN_ACK:
                     return true; //Ignore reconnect attempts while we are still attempting connection
                 case TCPState.SentSYN_ACK:
@@ -132,7 +132,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         }
 
         //PS2 sent SYN
-        private bool sendConnect(TCP tcp)
+        private bool SendConnect(TCP tcp)
         {
             //Expect SYN Packet
             destPort = tcp.DestinationPort;
@@ -178,7 +178,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                         //break;
                 }
             }
-
 
             lock (clientSentry)
             {
@@ -243,7 +242,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     case 1://Nop
                         continue;
                     case 8:
-                        //Error.WriteLine("Got TimeStamp");
                         lastRecivedTimeStamp = ((TCPopTS)(tcp.Options[i])).SenderTimeStamp;
                         break;
                     default:
@@ -253,37 +251,44 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 }
             }
             NumCheckResult Result = CheckNumbers(tcp);
+            uint delta = expectedSequenceNumber - tcp.SequenceNumber;
+            if (delta > 0.5 * uint.MaxValue)
+            {
+                delta = uint.MaxValue - expectedSequenceNumber + tcp.SequenceNumber;
+            }
             if (Result == NumCheckResult.GotOldData)
             {
-                throw new NotImplementedException();
-                //return true;
+                Log_Verb("[PS2] New Data Offset: " + delta + " bytes");
+                Log_Verb("[PS2] New Data Length: " + ((uint)tcp.GetPayload().Length - delta) + " bytes");
             }
             if (Result == NumCheckResult.Bad) { Log_Error("Bad TCP Numbers Received"); throw new Exception("Bad TCP Numbers Received"); }
             if (tcp.GetPayload().Length != 0)
             {
-                Log_Verb("[PS2] Sending :" + tcp.GetPayload().Length + " bytes");
-                receivedPS2SequenceNumbers.RemoveAt(0);
-                receivedPS2SequenceNumbers.Add(expectedSequenceNumber);
-                //Send the Data
-                try
+                if (tcp.GetPayload().Length - delta > 0)
                 {
-                    netStream.Write(tcp.GetPayload(), 0, tcp.GetPayload().Length);
+                    Log_Verb("[PS2] Sending: " + tcp.GetPayload().Length + " bytes");
+                    receivedPS2SequenceNumbers.RemoveAt(0);
+                    receivedPS2SequenceNumbers.Add(expectedSequenceNumber);
+                    //Send the Data
+                    try
+                    {
+                        netStream.Write(tcp.GetPayload(), (int)delta, tcp.GetPayload().Length - (int)delta);
+                    }
+                    catch (Exception e)
+                    {
+                        System.Windows.Forms.MessageBox.Show("Got IO Error: " + e.ToString());
+                        //Connection Lost
+                        //Send Shutdown (Untested)
+                        PerformRST();
+                        open = false;
+                        return true;
+                    }
+                    unchecked
+                    {
+                        expectedSequenceNumber += ((uint)tcp.GetPayload().Length - delta);
+                    }
+                    //Done send
                 }
-                catch (Exception e)
-                {
-                    System.Windows.Forms.MessageBox.Show("Got IO Error :" + e.ToString());
-                    //Connection Lost
-                    //Send Shutdown (Untested)
-                    PerformRST();
-                    open = false;
-                    return true;
-                }
-                unchecked
-                {
-                    expectedSequenceNumber += ((uint)tcp.GetPayload().Length);
-                }
-                //Done send
-
                 //ACK data
                 Log_Verb("[SRV] ACK Data: " + expectedSequenceNumber);
                 TCP ret = CreateBasePacket();
@@ -392,12 +397,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 {
                     if (receivedPS2SequenceNumbers.Contains(tcp.SequenceNumber))
                     {
-                        Log_Error("[PS2]Sent an Old Seq Number on an Data packet");
+                        Log_Error("[PS2]Sent an Old Seq Number on an Data packet, Got " + tcp.SequenceNumber + " Expected " + expectedSequenceNumber);
                         return NumCheckResult.GotOldData;
                     }
                     else
                     {
-                        Log_Error("[PS2]Sent Unexpected Sequence Number With Data Packet, Got " + tcp.SequenceNumber + " Expected " + expectedSequenceNumber);
+                        Log_Error("[PS2]Sent Unexpected Sequence Number From Data Packet, Got " + tcp.SequenceNumber + " Expected " + expectedSequenceNumber);
                         throw new Exception("Unexpected Sequence Number From Data Packet, Got " + tcp.SequenceNumber + " Expected " + expectedSequenceNumber);
                     }
                 }
