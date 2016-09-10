@@ -144,6 +144,10 @@ namespace CLRDEV9.DEV9.SMAP.Tap
             if (disposing)
             {
                 Log_Info("Shutdown Tap");
+                if (htap != null)
+                {
+                    TAPSetStatus(htap, false);
+                }
                 if (htapstream != null)
                 {
                     htapstream.Close();
@@ -151,7 +155,6 @@ namespace CLRDEV9.DEV9.SMAP.Tap
                 }
                 if (htap != null)
                 {
-                    TAPSetStatus(htap, false);
                     htap.Close();
                     htap = null;
                 }
