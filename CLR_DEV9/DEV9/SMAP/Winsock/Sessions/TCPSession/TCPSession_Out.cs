@@ -255,6 +255,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             if (delta > 0.5 * uint.MaxValue)
             {
                 delta = uint.MaxValue - expectedSequenceNumber + tcp.SequenceNumber;
+                Log_Error("[PS2] SequenceNumber Overflow Detected");
+                Log_Error("[PS2] New Data Offset: " + delta + " bytes");
             }
             if (Result == NumCheckResult.GotOldData)
             {

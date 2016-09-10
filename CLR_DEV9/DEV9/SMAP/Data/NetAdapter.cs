@@ -55,7 +55,7 @@ namespace CLRDEV9.DEV9.SMAP.Data
             if ((Utils.memcmp(pkt.buffer, 0, ps2MAC, 0, 6) == false) & (Utils.memcmp(pkt.buffer, 0, broadcastMAC, 0, 6) == false))
             {
                 //ignore strange packets
-                Log_Error("Dropping Strange Packet");
+                Log_Verb("Dropping Strange Packet");
                 return false;
             }
 

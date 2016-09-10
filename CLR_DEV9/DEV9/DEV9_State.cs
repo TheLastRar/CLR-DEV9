@@ -174,7 +174,6 @@ namespace CLRDEV9.DEV9
             switch (addr)
             {
                 case DEV9Header.SPD_R_INTR_STAT:
-                    //DEV9_LOG("DEV9read16");
                     Log_Verb("SPD_R_INTR_STAT 16bit read " + irqCause.ToString("X"));
                     return (UInt16)irqCause;
 
