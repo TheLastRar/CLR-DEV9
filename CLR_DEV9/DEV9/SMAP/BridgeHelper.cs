@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Management;
 
@@ -154,7 +156,21 @@ namespace CLRDEV9.DEV9.SMAP
         {
             outBuffer = new List<string>();
 
-            ProcessStartInfo netshSI = new ProcessStartInfo("netsh", Args);
+            ProcessStartInfo netshSI;
+            if (Environment.Is64BitProcess | !Environment.Is64BitOperatingSystem)
+            {
+                //64Bit program
+                //or 32Bit program in 32Bit OS
+                netshSI = new ProcessStartInfo("netsh.exe", Args);
+            }
+            else
+            {
+                //32bit netsh, when in a 64bit OS, seems to error out? (Win10)
+                netshSI = new ProcessStartInfo(
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Sysnative", "netsh.exe"),
+                    Args);
+            }
+
             netshSI.RedirectStandardError = true;
             netshSI.RedirectStandardOutput = true;
             netshSI.RedirectStandardInput = true;
