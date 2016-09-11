@@ -70,18 +70,22 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         Stopwatch timeStamp = new Stopwatch(); //Accesed By Both In and Out Threads
         bool sendTimeStamps = false; //Accesed By Out Thread Only
 
-        UInt32 expectedSequenceNumber; //Accesed By Out Thread Only
-        List<UInt32> receivedPS2SequenceNumbers = new List<UInt32>(); //Accesed By Out Thread Only
+        const int receivedPS2SeqNumberCount = 5;
+        UInt32 expectedSeqNumber; //Accesed By Out Thread Only
+        List<UInt32> receivedPS2SeqNumbers = new List<UInt32>(); //Accesed By Out Thread Only
 
         #region MySequenceNumber
         object myNumberSentry = new object();
+        const int oldMyNumCount = 2;
         UInt32 _MySequenceNumber = 1;
-        UInt32 _OldMyNumber = 1; //Is set on one thread, and read on another
+        List<UInt32> _OldMyNumbers = new List<UInt32>();
         private void IncrementMyNumber(UInt32 amount)
         {
             lock (myNumberSentry)
             {
-                _OldMyNumber = _MySequenceNumber;
+                //_OldMyNumber = _MySequenceNumber;
+                _OldMyNumbers.Add(_MySequenceNumber);
+                _OldMyNumbers.RemoveAt(0);
                 unchecked
                 {
                     _MySequenceNumber += amount;
@@ -95,12 +99,25 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 return _MySequenceNumber;
             }
         }
-        private void GetAllMyNumbers(out UInt32 Current, out UInt32 Old)
+        private void GetAllMyNumbers(out UInt32 Current, out List<UInt32> Old)
         {
+            Old = new List<UInt32>();
             lock (myNumberSentry)
             {
                 Current = _MySequenceNumber;
-                Old = _OldMyNumber;
+                Old.AddRange(_OldMyNumbers);
+            }
+        }
+        private void ResetMyNumbers()
+        {
+            lock (myNumberSentry)
+            {
+                _MySequenceNumber = 1;
+                _OldMyNumbers.Clear();
+                for (int i = 0; i < oldMyNumCount; i++)
+                {
+                    _OldMyNumbers.Add(1);
+                }
             }
         }
         ManualResetEvent myNumberACKed = new ManualResetEvent(true);
@@ -151,7 +168,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
             ret.SequenceNumber = GetMyNumber();
             Log_Verb("With MySeq: " + ret.SequenceNumber);
-            ret.AcknowledgementNumber = expectedSequenceNumber;
+            ret.AcknowledgementNumber = expectedSeqNumber;
             Log_Verb("With MyAck: " + ret.AcknowledgementNumber);
 
             //ret.WindowSize = 16 * 1024;

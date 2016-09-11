@@ -1,5 +1,6 @@
 ﻿using CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 
@@ -48,7 +49,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 ret.SequenceNumber = GetMyNumber();
                 IncrementMyNumber(1);
 
-                ret.AcknowledgementNumber = expectedSequenceNumber;
+                ret.AcknowledgementNumber = expectedSeqNumber;
 
                 ret.SYN = true;
                 ret.ACK = true;
@@ -144,14 +145,14 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 Log_Error("Attempt To Send Data On Non Connected Connection");
                 return true;
             }
-            expectedSequenceNumber = tcp.SequenceNumber + 1;
+            expectedSeqNumber = tcp.SequenceNumber + 1;
             //Fill out last received numbers
-            receivedPS2SequenceNumbers.Clear();
-            receivedPS2SequenceNumbers.Add(tcp.SequenceNumber);
-            receivedPS2SequenceNumbers.Add(tcp.SequenceNumber);
-            receivedPS2SequenceNumbers.Add(tcp.SequenceNumber);
-            receivedPS2SequenceNumbers.Add(tcp.SequenceNumber);
-            receivedPS2SequenceNumbers.Add(tcp.SequenceNumber);
+            receivedPS2SeqNumbers.Clear();
+            for (int i = 0; i < receivedPS2SeqNumberCount; i++)
+            {
+                receivedPS2SeqNumbers.Add(tcp.SequenceNumber);
+            }
+            ResetMyNumbers();
 
             for (int i = 0; i < tcp.Options.Count; i++)
             {
@@ -251,10 +252,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 }
             }
             NumCheckResult Result = CheckNumbers(tcp);
-            uint delta = expectedSequenceNumber - tcp.SequenceNumber;
+            uint delta = expectedSeqNumber - tcp.SequenceNumber;
             if (delta > 0.5 * uint.MaxValue)
             {
-                delta = uint.MaxValue - expectedSequenceNumber + tcp.SequenceNumber;
+                delta = uint.MaxValue - expectedSeqNumber + tcp.SequenceNumber;
                 Log_Error("[PS2] SequenceNumber Overflow Detected");
                 Log_Error("[PS2] New Data Offset: " + delta + " bytes");
             }
@@ -269,8 +270,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 if (tcp.GetPayload().Length - delta > 0)
                 {
                     Log_Verb("[PS2] Sending: " + tcp.GetPayload().Length + " bytes");
-                    receivedPS2SequenceNumbers.RemoveAt(0);
-                    receivedPS2SequenceNumbers.Add(expectedSequenceNumber);
+                    receivedPS2SeqNumbers.RemoveAt(0);
+                    receivedPS2SeqNumbers.Add(expectedSeqNumber);
                     //Send the Data
                     try
                     {
@@ -287,12 +288,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     }
                     unchecked
                     {
-                        expectedSequenceNumber += ((uint)tcp.GetPayload().Length - delta);
+                        expectedSeqNumber += ((uint)tcp.GetPayload().Length - delta);
                     }
                     //Done send
                 }
                 //ACK data
-                Log_Verb("[SRV] ACK Data: " + expectedSequenceNumber);
+                Log_Verb("[SRV] ACK Data: " + expectedSeqNumber);
                 TCP ret = CreateBasePacket();
                 ret.ACK = true;
 
@@ -317,8 +318,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         private bool SendResponseToClosedServer(TCP tcp, bool HasACKedFIN)
         {
             NumCheckResult ResultFIN = CheckNumbers(tcp);
-            receivedPS2SequenceNumbers.RemoveAt(0);
-            receivedPS2SequenceNumbers.Add(expectedSequenceNumber);
+            receivedPS2SeqNumbers.RemoveAt(0);
+            receivedPS2SeqNumbers.Add(expectedSeqNumber);
 
             //Expect FIN + ACK
             if (tcp.FIN & (HasACKedFIN | tcp.ACK))
@@ -330,7 +331,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
                 unchecked
                 {
-                    expectedSequenceNumber += 1;
+                    expectedSeqNumber += 1;
                 }
                 TCP ret = CreateBasePacket();
 
@@ -365,22 +366,23 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         private NumCheckResult CheckNumbers(TCP tcp)
         {
-            UInt32 seqNum, oldSeqNum;
+            UInt32 seqNum;
+            List<UInt32> oldSeqNums;
 
-            GetAllMyNumbers(out seqNum, out oldSeqNum);
+            GetAllMyNumbers(out seqNum, out oldSeqNums);
 
             Log_Verb("CHECK_NUMBERS");
             Log_Verb("[SRV]CurrSeqNumber = " + seqNum + " [PS2]Ack Number = " + tcp.AcknowledgementNumber);
-            Log_Verb("[SRV]CurrAckNumber = " + expectedSequenceNumber + " [PS2]Seq Number = " + tcp.SequenceNumber);
+            Log_Verb("[SRV]CurrAckNumber = " + expectedSeqNumber + " [PS2]Seq Number = " + tcp.SequenceNumber);
             Log_Verb("[PS2]Data Length = " + tcp.GetPayload().Length);
 
             if (tcp.AcknowledgementNumber != seqNum)
             {
                 Log_Verb("[PS2]Sent Outdated Acknowledgement Number, Got " + tcp.AcknowledgementNumber + " Expected " + seqNum);
-                if (tcp.AcknowledgementNumber != oldSeqNum)
+                if (!oldSeqNums.Contains(tcp.AcknowledgementNumber))
                 {
-                    Log_Error("Unexpected Acknowledgement Number did not Match Old Number of " + oldSeqNum);
-                    throw new Exception("Unexpected Acknowledgement Number did not Match Old Number of " + oldSeqNum);
+                    Log_Error("Unexpected Acknowledgement Number did not Match Old Numbers, Got " + tcp.AcknowledgementNumber + " Expected " + seqNum);
+                    throw new Exception("Unexpected Acknowledgement Number did not Match Old Numbers, Got " + tcp.AcknowledgementNumber + " Expected " + seqNum);
                 }
             }
             else
@@ -389,23 +391,23 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 myNumberACKed.Set();
             }
 
-            if (tcp.SequenceNumber != expectedSequenceNumber)
+            if (tcp.SequenceNumber != expectedSeqNumber)
             {
                 if (tcp.GetPayload().Length == 0)
                 {
-                    Log_Verb("[PS2]Sent Unexpected Sequence Number From ACK Packet, Got " + tcp.SequenceNumber + " Expected " + expectedSequenceNumber);
+                    Log_Verb("[PS2]Sent Unexpected Sequence Number From ACK Packet, Got " + tcp.SequenceNumber + " Expected " + expectedSeqNumber);
                 }
                 else
                 {
-                    if (receivedPS2SequenceNumbers.Contains(tcp.SequenceNumber))
+                    if (receivedPS2SeqNumbers.Contains(tcp.SequenceNumber))
                     {
-                        Log_Error("[PS2]Sent an Old Seq Number on an Data packet, Got " + tcp.SequenceNumber + " Expected " + expectedSequenceNumber);
+                        Log_Error("[PS2]Sent an Old Seq Number on an Data packet, Got " + tcp.SequenceNumber + " Expected " + expectedSeqNumber);
                         return NumCheckResult.GotOldData;
                     }
                     else
                     {
-                        Log_Error("[PS2]Sent Unexpected Sequence Number From Data Packet, Got " + tcp.SequenceNumber + " Expected " + expectedSequenceNumber);
-                        throw new Exception("Unexpected Sequence Number From Data Packet, Got " + tcp.SequenceNumber + " Expected " + expectedSequenceNumber);
+                        Log_Error("[PS2]Sent Unexpected Sequence Number From Data Packet, Got " + tcp.SequenceNumber + " Expected " + expectedSeqNumber);
+                        throw new Exception("Unexpected Sequence Number From Data Packet, Got " + tcp.SequenceNumber + " Expected " + expectedSeqNumber);
                     }
                 }
             }
@@ -422,11 +424,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             netStream = null;
             Log_Info("PS2 has closed connection");
             //Connection Close Part 2, Send ACK to PS2
-            receivedPS2SequenceNumbers.RemoveAt(0);
-            receivedPS2SequenceNumbers.Add(expectedSequenceNumber);
+            receivedPS2SeqNumbers.RemoveAt(0);
+            receivedPS2SeqNumbers.Add(expectedSeqNumber);
             unchecked
             {
-                expectedSequenceNumber += 1;
+                expectedSeqNumber += 1;
             }
 
             TCP ret = CreateBasePacket();
