@@ -164,9 +164,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     case 2: //MSS
                         maxSegmentSize = ((TCPopMSS)(tcp.Options[i])).MaxSegmentSize;
                         break;
-                    case 3: //WinScale
-                        Log_Info("Got WinScale (Not Supported)");
-                        // = ((TCPopWS)(tcp.Options[i])).WindowScale;
+                    case 3: //WindowSize
+                        windowSize = ((TCPopWS)(tcp.Options[i])).WindowScale;
                         break;
                     case 8: //TimeStamp
                         lastRecivedTimeStamp = ((TCPopTS)(tcp.Options[i])).SenderTimeStamp;
@@ -252,7 +251,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 }
             }
 
-            windowSize = tcp.WindowSize;
+            windowSize = tcp.WindowSize << windowScale;
 
             NumCheckResult Result = CheckNumbers(tcp);
             uint delta = expectedSeqNumber - tcp.SequenceNumber;

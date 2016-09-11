@@ -63,8 +63,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         UInt16 srcPort = 0; //PS2 Port
         UInt16 destPort = 0; //Remote Port
 
-        //UInt16 WindowSize; //assume zero scale
-        UInt16 maxSegmentSize = 1460;//Accesed By Both In and Out Threads, but set only on Connect Thread
+        UInt16 maxSegmentSize = 1460; //Accesed By Both In and Out Threads, but set only on Connect Thread
+        int windowScale = 0;
+        volatile int windowSize = 1460;
 
         UInt32 lastRecivedTimeStamp; //Accesed By Both In and Out Threads
         Stopwatch timeStamp = new Stopwatch(); //Accesed By Both In and Out Threads
@@ -172,7 +173,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             Log_Verb("With MyAck: " + ret.AcknowledgementNumber);
 
             //ret.WindowSize = 16 * 1024;
-            ret.WindowSize = (UInt16)(2 * maxSegmentSize); //default 2920B (2.85MB)
+            ret.WindowSize = (UInt16)(2 * maxSegmentSize); //default 2920B (2.85KB)
 
             if (sendTimeStamps)
             {

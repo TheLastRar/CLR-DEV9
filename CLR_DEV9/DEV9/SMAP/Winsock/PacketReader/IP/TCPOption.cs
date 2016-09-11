@@ -90,7 +90,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
     }
     class TCPopWS : TCPOption
     {
-        byte WindowScale;
+        public byte WindowScale;
         public TCPopWS(byte WS) //Offset will include Kind and Len
         {
             //'(24 bits)'

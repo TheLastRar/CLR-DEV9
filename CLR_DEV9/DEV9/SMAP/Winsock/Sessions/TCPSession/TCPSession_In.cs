@@ -27,10 +27,18 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
             if (avaData != 0 && myNumberACKed.WaitOne(0))
             {
-                if (avaData > (maxSegmentSize - 16))
+                int maxSize;
+                if (sendTimeStamps)
+                {
+                    maxSize = Math.Min(maxSegmentSize, windowSize);
+                } else
+                {
+                    maxSize = Math.Min(maxSegmentSize - 16, windowSize);
+                }
+                if (avaData > maxSize)
                 {
                     Log_Info("Got a lot of data");
-                    avaData = maxSegmentSize - 16;
+                    avaData = maxSize;
                 }
 
                 byte[] recived = new byte[avaData];
@@ -57,7 +65,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     client.Close();
                 }
             }
-
             return null;
         }
 
