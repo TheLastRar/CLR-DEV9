@@ -272,14 +272,19 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
 
                     if (arpPkt.OP == 1) //ARP request
                     {
-                        if (Utils.memcmp(arpPkt.TargetProtocolAddress, 0, dhcpServer.Gateway, 0, 4))
+                        byte[] gateway;
+                        lock (sentry)
+                        {
+                            gateway = dhcpServer.Gateway;
+                        }
+                        if (Utils.memcmp(arpPkt.TargetProtocolAddress, 0, gateway, 0, 4))
                         //it's trying to resolve the virtual gateway's mac addr
                         {
                             Log_Verb("ARP Attempt to Resolve Gateway Mac");
                             arpPkt.TargetHardwareAddress = arpPkt.SenderHardwareAddress;
                             arpPkt.SenderHardwareAddress = virturalDHCPMAC;
                             arpPkt.TargetProtocolAddress = arpPkt.SenderProtocolAddress;
-                            arpPkt.SenderProtocolAddress = dhcpServer.Gateway;
+                            arpPkt.SenderProtocolAddress = gateway;
                             arpPkt.OP = 2;
 
                             EthernetFrame retARP = new EthernetFrame(arpPkt);
