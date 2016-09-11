@@ -31,7 +31,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 if (sendTimeStamps)
                 {
                     maxSize = Math.Min(maxSegmentSize, windowSize);
-                } else
+                }
+                else
                 {
                     maxSize = Math.Min(maxSegmentSize - 16, windowSize);
                 }
