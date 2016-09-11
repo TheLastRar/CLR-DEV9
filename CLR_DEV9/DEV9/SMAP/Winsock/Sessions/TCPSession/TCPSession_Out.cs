@@ -251,6 +251,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                         //break;
                 }
             }
+
+            windowSize = tcp.WindowSize;
+
             NumCheckResult Result = CheckNumbers(tcp);
             uint delta = expectedSeqNumber - tcp.SequenceNumber;
             if (delta > 0.5 * uint.MaxValue)

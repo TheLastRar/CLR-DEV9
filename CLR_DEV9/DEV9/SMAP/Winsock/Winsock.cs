@@ -177,7 +177,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                             ipPkt.DestinationIP = connections[key].SourceIP;
                             ipPkt.SourceIP = connections[key].DestIP;
                             EthernetFrame ef = new EthernetFrame(ipPkt);
-                            ef.SourceMAC = virturalGatewayMAC;
+                            ef.SourceMAC = virturalDHCPMAC;
                             ef.DestinationMAC = ps2MAC;
                             ef.Protocol = (UInt16)EtherFrameType.IPv4;
                             pkt = ef.CreatePacket();
@@ -270,27 +270,26 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     //    }
                     //}
 
-                    ////if (arppkt.OP == 1) //ARP request
-                    ////{
-                    ////    //This didn't work for whatever reason.
-                    ////    if (Utils.memcmp(arppkt.TargetProtocolAddress,0,UDP_DHCPsession.GATEWAY_IP,0,4))
-                    ////    //it's trying to resolve the virtual gateway's mac addr
-                    ////    {
-                    ////        Error.WriteLine("ARP Attempt to Resolve Gateway Mac");
-                    ////        arppkt.TargetHardwareAddress = arppkt.SenderHardwareAddress;
-                    ////        arppkt.SenderHardwareAddress = gateway_mac;
-                    ////        arppkt.TargetProtocolAddress = arppkt.SenderProtocolAddress;
-                    ////        arppkt.SenderProtocolAddress = UDP_DHCPsession.GATEWAY_IP;
-                    ////        arppkt.OP = 2;
+                    if (arpPkt.OP == 1) //ARP request
+                    {
+                        if (Utils.memcmp(arpPkt.TargetProtocolAddress, 0, dhcpServer.Gateway, 0, 4))
+                        //it's trying to resolve the virtual gateway's mac addr
+                        {
+                            Log_Verb("ARP Attempt to Resolve Gateway Mac");
+                            arpPkt.TargetHardwareAddress = arpPkt.SenderHardwareAddress;
+                            arpPkt.SenderHardwareAddress = virturalDHCPMAC;
+                            arpPkt.TargetProtocolAddress = arpPkt.SenderProtocolAddress;
+                            arpPkt.SenderProtocolAddress = dhcpServer.Gateway;
+                            arpPkt.OP = 2;
 
-                    ////        EthernetFrame retARP = new EthernetFrame(arppkt);
-                    ////        retARP.DestinationMAC = ps2_mac;
-                    ////        retARP.SourceMAC = gateway_mac;
-                    ////        retARP.Protocol = (Int16)EtherFrameType.ARP;
-                    ////        vRecBuffer.Add(retARP.CreatePacket());
-                    ////        break;
-                    ////    }
-                    ////}
+                            EthernetFrame retARP = new EthernetFrame(arpPkt);
+                            retARP.DestinationMAC = ps2MAC;
+                            retARP.SourceMAC = virturalDHCPMAC;
+                            retARP.Protocol = (UInt16)EtherFrameType.ARP;
+                            vRecBuffer.Add(retARP.CreatePacket());
+                            break;
+                        }
+                    }
                     //Error.WriteLine("Unhandled ARP packet");
 
                     result = true;

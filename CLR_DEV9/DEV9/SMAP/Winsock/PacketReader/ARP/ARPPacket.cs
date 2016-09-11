@@ -66,13 +66,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.ARP
             NetLib.ReadByteArray(Ef.RawPacket.buffer, ref pktOffset, HardwareAddressLength, out SenderHardwareAddress);
             //WriteLine("sender MAC :" + SenderHardwareAddress[0] + ":" + SenderHardwareAddress[1] + ":" + SenderHardwareAddress[2] + ":" + SenderHardwareAddress[3] + ":" + SenderHardwareAddress[4] + ":" + SenderHardwareAddress[5]);
 
-            NetLib.ReadByteArray(Ef.RawPacket.buffer, ref pktOffset, HardwareAddressLength, out SenderProtocolAddress);
+            NetLib.ReadByteArray(Ef.RawPacket.buffer, ref pktOffset, ProtocolAddressLength, out SenderProtocolAddress);
             //WriteLine("sender IP :" + SenderProtocolAddress[0] + "." + SenderProtocolAddress[1] + "." + SenderProtocolAddress[2] + "." + SenderProtocolAddress[3]);      
 
             NetLib.ReadByteArray(Ef.RawPacket.buffer, ref pktOffset, HardwareAddressLength, out TargetHardwareAddress);
             //WriteLine("target MAC :" + TargetHardwareAddress[0] + ":" + TargetHardwareAddress[1] + ":" + TargetHardwareAddress[2] + ":" + TargetHardwareAddress[3] + ":" + TargetHardwareAddress[4] + ":" + TargetHardwareAddress[5]);
 
-            NetLib.ReadByteArray(Ef.RawPacket.buffer, ref pktOffset, HardwareAddressLength, out TargetProtocolAddress);
+            NetLib.ReadByteArray(Ef.RawPacket.buffer, ref pktOffset, ProtocolAddressLength, out TargetProtocolAddress);
             //WriteLine("target IP :" + TargetProtocolAddress[0] + "." + TargetProtocolAddress[1] + "." + TargetProtocolAddress[2] + "." + TargetProtocolAddress[3]);
         }
     }

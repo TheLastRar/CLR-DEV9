@@ -62,7 +62,7 @@ namespace CLRDEV9.DEV9.SMAP.Data
                     retIP.SourceIP = DefaultDHCPConfig.DHCP_IP;
 
                     EthernetFrame ef = new EthernetFrame(retIP);
-                    ef.SourceMAC = virturalGatewayMAC;
+                    ef.SourceMAC = virturalDHCPMAC;
                     ef.DestinationMAC = ps2MAC;
                     ef.Protocol = (UInt16)EtherFrameType.IPv4;
                     pkt = ef.CreatePacket();

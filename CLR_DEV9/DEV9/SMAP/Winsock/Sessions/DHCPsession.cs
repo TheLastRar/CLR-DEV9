@@ -22,7 +22,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         #region CurrentConfig
         public byte[] PS2IP;
         private byte[] NetMask;
-        private byte[] Gateway;
+        public byte[] Gateway;
 
         private byte[] DNS1;
         private byte[] DNS2;

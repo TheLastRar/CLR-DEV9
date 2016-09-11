@@ -7,8 +7,9 @@ namespace CLRDEV9.DEV9.SMAP.Data
     {
         //Shared
         protected byte[] broadcastMAC = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
-        //Hope this dosn't clash (Also used as DHCP server in intercept mode)
-        protected byte[] virturalGatewayMAC = { 0x76, 0x6D, 0xF4, 0x63, 0x30, 0x31 };
+        //Hope this dosn't clash (used as DHCP server in intercept mode)
+        //also used as the virtual gateway mac in winsock
+        protected byte[] virturalDHCPMAC = { 0x76, 0x6D, 0xF4, 0x63, 0x30, 0x31 };
 
         protected byte[] ps2MAC;
 
