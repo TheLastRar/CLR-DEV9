@@ -314,7 +314,7 @@ namespace CLRDEV9
         {
             try
             {
-                CLR_PSE_Version_PCSX2 minVer = new CLR_PSE_Version_PCSX2(0, 3, 1);
+                CLR_PSE_Version_PCSX2 minVer = new CLR_PSE_Version_PCSX2(1, 3, 1);
                 if (CLR_PSE.EmuName != "PCSX2")
                 {
                     return 0; //Hope it works
