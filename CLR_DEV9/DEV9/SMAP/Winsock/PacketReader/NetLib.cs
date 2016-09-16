@@ -60,6 +60,16 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader
     class DataLib
     {
         //write to buffer without NO convert
+        public static void WriteUInt64(ref byte[] buffer, ref int offset, UInt64 value)
+        {
+            Array.Copy(BitConverter.GetBytes(
+                value),
+                0,
+                buffer,
+                offset,
+                sizeof(UInt64));
+            offset += sizeof(UInt64);
+        }
         public static void WriteUInt32(ref byte[] buffer, ref int offset, UInt32 value)
         {
             Array.Copy(BitConverter.GetBytes(

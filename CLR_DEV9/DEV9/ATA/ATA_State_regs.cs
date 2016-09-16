@@ -4,10 +4,16 @@ namespace CLRDEV9.DEV9.ATA
 {
     partial class ATA_State
     {
+        const bool lba48Supported = false;
+
         delegate bool Cmd();
         delegate void EndTransfer();
 
         UInt16 xferMode;
+        int pioMode = -1;
+        int sdmaMode = -1;
+        int mdmaMode = -1;
+        int udmaMode = 5;
 
         bool sendIRQ = true;
 
@@ -98,15 +104,21 @@ namespace CLRDEV9.DEV9.ATA
         //uint8_t *mdata_storage;
         //int media_changed;
         //enum ide_dma_cmd dma_cmd;
+
         /* SMART */
-        bool smartEnabled;
 #pragma warning disable CS0414 // The field 'ATA_State.smartAutosave' is assigned but its value is never used
-        bool smartAutosave;
+        bool smartAutosave = true;
 #pragma warning restore CS0414 // The field 'ATA_State.smartAutosave' is assigned but its value is never used
         bool smartErrors = false;
-        byte smartSelfTestCount;
+        byte smartSelfTestCount = 0;
         //uint8_t *smart_selftest_data;
         /* AHCI */
         //int ncq_queues;
+
+        //Enable/disable features
+        bool fetSmartEnabled = true;
+        bool fetSecurityEnabled = false;
+        bool fetWriteCacheEnabled = false; //WriteCache off
+        bool fetHostProtectedAreaEnabled = false;
     }
 }

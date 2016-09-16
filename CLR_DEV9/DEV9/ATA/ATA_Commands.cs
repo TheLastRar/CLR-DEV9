@@ -100,7 +100,7 @@ namespace CLRDEV9.DEV9.ATA
                 return true;
             }
 
-            if (smartEnabled && feature != 0xD8)
+            if (!fetSmartEnabled && feature != 0xD8)
             {
                 HDD_SmartFail();
                 return true;
@@ -109,10 +109,10 @@ namespace CLRDEV9.DEV9.ATA
             switch (feature)
             {
                 case 0xD9: //SMART_DISABLE
-                    smartEnabled = false;
+                    fetSmartEnabled = false;
                     return true;
                 case 0xD8: //SMART_ENABLE
-                    smartEnabled = true;
+                    fetSmartEnabled = true;
                     return true;
                 case 0xD2: //SMART_ATTR_AUTOSAVE
                     switch (sector)
@@ -130,7 +130,7 @@ namespace CLRDEV9.DEV9.ATA
                     }
                     return true;
                 case 0xDA: //SMART_STATUS (is fault in disk?)
-                    if (smartErrors)
+                    if (!smartErrors)
                     {
                         hcyl = 0xC2;
                         lcyl = 0x4F;
@@ -246,6 +246,7 @@ namespace CLRDEV9.DEV9.ATA
             status = DEV9Header.ATA_STAT_READY | DEV9Header.ATA_STAT_SEEK; //Set Ready
 
             //IDE transfer start
+            CreateHDDinfo(DEV9Header.config.HddSize);
             IDE_TransferStart(identifyData, 0, 256 * 2, IDE_TransferStop);
 
             if (sendIRQ) dev9.DEV9irq(1, 0x6C);
@@ -257,19 +258,49 @@ namespace CLRDEV9.DEV9.ATA
         {
             Log_Verb("HddsetFeatures");
 
-
             switch (feature)
             {
-                case 0x03:
+                case 0x03: // set transfer mode
                     xferMode = (UInt16)nsector; //Set Transfer mode
+
+                    int val = xferMode & 0x07;
                     switch ((xferMode & 0x07) >> 3)
                     {
-                        case 0x00:
-                        case 0x01:
-                        case 0x02:
-                        case 0x04:
-                        case 0x08:
+                        case 0x00: //pio default
+                            pioMode = 4;
+                            sdmaMode = -1;
+                            mdmaMode = -1;
+                            udmaMode = -1;
                             break;
+                        case 0x01: //pio mode (3,4)
+                            pioMode = val;
+                            sdmaMode = -1;
+                            mdmaMode = -1;
+                            udmaMode = -1;
+                            break;
+                        case 0x02: //Single word dma mode (0,1,2)
+                            pioMode = -1;
+                            sdmaMode = val;
+                            mdmaMode = -1;
+                            udmaMode = -1;
+                            break;
+                        case 0x04: //Multi word dma mode (0,1,2)
+                            pioMode = -1;
+                            sdmaMode = -1;
+                            mdmaMode = val;
+                            udmaMode = -1;
+                            break;
+                        case 0x08: //Ulta dma mode (0,1,2,3,4,5,6)
+                            pioMode = -1;
+                            sdmaMode = -1;
+                            mdmaMode = -1;
+                            udmaMode = val;
+                            break;
+                        default:
+                            Log_Error("Unkown transfer mode");
+                            IDE_AbortCommand();
+                            break;
+
                     }
                     break;
             }

@@ -1,4 +1,5 @@
 ﻿using System;
+using CLRDEV9.DEV9.SMAP.Winsock.PacketReader;
 
 namespace CLRDEV9.DEV9.ATA
 {
@@ -6,7 +7,7 @@ namespace CLRDEV9.DEV9.ATA
     {
         void CreateHDDinfo(int sizeMb)
         {
-            int sectorSize = 512;
+            UInt16 sectorSize = 512;
             Log_Verb("HddSize : " + DEV9Header.config.HddSize);
             long nbSectors = (((long)sizeMb / (long)sectorSize) * 1024L * 1024L);
             Log_Verb("nbSectors : " + nbSectors);
@@ -18,117 +19,136 @@ namespace CLRDEV9.DEV9.ATA
             int oldsize = cylinders * heads * sectors;
 
             //M-General configuration bit-significant information:
-            Utils.memcpy(ref identifyData, 0 * 2, BitConverter.GetBytes((UInt16)0x0040), 0, 2);
-            //Obsolete
-            Utils.memcpy(ref identifyData, 1 * 2, BitConverter.GetBytes((UInt16)cylinders), 0, 2);
+            #region
+            //bit 0: 0 = ATA dev
+            //bit 1: Hard Sectored (Retired)
+            //bit 2: Soft Sectored (Retired) / Response incomplete
+            //bit 3: Not MFM encoded (Retired)
+            //bit 4: Head switch time > 15 usec (Retired)
+            //bit 5: Spindle motor control option implemented (Retired)
+            //bit 6: Non-Removable (Obsolete)
+            //bit 7: Removable
+            //bit 8-10: transfer speeds (<5, 5-10, >10MB/s) (Retired) 
+            //bit 11: rotational speed tolerance is > 0.5%
+            //bit 12: data strobe offset option available (Retired)
+            //bit 13: track offset option available
+            //bit 14: format speed tolerance gap required
+            //bit 16: reserved
+            #endregion
+            int index = 0;
+            DataLib.WriteUInt16(ref identifyData, ref index, 0x0040);    //word 0
+            //Num of cylinders (Retired)
+            DataLib.WriteUInt16(ref identifyData, ref index, cylinders); //word 1
             //Specific configuration
-            //2
-            //Obsolete
-            Utils.memcpy(ref identifyData, 3 * 2, BitConverter.GetBytes((UInt16)heads), 0, 2);
-            //Retired
-            Utils.memcpy(ref identifyData, 4 * 2, BitConverter.GetBytes((UInt16)(sectorSize * sectors)), 0, 2);
-            //Retired
-            Utils.memcpy(ref identifyData, 5 * 2, BitConverter.GetBytes((UInt16)sectorSize), 0, 2);
-            //Obsolete
-            Utils.memcpy(ref identifyData, 6 * 2, BitConverter.GetBytes((UInt16)sectors), 0, 2);
+            index += 1 * 2;                                              //word 2
+            //Num of heads (Retired)
+            DataLib.WriteUInt16(ref identifyData, ref index, heads);     //word 3
+            //Number of unformatted bytes per track (Retired)
+            DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)(sectorSize * sectors));//word 4
+            //Number of unformatted bytes per sector (Retired)
+            DataLib.WriteUInt16(ref identifyData, ref index, sectorSize);//word 5
+            //Number of sectors per track (Retired)
+            DataLib.WriteUInt16(ref identifyData, ref index, sectors);   //word 6
             //Reserved for assignment by the CompactFlash™ Association
-            //7-8
+            index += 2 * 2;                                              //word 7-8
+            //Retired
+            index += 1 * 2;                                              //word 9
             //M-Serial number (20 ASCII characters)
-            Utils.memcpy(ref identifyData, 10 * 2,
-                new byte[] {
-                        (byte)'C', (byte)'L', // serial
-	                    (byte)'R', (byte)'-',
-                        (byte)'D', (byte)'E',
-                        (byte)'V', (byte)'9',
-                        (byte)'-', (byte)'A',
-                        (byte)'I', (byte)'R',
-                        (byte)' ', (byte)' ',
-                        (byte)' ', (byte)' ',
-                        (byte)' ', (byte)' ',
-                        (byte)' ', (byte)' ',
-                            }, 0, 20);
-            //Retired
-            Utils.memcpy(ref identifyData, 20 * 2, BitConverter.GetBytes((UInt16)/*3*/0), 0, 2); //??
-            //Retired
-            Utils.memcpy(ref identifyData, 21 * 2, BitConverter.GetBytes((UInt16)/*512*/ 0), 0, 2); //cache size in sectors
-            //Obsolete
-            Utils.memcpy(ref identifyData, 22 * 2, BitConverter.GetBytes((UInt16)/*4*/0), 0, 2); //ecc bytes
+            DataLib.WriteCString(ref identifyData, ref index, "CLR-DEV9-AIR".PadRight(20));//word 10-19
+            index = 20 * 2;
+            //Buffer(cache) type (Retired)
+            DataLib.WriteUInt16(ref identifyData, ref index, /*3*/0);    //word 20
+            //Buffer(cache) size in sectors (Retired)
+            DataLib.WriteUInt16(ref identifyData, ref index, /*512*/0);  //word 21
+            //Number of ECC bytes available on read / write long commands (Obsolete)
+            DataLib.WriteUInt16(ref identifyData, ref index, /*4*/0);    //word 22
             //M-Firmware revision (8 ASCII characters)
-            Utils.memcpy(ref identifyData, 23 * 2,
-                new byte[] {
-                        (byte)'F', (byte)'I', // firmware
-	                    (byte)'R', (byte)'M',
-                        (byte)'1', (byte)'0',
-                        (byte)'0', (byte)' ',
-                            }, 0, 8);
+            DataLib.WriteCString(ref identifyData, ref index, "FIRM100".PadRight(8));//word 23-26
+            index = 27 * 2;
             //M-Model number (40 ASCII characters)
-            Utils.memcpy(ref identifyData, 27 * 2,
-                new byte[] {
-                        (byte)'C', (byte)'L', // model
-                        (byte)'R', (byte)'-',
-                        (byte)'D', (byte)'E',
-                        (byte)'V', (byte)'9',
-                        (byte)' ', (byte)'H',
-                        (byte)'D', (byte)'D',
-                        (byte)' ', (byte)'A',
-                        (byte)'I', (byte)'R',
-                        (byte)' ', (byte)' ',
-                        (byte)' ', (byte)' ',
-                        (byte)' ', (byte)' ',
-                        (byte)' ', (byte)' ',
-                        (byte)' ', (byte)' ',
-                        (byte)' ', (byte)' ',
-                        (byte)' ', (byte)' ',
-                        (byte)' ', (byte)' ',
-                        (byte)' ', (byte)' ',
-                        (byte)' ', (byte)' ',
-                        (byte)' ', (byte)' ',
-                        (byte)' ', (byte)' ',
-                            }, 0, 40);
-            //M-READ/WRIE MULI max sectors
-            //47
-            //Trusted Computing feature set options
-            Utils.memcpy(ref identifyData, 48 * 2, BitConverter.GetBytes((UInt16)1), 0, 2); //dword IO
-            //M-Capabilities (8-DMA, 9-LBA, 10-IORDY may be disabled, 11-IORDY supported, 13 - Standby timer values as specified in this standard are supported)
-            Utils.memcpy(ref identifyData, 49 * 2, BitConverter.GetBytes((UInt16)((1 << 11) | (1 << 9) | (1 << 8))), 0, 2); //DMA and LBA supported
+            DataLib.WriteCString(ref identifyData, ref index, "CLR-DEV9 HDD AIR".PadRight(40));//word 27-46
+            index = 47 * 2;
+            //M-READ/WRITE MULI max sectors (TODO)
+            index += 1 * 2;                                              //word 47
+            //Dword IO supported
+            DataLib.WriteUInt16(ref identifyData, ref index, 1);         //word 48
+            //M-Capabilities
+            #region
+            //bits 7-0: Retired
+            //bit 8: DMA supported
+            //bit 9: LBA supported
+            //bit 10:IORDY may be disabled
+            //bit 11:IORDY supported
+            //bit 12:Reserved
+            //bit 13:Standby timer values as specified in this standard are supported
+            #endregion
+            DataLib.WriteUInt16(ref identifyData, ref index, ((1 << 11) | (1 << 9) | (1 << 8)));//word 49
             //M-Capabilities (0-Shall be set to one to indicate a device specific Standby timer value minimum)
-            //50
-            //Obsolete
-            Utils.memcpy(ref identifyData, 51 * 2, BitConverter.GetBytes((UInt16)0x200), 0, 2); //PIO transfer cycle
-            //Obsolete
-            Utils.memcpy(ref identifyData, 52 * 2, BitConverter.GetBytes((UInt16)0x200), 0, 2); //DMA transfer cycle
-            //M-2 = the fields reported in word 88 are valid, 1 = the fields reported in words (70:64) are valid
-            Utils.memcpy(ref identifyData, 53 * 2, BitConverter.GetBytes((UInt16)(1 | (1 << 1) | (1 << 2))), 0, 2); // words 54-58,64-70,88 are valid (??)
-            //Obsolete
-            Utils.memcpy(ref identifyData, 54 * 2, BitConverter.GetBytes((UInt16)cylinders), 0, 2);
-            //Obsolete
-            Utils.memcpy(ref identifyData, 55 * 2, BitConverter.GetBytes((UInt16)heads), 0, 2);
-            //Obsolete
-            Utils.memcpy(ref identifyData, 56 * 2, BitConverter.GetBytes((UInt16)sectors), 0, 2);
-            //Obsolete
-            Utils.memcpy(ref identifyData, 57 * 2, BitConverter.GetBytes((UInt16)oldsize), 0, 2);
-            //Obsolete
-            Utils.memcpy(ref identifyData, 58 * 2, BitConverter.GetBytes((UInt16)(oldsize >> 16)), 0, 2);
-            //M-8 - Multiple sector setting is valid, 7:0  xxh = Current setting for number of logical sectors that shall be transferred per DRQ data block on READ/WRITE Multiple commands
-            //59
+            index += 1 * 2;                                              //word 50
+            //PIO data transfer cycle timing mode (Obsolete)
+            DataLib.WriteUInt16(ref identifyData, ref index, 0);         //word 51
+            //DMA data transfer cycle timing mode (Obsolete)
+            DataLib.WriteUInt16(ref identifyData, ref index, 0);         //word 52
+            //M
+            #region
+            //bit 0: Fields in 54:58 are valid (Obsolete)
+            //bit 1: Fields in 70:64 are valid
+            //bit 2: Fields in 88 are valid
+            #endregion
+            DataLib.WriteUInt16(ref identifyData, ref index, (1 | (1 << 1) | (1 << 2)));//word 53
+            //Number of current cylinders
+            DataLib.WriteUInt16(ref identifyData, ref index, cylinders); //word 54
+            //Number of current heads
+            DataLib.WriteUInt16(ref identifyData, ref index, heads);     //word 55
+            //Number of current sectors per track
+            DataLib.WriteUInt16(ref identifyData, ref index, sectors);   //word 56
+            //Current capacity in sectors
+            DataLib.WriteUInt32(ref identifyData, ref index, (UInt32)oldsize);//word 57-58
+            //M
+            #region
+            //bit 7-0: Current setting for number of logical sectors that shall be transferred per DRQ
+            //         data block on READ/WRITE Multiple commands
+            //bit 8: Multiple sector setting is valid
+            #endregion
+            index += 1 * 2;                                              //word 59
             //Total number of user addressable logical sectors
-            Utils.memcpy(ref identifyData, 60 * 2, BitConverter.GetBytes((UInt16)nbSectors), 0, 2);
-            //Total number of user addressable logical sectors(part 2)
-            Utils.memcpy(ref identifyData, 61 * 2, BitConverter.GetBytes((UInt16)(nbSectors >> 16)), 0, 2);
-            //Obsolete
-            Utils.memcpy(ref identifyData, 62 * 2, BitConverter.GetBytes((UInt16)0x07), 0, 2); //single word dma0-2 supported
-            //M-bit 0-2-Multiword DMA0-2 supported, 8-10, Multiword DMA0-2 selected
-            Utils.memcpy(ref identifyData, 63 * 2, BitConverter.GetBytes((UInt16)0x07), 0, 2); //mdma0-2 supported
-            //M-Bit 0-7-PIO modes supported
-            Utils.memcpy(ref identifyData, 64 * 2, BitConverter.GetBytes((UInt16)0x03), 0, 2); //pio3-4 supported
+            DataLib.WriteUInt32(ref identifyData, ref index, (UInt32)nbSectors);//word 60-61
+            //DMA modes
+            #region
+            //bits 0-7: Singleword modes supported (0,1,2)
+            //bits 8-15: Transfer mode active
+            #endregion
+            if (sdmaMode > 0)
+            {
+                DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)(0x07 | (1 << (sdmaMode + 8))));//word 62
+            }
+            else
+            {
+                DataLib.WriteUInt16(ref identifyData, ref index, 0x07);  //word 62
+            }
+            //DMA Modes
+            #region
+            //bits 0-7: Multiword modes supported (0,1,2)
+            //bits 8-15: Transfer mode active
+            #endregion
+            if (mdmaMode > 0)
+            {
+                DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)(0x07 | (1 << (mdmaMode + 8))));//word 63
+            }
+            else
+            {
+                DataLib.WriteUInt16(ref identifyData, ref index, 0x07);  //word 63
+            }
+            //M-Bit 0-7-PIO modes supported (0,1,2,3,4)
+            DataLib.WriteUInt16(ref identifyData, ref index, 0x03);      //word 64 (pio3,4 supported) selection not reported here
             //M-Minimum Multiword DMA transfer cycle time per word
-            Utils.memcpy(ref identifyData, 65 * 2, BitConverter.GetBytes((UInt16)120), 0, 2);
+            DataLib.WriteUInt16(ref identifyData, ref index, 120);       //word 65
             //M-Manufacturer’s recommended Multiword DMA transfer cycle time
-            Utils.memcpy(ref identifyData, 66 * 2, BitConverter.GetBytes((UInt16)120), 0, 2);
+            DataLib.WriteUInt16(ref identifyData, ref index, 120);       //word 66
             //M-Minimum PIO transfer cycle time without flow control
-            Utils.memcpy(ref identifyData, 67 * 2, BitConverter.GetBytes((UInt16)120), 0, 2);
+            DataLib.WriteUInt16(ref identifyData, ref index, 120);       //word 67
             //M-Minimum PIO transfer cycle time with IORDY flow control
-            Utils.memcpy(ref identifyData, 68 * 2, BitConverter.GetBytes((UInt16)120), 0, 2);
+            DataLib.WriteUInt16(ref identifyData, ref index, 120);       //word 68
             //Reserved
             //69-70
             //Reserved
@@ -137,60 +157,125 @@ namespace CLRDEV9.DEV9.ATA
             //75
             //Reserved
             //76-79
-            //M-Major revision number (1-3-Obsolete, 4-8-ATA4-8 supported)
-            Utils.memcpy(ref identifyData, 80 * 2, BitConverter.GetBytes((UInt16)0xf0), 0, 2);
-            //M-Minor revision numbe
-            Utils.memcpy(ref identifyData, 81 * 2, BitConverter.GetBytes((UInt16)0x16), 0, 2);
-            //M-Command set supported (14-NOP, 13-READ BUFFER, 12-WRITE BUFFER, 10-Host Protected Area feature set supported,
-            //9-DEVICE RESET command supported, 8-SERVICE interrupt supported, 7-release interrupt supported, 6-look-ahead supported
-            //5-write cache supported, 4-ATAPI support, 3-mandatory Power Management feature set supported
-            //1-Security Mode feature set supported, 0-SMART)
-            Utils.memcpy(ref identifyData, 82 * 2, BitConverter.GetBytes((UInt16)((1 << 14) | (1 << 5) | /*(1 << 1) | (1 << 10) |*/ 1)), 0, 2); //1-security, 10-Host Protected Area feature set
-            //M-Command sets supported. (14-Set to one, 13-FLUSH CACHE EXT command supported, 12-FLUSH CACHE command supported,
-            //11-Device Configuration Overlay feature set supported, 10-48-bit Address feature set supported, 
-            //9-Automatic Acoustic Management feature set supported, 8-SET MAX security extension supported, 
-            //7-See Address Offset Reserved Area Boot, INCITS TR27:2001, 6-SET FEATURES subcommand required to spin-up after power-up
-            //5-Power-Up In Standby feature set supported, 3-Advanced Power Management feature set supported, 2-CFA feature set supported,
-            //1-READ/WRITE DMA QUEUED supported, 0-DOWNLOAD MICROCODE command supported)
-            Utils.memcpy(ref identifyData, 83 * 2, BitConverter.GetBytes((UInt16)((1 << 14) | (1 << 13) | (1 << 12) /*| (1 << 8)*/ /*| (1 << 10)*/)), 0, 2); //48bit, 8-SET MAX security extension supported
-            //M-Command set/feature supported (14-Set to one, 13-1 = IDLE IMMEDIATE with UNLOAD FEATURE supported, 8-64-bit World wide name supported,
-            //7-WRITE DMA QUEUED FUA EXT command supported, 6-WRITE DMA FUA EXT and WRITE MULTIPLE FUA EXT commands supported
-            //5-General Purpose Logging feature set supported, 4-Streaming feature set supported, 3-Media Card Pass Through Command feature set supported
-            //2-Media serial number supported, 1-SMART self-test supported, 0-SMART error logging supported)
-            Utils.memcpy(ref identifyData, 84 * 2, BitConverter.GetBytes((UInt16)((1 << 14) | (1 << 1) | 1)), 0, 2); //no WWN
-            //M-Command set/feature enabled/supported (14-NOP supported, 13-READ BUFFER command supported, 12-WRITE BUFFER command supported
-            //10-host Protected Area has been established (i.e., the maximum LBA is less than the maximum native LBA, DEVICE RESET command supported, 
-            //8-SERVICE interrupt enabled, 7-release interrupt enabled, 6-look-ahead enabled, 5-write cache enabled, 4-ATAPI, 
-            //3-Power Management feature set enabled, 1-Security Mode feature set enabled, 0-SMART enabled)
-            Utils.memcpy(ref identifyData, 85 * 2, BitConverter.GetBytes((UInt16)((1 << 14) | (1 << 1) | 1)), 0, 2); //no WCACHE 8-security 
-            //M-Command set/feature enabled/supported. (15-Words 120:119 are valid, 13-FLUSH CACHE EXT command supported, 12-FLUSH CACHE command supported,
-            //11-Device Configuration Overlay feature set supported, 10-48-bit Address feature set supported, 
-            //9-Automatic Acoustic Management feature set enabled, 8-SET MAX security extension enabled by SET MAX SET PASSWORD, 
-            //6-SET FEATURES subcommand required to spin-up after power-up, 5-Power-Up In Standby feature set enabled, 
-            //3-Advanced Power Management feature set enabled, 2-CFA feature set supported,
-            //1-READ/WRITE DMA QUEUED supported, 0-DOWNLOAD MICROCODE command supported)
-            Utils.memcpy(ref identifyData, 86 * 2, BitConverter.GetBytes((UInt16)((1 << 13) | (1 << 12) /*| (1 << 10)*/)), 0, 2); //48bit
-            //M-Command set/feature enabled/supported (14-Set to one, 13-1 = IDLE IMMEDIATE with UNLOAD FEATURE supported, 8-64-bit World wide name supported,
-            //7-WRITE DMA QUEUED FUA EXT command supported, 6-WRITE DMA FUA EXT and WRITE MULTIPLE FUA EXT commands supported
-            //5-General Purpose Logging feature set supported, 3-Media Card Pass Through Command feature set supported
-            //2-Media serial number is valid, 1-SMART self-test supported, 0-SMART error logging supported)
-            Utils.memcpy(ref identifyData, 87 * 2, BitConverter.GetBytes((UInt16)((1 << 14) | (1 << 1) | 1)), 0, 2); //no WWN
-            //Ultra DMA modes (8-14-Ultra DMA 0-6 selected, 0-6-Ultra DMA0-6 supported
-            Utils.memcpy(ref identifyData, 88 * 2, BitConverter.GetBytes((UInt16)(0x3f | (1 << 13))), 0, 2); //udma5 set and supported
+            index = 80 * 2;
+            //M-Major revision number (1-3-Obsolete, 4-7-ATA4-7 supported)
+            DataLib.WriteUInt16(ref identifyData, ref index, 0x70);      //word 80
+            //M-Minor revision number
+            DataLib.WriteUInt16(ref identifyData, ref index, 0);         //word 81
+            //M-Supported Feature Sets (82)
+            #region
+            //bit 0: Smart
+            //bit 1: Security Mode
+            //bit 2: Removable media feature set
+            //bit 3: Power management
+            //bit 4: Packet (the CD features)
+            //bit 5: Write cache
+            //bit 6: Look-ahead
+            //bit 7: Release interrupt
+            //bit 8: SERVICE interrupt
+            //bit 9: DEVICE RESET interrupt
+            //bit 10: Host Protected Area
+            //bit 11: (Obsolete)
+            //bit 12: WRITE BUFFER command
+            //bit 13: READ BUFFER command
+            //bit 14: NOP
+            //bit 15: (Obsolete)
+            #endregion
+            DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)((1 << 14) | (1 << 5) | /*(1 << 1) | (1 << 10) |*/ 1));//word 82
+            //M-Supported Feature Sets (83)
+            #region
+            //bit 0: DOWNLOAD MICROCODE
+            //bit 1: READ/WRITE DMA QUEUED
+            //bit 2: CFA (Card reader)
+            //bit 3: Advanced Power Management
+            //bit 4: Removable Media Status Notifications
+            //bit 5: Power-Up Standby
+            //bit 6: SET FEATURES required to spin up after power-up
+            //bit 7: ??
+            //bit 8: SET MAX security extension
+            //bit 9: Automatic Acoustic Management
+            //bit 10: 48bit LBA
+            //bit 11: Device Configuration Overlay
+            //bit 12: FLUSH CACHE
+            //bit 13: FLUSH CACHE EXT
+            //bit 14: 1
+            #endregion
+            DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)((1 << 14) | (1 << 13) | (1 << 12) /*| (1 << 8)*/ |
+                (Convert.ToUInt16(lba48Supported) << 10)));              //word 83
+            //M-Supported Feature Sets (84)
+            #region
+            //bit 0: Smart error logging                            
+            //bit 1: smart self-test
+            //bit 2: Media serial number
+            //bit 3: Media Card Pass Though
+            //bit 4: Streaming feature set
+            //bit 5: General Purpose Logging
+            //bit 6: WRITE DMA FUA EXT & WRITE MULTIPLE FUA EXT
+            //bit 7: WRITE DMA QUEUED FUA EXT
+            //bit 8: 64bit World Wide Name
+            //bit 9: URG bit supported for WRITE STREAM DMA EXT amd WRITE STREAM EXT
+            //bit 10: URG bit supported for READ STREAM DMA EXT amd READ STREAM EXT
+            //bit 13: IDLE IMMEDIATE with UNLOAD FEATURE
+            //bit 14: 1
+            #endregion
+            DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)((1 << 14) | (1 << 1) | 1));//word 84
+            //M-Command set/feature enabled/supported (See word 82)
+            DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)(
+                (Convert.ToUInt16(fetSmartEnabled)) |
+                (Convert.ToUInt16(fetSecurityEnabled) << 1) |
+                (Convert.ToUInt16(fetWriteCacheEnabled) << 5) |
+                (Convert.ToUInt16(fetHostProtectedAreaEnabled) << 10) |
+                (Convert.ToUInt16(true) << 14)));           //Fixed      //word 85
+            //M-Command set/feature enabled/supported (See word 83)
+            DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)(
+                /*(Convert.ToUInt16(true) << 8) | //SET MAX */
+                (Convert.ToUInt16(lba48Supported) << 10) |  //Fixed
+                (Convert.ToUInt16(true) << 12) |            //Fixed
+                (Convert.ToUInt16(true) << 13)));           //Fixed      //word 86             
+            //M-Command set/feature enabled/supported (See word 84)
+            DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)((1 << 14) | (1 << 1) | 1));
+            DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)(
+                (Convert.ToUInt16(true)) |                  //Fixed
+                (Convert.ToUInt16(true) << 1)));            //Fixed      //word 87
+            //UDMA modes
+            #region
+            //bits 0-7: ultraword modes supported (0,1,2,4,5,6,7)
+            //bits 8-15: Transfer mode active
+            #endregion
+            if (mdmaMode > 0)
+            {
+                DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)(0x7f | (1 << (udmaMode + 8))));//word 88
+            }
+            else
+            {
+                DataLib.WriteUInt16(ref identifyData, ref index, 0x7f);  //word 88
+            }
             //Time required for security erase unit completion
             //89
-            // Time required for Enhanced security erase completion
+            //Time required for Enhanced security erase completion
             //90
             //Current advanced power management value
             //91
             //Master Password Identifier
             //92
-            //Hardware reset result.  The contents of bits (12:0) of this word shall change only during the execution of a hardware reset.
-            //See 7.16.7.41 for more information.
-            //14-Set to one, 13-device detected CBLID- above ViH, 12-8 Dev1 results
-            //7-0, Device 0 hardware reset result. Device 1 shall clear these bits to zero. Device 0 shall set these bits as follows
-            //0-set to one.
-            Utils.memcpy(ref identifyData, 93 * 2, BitConverter.GetBytes((UInt16)(1 | (1 << 14) | 0x2000)), 0, 2);
+            //Hardware reset result. The contents of bits (12:0) of this word shall change only during the execution of a hardware reset.
+            #region
+            //bit 0: 1
+            //bit 1-2: How Dev0 determined Dev number (11 = unk)
+            //bit 3: Dev 0 Passes Diag
+            //bit 4: Dev 0 Detected assertion of PDIAG
+            //bit 5: Dev 0 Detected assertion of DSAP
+            //bit 6: Dev 0 Responds when Dev1 is selected
+            //bit 7: Reserved
+            //bit 8: 1
+            //bit 9-10: How Dev1 determined Dev number
+            //bit 11: Dev1 asserted 1
+            //bit 12: Reserved
+            //bit 13: Dev detected CBLID above Vih
+            //bit 14: 1
+            #endregion
+            index = 93 * 2;
+            DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)(1 | (1 << 14) | 0x2000));//word 93
             //Vendor’s recommended acoustic management value.
             //94
             //Stream Minimum Request Size
@@ -202,21 +287,26 @@ namespace CLRDEV9.DEV9.ATA
             //Streaming Performance Granularity
             //98-99
             //Total Number of User Addressable Sectors for the 48-bit Address feature set.
-            Utils.memcpy(ref identifyData, 100 * 2, BitConverter.GetBytes((UInt16)nbSectors), 0, 2);
-            Utils.memcpy(ref identifyData, 101 * 2, BitConverter.GetBytes((UInt16)(nbSectors >> 16)), 0, 2);
-            Utils.memcpy(ref identifyData, 102 * 2, BitConverter.GetBytes((UInt16)(nbSectors >> 32)), 0, 2);
-            Utils.memcpy(ref identifyData, 103 * 2, BitConverter.GetBytes((UInt16)(nbSectors >> 48)), 0, 2);
+            index = 100 * 2;
+            DataLib.WriteUInt64(ref identifyData, ref index, (UInt64)nbSectors);
+            index -= 2;
+            DataLib.WriteUInt16(ref identifyData, ref index, 0); //truncate to 48bits
             //Streaming Transfer Time - PIO
             //104
             //Reserved
             //105
             //Physical sector size / Logical Sector Size
-            //(14-set to one, 13-Device has multiple logical sectors per physical sector, 12-Device Logical Sector Longer than 256 Words
-            //3-0, 2^X logical sectors per physical sector
-            Utils.memcpy(ref identifyData, 106 * 2, BitConverter.GetBytes((UInt16)((1 << 14) | 0)), 0, 2);
+            #region
+            //bit 0-3: 2^X logical sectors per physical sector
+            //bit 12: Logical sector longer than 512 bytes
+            //bit 13: multiple logical sectors per physical sector
+            //bit 14: 1
+            #endregion
+            index = 106 * 2;
+            DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)((1 << 14) | 0));
             //Inter-seek delay for ISO-7779acoustic testing in microseconds
             //107
-            //M-WNN
+            //WNN
             //108-111
             //Reserved
             //112-115
@@ -224,65 +314,31 @@ namespace CLRDEV9.DEV9.ATA
             //116
             //Words per Logical Sector
             //117-118
-            //M-Supported Settings (Continued from words 84:82)
-            //14-Set to one, 4-The Segmented feature for DOWNLOAD MICROCODE is supported, 3-READ and WRITE DMA EXT GPL optional commands are supported
-            //3-READ and WRITE DMA EXT GPL optional commands are supported, 2-WRITE UNCORRECTABLE is supported, 1-Write-Read-Verify feature set is supported
-            //119 (TODO)
-            //M-Same as 119 but  1-Write-Read-Verify feature set is enabled
-            //120 (TODO)
             //Reserved
-            //121-126
-            //Obsolete
+            //119-126
+            //Removable Media Status Notification feature support
             //127
-            //Security status (8-Security level 0 = High, 1 = Maximum, 1-Enhanced security erase supported, 4-Security count expired
-            //3-Security frozen, 2-Security locked, 1-Security enabled, 0-Security supported)
-            //Utils.memcpy(ref identify_data, 128 * 2, BitConverter.GetBytes((UInt16)(1)), 0, 2);
+            //Security status
+            #region
+            //bit 0: Security supported
+            //bit 1: Security enabled
+            //bit 2: Security locked
+            //bit 3: Security frozen
+            //bit 4: Security count expired
+            //bit 5: Enhanced erase supported
+            //bit 6-7: reserved
+            //bit 8: is Maximum Security
+            #endregion
             //Vendor Specific
             //129-159
             //CFA power mode 1
             //160
-            //Reserved
+            //Reserved for CFA
             //161-175
             //Current media serial number (60 ASCII characters)
             //176-205
-            //SCT Command Transport
-            //206
             //Reserved
-            //206-208
-            //Alignment of logical blocks within a larger physical block
-            //209
-            //Write-Read-Verify Sector Count Mode 3 Only
-            //210-211
-            //Verify Sector Count Mode 2 Only
-            //212-213
-            //NV Cache Capabilities
-            //214
-            //NV Cache Size in Logical Blocks (LSW)
-            //215
-            //NV Cache Size in Logical Blocks (MSW)
-            //216
-            //NV Cache Read Transfer Speed in MB/s
-            //217
-            //NV Cache Write Transfer Speed in MB/s
-            //218
-            //NV Cache Options
-            //219
-            //Write-Read-Verify feature set current mode (bit 0-7)
-            //220
-            //Reserved
-            //221
-            //Transport Major revision number.  0000h or FFFFh = device does not report version
-            //M-222
-            //M-Transport Minor revision number
-            //223
-            //Reserved
-            //224-223
-            //Minimum number of 512 byte units per DOWNLOAD MICROCODE command mode 3
-            //234
-            //Maximum number of 512 byte units per DOWNLOAD MICROCODE command mode 3
-            //235
-            //Reserved
-            //236-254
+            //206-254
             //M-Integrity word
             //15:8 Checksum, 7:0 Signature
             CreateHDDinfoCsum();
