@@ -489,21 +489,31 @@ namespace CLRDEV9.DEV9
         {
             Log_Verb("*DEV9readDMA8Mem: size " + size.ToString("X"));
             Log_Info("rDMA");
+            long ptr = pMem.Position;
             smap.SMAP_ReadDMA8Mem(pMem, size);
             
             //#ifdef ENABLE_ATA
             ata.ATAreadDMA8Mem(pMem, size);
             //#endif
+            if (pMem.Position - ptr == 0)
+            {
+                Log_Error("No Data Read");
+            }
         }
 
         public void DEV9_WriteDMA8Mem(System.IO.UnmanagedMemoryStream pMem, int size)
         {
             Log_Verb("*DEV9writeDMA8Mem: size " + size.ToString("X"));
             Log_Info("wDMA");
+            long ptr = pMem.Position;
             smap.SMAP_WriteDMA8Mem(pMem, size);
             //#ifdef ENABLE_ATA
             ata.ATAwriteDMA8Mem(pMem, size);
             //#endif
+            if (pMem.Position - ptr == 0)
+            {
+                Log_Error("No Data Written");
+            }
         }
 
         public void DEV9_Async(uint cycles)
