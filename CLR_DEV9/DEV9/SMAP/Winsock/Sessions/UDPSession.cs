@@ -1,6 +1,6 @@
 ﻿using CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP;
 using System;
-using System.Collections.Generic;
+//using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
@@ -9,7 +9,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 {
     class UDPSession : Session
     {
-        List<UDP> recvbuff = new List<UDP>();
+        //List<UDP> recvbuff = new List<UDP>();
 
         UdpClient client;
 
@@ -24,21 +24,21 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         Stopwatch deathClock = new Stopwatch();
         const double MAX_IDLE = 72;
-        public UDPSession(IPAddress parAdapterIP, byte[] parBroadcastIP)
-            : base(parAdapterIP)
+        public UDPSession(ConnectionKey parKey, IPAddress parAdapterIP, byte[] parBroadcastIP)
+            : base(parKey, parAdapterIP)
         {
             broadcastAddr = parBroadcastIP;
             deathClock.Start();
         }
         public override IPPayload Recv()
         {
-            if (recvbuff.Count != 0)
-            {
-                UDP ret = recvbuff[0];
-                recvbuff.RemoveAt(0);
-                deathClock.Restart();
-                return ret;
-            }
+            //if (recvbuff.Count != 0)
+            //{
+            //    UDP ret = recvbuff[0];
+            //    recvbuff.RemoveAt(0);
+            //    deathClock.Restart();
+            //    return ret;
+            //}
             if (srcPort == 0)
             {
                 return null;
@@ -72,7 +72,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             if (deathClock.Elapsed.TotalSeconds > MAX_IDLE)
             {
                 client.Close();
-                open = false;
+                RaiseEventConnectionClosed();
             }
             return null;
         }
@@ -109,7 +109,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     //client.Close();
                     //client = new UdpClient(SrcPort);
                     //client.BeginReceive(ReceiveFromBroadcast, new object());
-                    open = true;
+                    //open = true;
                 }
                 else
                 {
@@ -127,7 +127,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     if (srcPort != 0)
                     {
                         //Error.WriteLine("UDP expects Data");
-                        open = true;
+                        //open = true;
                     }
                 }
             }
@@ -155,17 +155,18 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         }
         public override void Reset()
         {
-            Dispose();
+            client.Close();
+            RaiseEventConnectionClosed();
         }
 
-        bool open = false;
-        public override bool isOpen()
-        {
-            return open;
-        }
+        //bool open = false;
+        //public override bool isOpen()
+        //{
+        //    return open;
+        //}
         public override void Dispose()
         {
-            open = false;
+            //open = false;
             client.Close();
         }
 

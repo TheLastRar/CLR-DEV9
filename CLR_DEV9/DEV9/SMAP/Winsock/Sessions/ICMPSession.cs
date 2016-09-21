@@ -9,7 +9,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 {
     class ICMPSession : Session
     {
-        Object sentry = new Object();
+        object sentry = new object();
 
         List<ICMP> recvBuff = new List<ICMP>();
 
@@ -17,8 +17,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         Dictionary<ConnectionKey, Session> connections;
 
-        public ICMPSession(Dictionary<ConnectionKey, Session> parConnections)
-            : base(IPAddress.Any)
+        public ICMPSession(ConnectionKey parKey, Dictionary<ConnectionKey, Session> parConnections)
+            : base(parKey, IPAddress.Any)
         {
             connections = parConnections;
         }
@@ -50,7 +50,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                         recvBuff.Add(retICMP);
                         break;
                     default:
+                        //ping failed
                         open -= 1;
+                        if (open == 0)
+                        {
+                            RaiseEventConnectionClosed();
+                        }
                         break;
                 }
             }
@@ -67,6 +72,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     ret = recvBuff[0];
                     recvBuff.RemoveAt(0);
                     open -= 1;
+                    if (open == 0)
+                    {
+                        RaiseEventConnectionClosed();
+                    }
                     return ret;
                 }
             }
@@ -149,16 +158,17 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         public override void Reset()
         {
             Dispose();
+            RaiseEventConnectionClosed();
         }
 
         int open = 0;
-        public override bool isOpen()
-        {
-            lock (sentry)
-            {
-                return (open > 0);
-            }
-        }
+        //public override bool isOpen()
+        //{
+        //    lock (sentry)
+        //    {
+        //        return (open > 0);
+        //    }
+        //}
         public override void Dispose()
         {
             lock (sentry)

@@ -13,6 +13,14 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             {
                 return ret;
             }
+            //When TCP connection is closed by the server
+            //the server is the last to send a packet
+            //so the event must be raised here
+            if (state == TCPState.CloseCompleted)
+            {
+                RaiseEventConnectionClosed();
+                return null;
+            }
 
             int avaData = 0;
 
@@ -35,7 +43,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 maxSize = Math.Min(maxSegmentSize - 16, windowSize);
             }
 
-            if (avaData != 0 & maxSize != 0 && 
+            if (avaData != 0 & maxSize != 0 &&
                 myNumberACKed.WaitOne(0))
             {
                 if (avaData > maxSize)
@@ -64,14 +72,14 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 if (client.Client.Poll(1, SelectMode.SelectRead) && client.Client.Available == 0 && state == TCPState.Connected)
                 {
                     Log_Info("Detected Closed By Remote Connection");
-                    PerformCloseByRemote();
+                    CloseByRemoteStage1();
                     client.Close();
                 }
             }
             return null;
         }
 
-        private void PerformCloseByRemote()
+        private void CloseByRemoteStage1()
         {
             client.Close();
             netStream = null;
@@ -84,7 +92,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             ret.FIN = true;
 
             PushRecvBuff(ret);
-            state = TCPState.ConnectionClosedByRemote;
+            state = TCPState.Closing_ClosedByRemote_WaitingForAck;
         }
     }
 }

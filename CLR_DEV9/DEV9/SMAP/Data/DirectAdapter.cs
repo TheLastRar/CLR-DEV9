@@ -1,4 +1,5 @@
-﻿using CLRDEV9.DEV9.SMAP.Winsock.PacketReader;
+﻿using CLRDEV9.DEV9.SMAP.Winsock;
+using CLRDEV9.DEV9.SMAP.Winsock.PacketReader;
 using CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP;
 using CLRDEV9.DEV9.SMAP.Winsock.Sessions;
 using System;
@@ -46,7 +47,7 @@ namespace CLRDEV9.DEV9.SMAP.Data
                 dns2 = IPAddress.Parse(DEV9Header.config.DirectConnectionSettings.DNS2).GetAddressBytes();
             }
             //Create DHCP Session
-            dhcp = new UDP_DHCPsession(parAdapter, ps2IP, netMask, gateway, dns1, dns2);
+            dhcp = new UDP_DHCPsession(new ConnectionKey(), parAdapter, ps2IP, netMask, gateway, dns1, dns2);
             dhcpActive = true;
         }
 

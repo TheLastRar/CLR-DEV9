@@ -38,8 +38,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         UInt16 maxMs = 576;
 
-        public UDP_DHCPsession(NetworkInterface parAdapter, byte[] parDNS1, byte[] parDNS2)
-            : base(IPAddress.Any)
+        public UDP_DHCPsession(ConnectionKey parKey, NetworkInterface parAdapter, byte[] parDNS1, byte[] parDNS2)
+            : base(parKey, IPAddress.Any)
         {
             //Socket Settings
             //Fill Fixed Settings
@@ -56,9 +56,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             HandleBroadcast(PS2IP, NetMask);
         }
 
-        public UDP_DHCPsession(NetworkInterface parAdapter, byte[] parIP, byte[] parNetmask, byte[] parGateway,
+        public UDP_DHCPsession(ConnectionKey parKey, NetworkInterface parAdapter, byte[] parIP, byte[] parNetmask, byte[] parGateway,
             byte[] parDNS1, byte[] parDNS2)
-            : base(IPAddress.Any)
+            : base(parKey, IPAddress.Any)
         {
             IPInterfaceProperties properties = parAdapter.GetIPProperties();
             UnicastIPAddressInformationCollection IPInfoCollection = properties.UnicastAddresses;
@@ -455,7 +455,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             //throw new NotImplementedException();
         }
 
-        public override bool isOpen() { return true; }
+        //public override bool isOpen() { return true; }
         public override void Dispose() { }
 
         private void Log_Error(string str)

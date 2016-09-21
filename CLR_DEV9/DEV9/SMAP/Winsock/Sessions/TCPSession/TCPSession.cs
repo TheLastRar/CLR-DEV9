@@ -17,11 +17,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             SendingSYN_ACK,
             SentSYN_ACK,
             Connected,
-            ConnectionClosedByPS2,
-            ConnectionClosedByPS2AndRemote,
-            ConnectionClosedByRemote,
-            ConnectionClosedByRemoteAcknowledged,
-            Closed
+            //Closing_ClosedByPS2,
+            Closing_ClosedByPS2AndRemote_WaitingForAck,
+            Closing_ClosedByRemote_WaitingForAck,
+            Closing_ClosedByRemoteAcknowledged,
+            CloseCompleted
         }
         private enum NumCheckResult
         {
@@ -124,7 +124,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         ManualResetEvent myNumberACKed = new ManualResetEvent(true);
         #endregion
 
-        public TCPSession(IPAddress parAdapterIP) : base(parAdapterIP) { }
+        public TCPSession(ConnectionKey parKey, IPAddress parAdapterIP) : base(parKey, parAdapterIP) { }
 
         //recv
 
@@ -135,16 +135,17 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         public override void Reset()
         {
             Dispose();
+            RaiseEventConnectionClosed();
         }
 
-        bool open = false;
-        public override bool isOpen()
-        {
-            return open;
-        }
+        //bool open = false;
+        //public override bool isOpen()
+        //{
+        //    return open;
+        //}
         public override void Dispose()
         {
-            open = false;
+            //open = false;
             lock (clientSentry)
             {
                 client.Close();

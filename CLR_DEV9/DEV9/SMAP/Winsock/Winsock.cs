@@ -135,14 +135,17 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             {
                 dns2 = IPAddress.Parse(DEV9Header.config.SocketConnectionSettings.DNS2).GetAddressBytes();
             }
-            dhcpServer = new UDP_DHCPsession(adapter, dns1, dns2);
-
-            dhcpServer.SourceIP = new byte[] { 255, 255, 255, 255 };
-            dhcpServer.DestIP = DefaultDHCPConfig.DHCP_IP;
 
             ConnectionKey dhcpKey = new ConnectionKey();
             dhcpKey.Protocol = (byte)IPType.UDP;
             dhcpKey.SRVPort = 67;
+            
+            dhcpServer = new UDP_DHCPsession(dhcpKey, adapter, dns1, dns2);
+            dhcpServer.ConnectionClosedEvent += HandleConnectionClosed;
+
+            dhcpServer.SourceIP = new byte[] { 255, 255, 255, 255 };
+            dhcpServer.DestIP = DefaultDHCPConfig.DHCP_IP;
+
             connections.Add(dhcpKey, dhcpServer);
         }
 
@@ -164,18 +167,19 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
 
             if (vRecBuffer.Count == 0)
             {
-                List<ConnectionKey> DeadConnections = new List<ConnectionKey>();
+                //List<ConnectionKey> DeadConnections = new List<ConnectionKey>();
                 lock (sentry)
                 {
-                    foreach (ConnectionKey key in connections.Keys) //ToDo: better multi-connection stuff?
+                    Session[] sessions = connections.Values.ToArray();
+                    foreach (Session session in sessions) //ToDo: better multi-connection stuff?
                     {
                         IPPayload pl;
-                        pl = connections[key].Recv();
+                        pl = session.Recv();
                         if (!(pl == null))
                         {
                             IPPacket ipPkt = new IPPacket(pl);
-                            ipPkt.DestinationIP = connections[key].SourceIP;
-                            ipPkt.SourceIP = connections[key].DestIP;
+                            ipPkt.DestinationIP = session.SourceIP;
+                            ipPkt.SourceIP = session.DestIP;
                             EthernetFrame ef = new EthernetFrame(ipPkt);
                             ef.SourceMAC = virturalDHCPMAC;
                             ef.DestinationMAC = ps2MAC;
@@ -184,15 +188,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                             result = true;
                             break;
                         }
-                        if (connections[key].isOpen() == false)
-                        {
-                            //Error.WriteLine("Removing Closed Connection : " + key);
-                            DeadConnections.Add(key);
-                        }
-                    }
-                    foreach (ConnectionKey key in DeadConnections)
-                    {
-                        connections.Remove(key);
                     }
                 }
             }
@@ -222,23 +217,15 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             {
                 case (int)EtherFrameType.NULL:
                     //Adapter Reset
-                    
+
                     lock (sentry)
                     {
                         Log_Verb("Reset " + connections.Count + " Connections");
-                        List<ConnectionKey> DeadConnections = new List<ConnectionKey>();
-                        foreach (ConnectionKey key in connections.Keys)
+                        Session[] sessions = connections.Values.ToArray();
+                        foreach (Session session in sessions)
                         {
-                            connections[key].Reset();
-                            if (connections[key].isOpen() == false)
-                            {
-                                //Error.WriteLine("Removing Closed Connection : " + key);
-                                DeadConnections.Add(key);
-                            }
-                        }
-                        foreach (ConnectionKey key in DeadConnections)
-                        {
-                            connections.Remove(key);
+                            //connections[key].Reset();
+                            session.Reset();
                         }
                     }
                     break;
@@ -358,7 +345,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 else
                 {
                     Log_Verb("Creating New Connection with key " + Key);
-                    ICMPSession s = new ICMPSession(connections);
+                    ICMPSession s = new ICMPSession(Key, connections);
+                    s.ConnectionClosedEvent += HandleConnectionClosed;
                     s.DestIP = ipPkt.DestinationIP;
                     s.SourceIP = dhcpServer.PS2IP;
                     connections.Add(Key, s);
@@ -384,7 +372,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 {
                     Log_Verb("Creating New Connection with key " + Key);
                     Log_Info("Creating New TCP Connection with Dest Port " + tcp.DestinationPort);
-                    TCPSession s = new TCPSession(adapterIP);
+                    TCPSession s = new TCPSession(Key, adapterIP);
+                    s.ConnectionClosedEvent += HandleConnectionClosed;
                     s.DestIP = ipPkt.DestinationIP;
                     s.SourceIP = dhcpServer.PS2IP;
                     connections.Add(Key, s);
@@ -415,7 +404,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 {
                     Log_Verb("Creating New Connection with key " + Key);
                     Log_Info("Creating New UDP Connection with Dest Port " + udp.DestinationPort);
-                    UDPSession s = new UDPSession(adapterIP, dhcpServer.Broadcast);
+                    UDPSession s = new UDPSession(Key, adapterIP, dhcpServer.Broadcast);
+                    s.ConnectionClosedEvent += HandleConnectionClosed;
                     s.DestIP = ipPkt.DestinationIP;
                     s.SourceIP = dhcpServer.PS2IP;
                     connections.Add(Key, s);
@@ -428,16 +418,28 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
         {
             if (connections.ContainsKey(Key))
             {
-                if (connections[Key].isOpen() == false)
-                {
-                    Log_Error("Attempt to send on Closed Connection");
-                    throw new Exception("Attempt to send on Closed Connection");
-                }
+                //if (connections[Key].isOpen() == false)
+                //{
+                //    Log_Error("Attempt to send on Closed Connection");
+                //    throw new Exception("Attempt to send on Closed Connection");
+                //}
                 //Error.WriteLine("Found Open Connection");
                 return connections[Key].Send(ipPkt.Payload) ? 1 : 0;
             }
             else
                 return -1;
+        }
+
+        public void HandleConnectionClosed(object sender, EventArgs e)
+        {
+            Session s = (Session)sender;
+            s.ConnectionClosedEvent -= HandleConnectionClosed;
+            lock (sentry)
+            {
+                connections.Remove(s.Key);
+                s.Dispose();
+                Log_Verb("Closed Dead Connection");
+            }
         }
 
         public override void Close()
@@ -458,7 +460,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     Log_Verb("Closing " + connections.Count + " Connections");
                     foreach (ConnectionKey key in connections.Keys) //ToDo better multi-connection stuff
                     {
-                        connections[key].Dispose(); //replace with dispose?
+                        connections[key].Dispose();
                     }
                     vRecBuffer.Clear();
                     connections.Clear();
