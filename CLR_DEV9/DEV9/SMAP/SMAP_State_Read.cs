@@ -197,7 +197,9 @@ namespace CLRDEV9.DEV9.SMAP
                 int valueSize = 4;
                 dev9.Dev9Wu32((int)DEV9Header.SMAP_R_RXFIFO_RD_PTR, dev9.Dev9Ru32((int)DEV9Header.SMAP_R_RXFIFO_RD_PTR) & 16383);
                 size >>= 1;
-                Log_Verb(" * * SMAP DMA READ START: rd_ptr=" + dev9.Dev9Ru32((int)DEV9Header.SMAP_R_RXFIFO_RD_PTR).ToString() + ", wr_ptr=" + dev9.rxFifoWrPtr.ToString());
+                Log_Verb("DMA READ START: rd_ptr=" + dev9.Dev9Ru32((int)DEV9Header.SMAP_R_RXFIFO_RD_PTR).ToString() + ", wr_ptr=" + dev9.rxFifoWrPtr.ToString());
+                Log_Info("rSMAP");
+
                 while (size > 0)
                 {
                     //*pMem = *((u32*)(DEV9Header.dev9.rxfifo + DEV9Header.dev9Ru32((int)DEV9Header.SMAP_R_RXFIFO_RD_PTR)));
@@ -211,7 +213,7 @@ namespace CLRDEV9.DEV9.SMAP
 
                     size -= valueSize;
                 }
-                Log_Verb(" * * SMAP DMA READ END:   rd_ptr=" + dev9.Dev9Ru32((int)DEV9Header.SMAP_R_RXFIFO_RD_PTR).ToString() + ", wr_ptr=" + dev9.rxFifoWrPtr.ToString());
+                Log_Verb("DMA READ END: rd_ptr=" + dev9.Dev9Ru32((int)DEV9Header.SMAP_R_RXFIFO_RD_PTR).ToString() + ", wr_ptr=" + dev9.rxFifoWrPtr.ToString());
 
                 dev9.Dev9Wu16((int)DEV9Header.SMAP_R_RXFIFO_CTRL, (UInt16)(dev9.Dev9Ru16((int)DEV9Header.SMAP_R_RXFIFO_CTRL) & ~DEV9Header.SMAP_RXFIFO_DMAEN));
             }

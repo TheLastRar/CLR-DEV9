@@ -242,7 +242,7 @@ namespace CLRDEV9.DEV9.ATA
             //bits 0-7: ultraword modes supported (0,1,2,4,5,6,7)
             //bits 8-15: Transfer mode active
             #endregion
-            if (mdmaMode > 0)
+            if (udmaMode > 0)
             {
                 DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)(0x7f | (1 << (udmaMode + 8))));//word 88
             }
@@ -363,7 +363,7 @@ namespace CLRDEV9.DEV9.ATA
                 {
                     counter += identifyData[i];
                 }
-                Log_Error(counter.ToString());
+                Log_Verb(counter.ToString());
             }
         }
     }

@@ -285,7 +285,8 @@ namespace CLRDEV9.DEV9.ATA
                 (dev9.Dev9Ru16((int)DEV9Header.SPD_R_IF_CTRL) & DEV9Header.SPD_IF_DMA_ENABLE) != 0)
             {
                 size >>= 1;
-                Log_Verb("DEV9 : DMA read, size " + size + ", transferred " + rdTransferred + ", total size " + nsector * 512);
+                Log_Verb("DMA read, size " + size + ", transferred " + rdTransferred + ", total size " + nsector * 512);
+                Log_Info("rATA");
 
                 //read
                 byte[] temp = new byte[size];
@@ -315,6 +316,7 @@ namespace CLRDEV9.DEV9.ATA
             {
                 size >>= 1;
                 Log_Verb("DEV9 : DMA write, size " + size + ", transferred " + wrTransferred + ", total size " + nsector * 512);
+                Log_Info("wATA");
 
                 //write
                 byte[] temp = new byte[size];

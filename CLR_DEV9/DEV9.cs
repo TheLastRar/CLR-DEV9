@@ -49,6 +49,7 @@ namespace CLRDEV9
 #endif
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.Dev9);
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.SMAP);
+                CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.ATA);
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.Winsock);
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.NetAdapter);
             }
