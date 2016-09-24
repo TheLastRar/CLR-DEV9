@@ -288,7 +288,7 @@ namespace CLRDEV9.DEV9.ATA
             {
                 size >>= 1;
                 Log_Verb("DMA read, size " + size + ", transferred " + rdTransferred + ", total size " + nsector * 512);
-                //Log_Info("rATA");
+                Log_Info("rATA");
 
                 //read
                 byte[] temp = new byte[size];
