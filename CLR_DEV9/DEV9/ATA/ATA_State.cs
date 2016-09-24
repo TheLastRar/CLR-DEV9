@@ -25,6 +25,8 @@ namespace CLRDEV9.DEV9.ATA
 
             hddCmds[0x20] = () => HDD_ReadPIO(false);
 
+            hddCmds[0x91] = HDD_InitDevParameters;
+
             hddCmds[0xB0] = HDD_Smart; hddCmdDoesSeek[0xB0] = true;
 
             hddCmds[0xC8] = () => HDD_ReadDMA(false);

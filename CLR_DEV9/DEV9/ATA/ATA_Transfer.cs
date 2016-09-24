@@ -148,6 +148,7 @@ namespace CLRDEV9.DEV9.ATA
 
         void IDE_SectorStartDma(bool read)
         {
+            //Could delay untill data loaded into memory/cache/buffer?
             status = DEV9Header.ATA_STAT_READY | DEV9Header.ATA_STAT_SEEK | DEV9Header.ATA_STAT_DRQ | DEV9Header.ATA_STAT_BUSY;
 
             if (HDD_Seek() != 0)

@@ -44,8 +44,8 @@ namespace CLRDEV9.DEV9.ATA
         //
         byte feature;
         byte error;
-        Int32 nsector;
-        byte sector;
+        Int32 nsector; //sector count
+        byte sector; //sector number
         byte lcyl;
         byte hcyl;
         /* other part of tf for lba48 support */

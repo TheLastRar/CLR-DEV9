@@ -79,16 +79,30 @@ namespace CLRDEV9.DEV9.ATA
             return true;
         }
 
-        bool HDD_ReadPIO(bool isLBA48)
+        //CFA REQUEST EXTENDED ERROR CODE
+        //DEV RESET (for PACKET supporting devices only)
+        //READ SECTOR
+        //READ DMA EXT
+        //WRITE SECTOR
+        //WRITE LONG
+        //WRITE DME EXT
+        //CFA WRITE SECTORS WITHOUT ERASE
+        //READ VERIFY SECTOR
+        //READ VERUFY SECTOR EXT
+        //SEEK
+        //CFA TRANSLATE SECTOR
+        //EXECUTE DEV DIAG
+
+        bool HDD_InitDevParameters()
         {
-            Log_Verb("HDDreadPIO");
-
-            IDE_CmdLBA48Transform(isLBA48);
-            reqNbSectors = 1;
-            ide_sector_read();
-
-            return false;
+            Log_Info("HDDinitDevParameters");
+            curSectors = (UInt16)nsector;
+            curHeads = (UInt16)((select & 0x7) + 1);
+            return true;
         }
+
+        //DOWNLOAD MICROCODE
+        //IDENTIFY PACKET DEVICE
 
         bool HDD_Smart()
         {
@@ -181,11 +195,15 @@ namespace CLRDEV9.DEV9.ATA
                     return true;
             }
         }
-
         void HDD_SmartFail()
         {
             IDE_TransferStop();
         }
+
+        //CFA ERASE SECTORS
+        //READ MULTIPLE
+        //WRITE MULTIPLE
+        //SET MULTIPLE
 
         bool HDD_ReadDMA(bool isLBA48)
         {
@@ -214,6 +232,14 @@ namespace CLRDEV9.DEV9.ATA
             return false;
         }
 
+        //CFA WRITE MULTIPLE WITHOUT ERASE
+        //GET MEDIA STATUS
+        //MEDIA LOCK
+        //MEDIA UNLOCK
+        //STANDBY IMMEDIAYTE
+        //IDLE IMMEDIATE
+        //STANBY
+
         bool HDD_Idle()
         {
             Log_Verb("HDDidle");
@@ -224,6 +250,10 @@ namespace CLRDEV9.DEV9.ATA
             return true;
         }
 
+        //READ BUFFER
+        //CHECK POWER MODE
+        //SLEEP
+
         bool HDD_FlushCache()
         {
             Log_Verb("HDDflushCache");
@@ -232,6 +262,8 @@ namespace CLRDEV9.DEV9.ATA
 
             return false;
         }
+
+        //WRITE BUFFER
 
         bool HDD_FlushCacheExt()
         {
@@ -254,47 +286,55 @@ namespace CLRDEV9.DEV9.ATA
             return false;
         }
 
+        //MEDIA EJECT
+
         bool HDD_SetFeatures()
         {
-            Log_Verb("HddsetFeatures");
+            Log_Verb("HDDsetFeatures");
 
             switch (feature)
             {
                 case 0x03: // set transfer mode
                     xferMode = (UInt16)nsector; //Set Transfer mode
 
-                    int val = xferMode & 0x07;
-                    switch ((xferMode & 0x07) >> 3)
+                    int mode = xferMode & 0x07;
+                    switch ((xferMode) >> 3)
                     {
                         case 0x00: //pio default
+                            //if mode = 1, disable IORDY
+                            Log_Error("PIO Default");
                             pioMode = 4;
                             sdmaMode = -1;
                             mdmaMode = -1;
                             udmaMode = -1;
                             break;
                         case 0x01: //pio mode (3,4)
-                            pioMode = val;
+                            Log_Error("PIO Mode " + mode);
+                            pioMode = mode;
                             sdmaMode = -1;
                             mdmaMode = -1;
                             udmaMode = -1;
                             break;
                         case 0x02: //Single word dma mode (0,1,2)
+                            Log_Error("SDMA Mode " + mode);
                             pioMode = -1;
-                            sdmaMode = val;
+                            sdmaMode = mode;
                             mdmaMode = -1;
                             udmaMode = -1;
                             break;
                         case 0x04: //Multi word dma mode (0,1,2)
+                            Log_Error("MDMA Mode " + mode);
                             pioMode = -1;
                             sdmaMode = -1;
-                            mdmaMode = val;
+                            mdmaMode = mode;
                             udmaMode = -1;
                             break;
                         case 0x08: //Ulta dma mode (0,1,2,3,4,5,6)
+                            Log_Error("UDMA Mode " + mode);
                             pioMode = -1;
                             sdmaMode = -1;
                             mdmaMode = -1;
-                            udmaMode = val;
+                            udmaMode = mode;
                             break;
                         default:
                             Log_Error("Unkown transfer mode");
@@ -308,19 +348,57 @@ namespace CLRDEV9.DEV9.ATA
             return true;
         }
 
-        byte[] sceSec = new byte[256 * 2];
+        //SECURITY SET PASSWORD
+        //SECURITY UNLOCK
+        //SECUTIRY ERASE PREPARE
+        //SECURITY ERASE UNIT
+        //SECURITY FREEZE LOCK
+        //SECURITY DIABLE PASSWORD
+        //READ NATIVE MAX ADDRESS
+        //SET MAX ADDRESS
 
+        bool HDD_ReadPIO(bool isLBA48)
+        {
+            Log_Verb("HDDreadPIO");
+
+            IDE_CmdLBA48Transform(isLBA48);
+            reqNbSectors = 1;
+            ide_sector_read();
+
+            return false;
+        }
+
+        byte[] sceSec = new byte[256 * 2];
         bool HDD_sceSecCtrl()
         {
             Log_Info("DEV9 : SONY-SPECIFIC SECURITY CONTROL COMMAND " + feature.ToString("X"));
 
-            status = DEV9Header.ATA_STAT_READY | DEV9Header.ATA_STAT_SEEK; //Set Ready
+            switch (feature)
+            {
+                case 0xEC:
+                    status = DEV9Header.ATA_STAT_READY | DEV9Header.ATA_STAT_SEEK; //Set Ready
 
-            IDE_TransferStart(sceSec, 0, 256 * 2, IDE_TransferStop);
+                    IDE_TransferStart(sceSec, 0, 256 * 2, IDE_TransferStop);
 
-            if (sendIRQ) dev9.DEV9irq(1, 0x6C);
-
-            return false;
+                    if (sendIRQ) dev9.DEV9irq(1, 0x6C);
+                    //HDD_IdentifyDevice(); //Maybe?
+                    return false;
+                default:
+                    Log_Error("DEV9 : Unknown SCE command " + feature.ToString("X"));
+                    IDE_AbortCommand();
+                    return false;
+            }
         }
+        //Has 
+        //ATA_SCE_IDENTIFY_DRIVE @ 0xEC
+
+        //ATA_SCE_SECURITY_ERASE_PREPARE @ 0xF1
+        //ATA_SCE_SECURITY_ERASE_UNIT
+        //ATA_SCE_SECURITY_FREEZE_LOCK
+        //ATA_SCE_SECURITY_SET_PASSWORD
+        //ATA_SCE_SECURITY_UNLOCK
+
+        //ATA_SCE_SECURITY_WRITE_ID @ 0x20
+        //ATA_SCE_SECURITY_READ_ID @ 0x30
     }
 }

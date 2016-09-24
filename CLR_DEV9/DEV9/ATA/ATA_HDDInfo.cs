@@ -1,10 +1,21 @@
 ﻿using System;
 using CLRDEV9.DEV9.SMAP.Winsock.PacketReader;
 
+//http://www.t13.org/documents/UploadedDocuments/project/d1153r18-ATA-ATAPI-4.pdf
+//http://www.t13.org/documents/uploadeddocuments/docs2007/d1532v1r4b-at_attachment_with_packet_interface_-_7_volume_1.pdf
+//https://github.com/ps2dev/ps2sdk/blob/master/common/include/atahw.h
+
+//https://github.com/ps2dev/ps2sdk/blob/master/common/include/atahw.h
+//https://github.com/ps2dev/ps2sdk/blob/master/iop/dev9/atad/src/ps2atad.c
+
 namespace CLRDEV9.DEV9.ATA
 {
     partial class ATA_State
     {
+        UInt16 curHeads = 16;
+        UInt16 curSectors = 63;
+        UInt16 curCylinders = 0;
+
         void CreateHDDinfo(int sizeMb)
         {
             UInt16 sectorSize = 512;
@@ -13,10 +24,19 @@ namespace CLRDEV9.DEV9.ATA
             Log_Verb("nbSectors : " + nbSectors);
 
             identifyData = new byte[512];
-            UInt16 heads = 255;
-            UInt16 sectors = 63;
-            UInt16 cylinders = (UInt16)(nbSectors / heads / sectors);
-            int oldsize = cylinders * heads * sectors;
+            //Defualt CHS translation
+            UInt16 defHeads = 16;
+            UInt16 defSectors = 63;
+            long cylinderslong = (Math.Min(nbSectors, 16514064L) / defHeads / defSectors);
+            UInt16 defCylinders = (UInt16)Math.Min(cylinderslong, ushort.MaxValue);
+            
+
+            //Curent CHS translation
+            cylinderslong = (Math.Min(nbSectors, 16514064L) / curHeads / curSectors);
+            curCylinders = (UInt16)Math.Min(cylinderslong, ushort.MaxValue);
+
+            int oldsize = ((UInt16)curCylinders) * curHeads * curSectors;
+            //SET MAX ADDRESS will set the nbSectors reported
 
             //M-General configuration bit-significant information:
             #region
@@ -33,22 +53,23 @@ namespace CLRDEV9.DEV9.ATA
             //bit 12: data strobe offset option available (Retired)
             //bit 13: track offset option available
             //bit 14: format speed tolerance gap required
+            //bit 15: 0 = ATA dev
             //bit 16: reserved
             #endregion
             int index = 0;
             DataLib.WriteUInt16(ref identifyData, ref index, 0x0040);    //word 0
-            //Num of cylinders (Retired)
-            DataLib.WriteUInt16(ref identifyData, ref index, cylinders); //word 1
+            //Default Num of cylinders
+            DataLib.WriteUInt16(ref identifyData, ref index, defCylinders); //word 1
             //Specific configuration
             index += 1 * 2;                                              //word 2
-            //Num of heads (Retired)
-            DataLib.WriteUInt16(ref identifyData, ref index, heads);     //word 3
+            //Default Num of heads (Retired)
+            DataLib.WriteUInt16(ref identifyData, ref index, defHeads);     //word 3
             //Number of unformatted bytes per track (Retired)
-            DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)(sectorSize * sectors));//word 4
+            DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)(sectorSize * defSectors));//word 4
             //Number of unformatted bytes per sector (Retired)
             DataLib.WriteUInt16(ref identifyData, ref index, sectorSize);//word 5
-            //Number of sectors per track (Retired)
-            DataLib.WriteUInt16(ref identifyData, ref index, sectors);   //word 6
+            //Default Number of sectors per track (Retired)
+            DataLib.WriteUInt16(ref identifyData, ref index, defSectors);   //word 6
             //Reserved for assignment by the CompactFlash™ Association
             index += 2 * 2;                                              //word 7-8
             //Retired
@@ -97,11 +118,11 @@ namespace CLRDEV9.DEV9.ATA
             #endregion
             DataLib.WriteUInt16(ref identifyData, ref index, (1 | (1 << 1) | (1 << 2)));//word 53
             //Number of current cylinders
-            DataLib.WriteUInt16(ref identifyData, ref index, cylinders); //word 54
+            DataLib.WriteUInt16(ref identifyData, ref index, curCylinders); //word 54
             //Number of current heads
-            DataLib.WriteUInt16(ref identifyData, ref index, heads);     //word 55
+            DataLib.WriteUInt16(ref identifyData, ref index, curHeads);     //word 55
             //Number of current sectors per track
-            DataLib.WriteUInt16(ref identifyData, ref index, sectors);   //word 56
+            DataLib.WriteUInt16(ref identifyData, ref index, curSectors);   //word 56
             //Current capacity in sectors
             DataLib.WriteUInt32(ref identifyData, ref index, (UInt32)oldsize);//word 57-58
             //M
@@ -112,7 +133,7 @@ namespace CLRDEV9.DEV9.ATA
             #endregion
             index += 1 * 2;                                              //word 59
             //Total number of user addressable logical sectors
-            DataLib.WriteUInt32(ref identifyData, ref index, (UInt32)nbSectors);//word 60-61
+            DataLib.WriteUInt32(ref identifyData, ref index, (UInt32)Math.Min(nbSectors, 268435456));//word 60-61
             //DMA modes
             #region
             //bits 0-7: Singleword modes supported (0,1,2)
@@ -140,7 +161,8 @@ namespace CLRDEV9.DEV9.ATA
                 DataLib.WriteUInt16(ref identifyData, ref index, 0x07);  //word 63
             }
             //M-Bit 0-7-PIO modes supported (0,1,2,3,4)
-            DataLib.WriteUInt16(ref identifyData, ref index, 0x03);      //word 64 (pio3,4 supported) selection not reported here
+            //DataLib.WriteUInt16(ref identifyData, ref index, 0x03);      //word 64 (pio3,4 supported) selection not reported here
+            DataLib.WriteUInt16(ref identifyData, ref index, 0x1F);      //word 64 (pio3,4 supported) selection not reported here
             //M-Minimum Multiword DMA transfer cycle time per word
             DataLib.WriteUInt16(ref identifyData, ref index, 120);       //word 65
             //M-Manufacturer’s recommended Multiword DMA transfer cycle time

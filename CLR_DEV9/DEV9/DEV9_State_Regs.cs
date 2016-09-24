@@ -4,6 +4,8 @@ namespace CLRDEV9.DEV9
 {
     partial class DEV9_State
     {
+        bool isDMAforSMAP = false;
+
         //TODO Move to constants
         static byte[] initalEEPROM = {
 	        //0x6D, 0x76, 0x63, 0x61, 0x31, 0x30, 0x08, 0x01
@@ -34,7 +36,7 @@ namespace CLRDEV9.DEV9
         public UInt16 txFifoRdPtr;
 
         public byte bdSwap;
-        public UInt16[] ataBuf = new UInt16[1024];
+        //public UInt16[] ataBuf = new UInt16[1024];
         //public UInt32 atacount;
         //public UInt32 atasize;
         public UInt16[] phyRegs = new UInt16[32];
