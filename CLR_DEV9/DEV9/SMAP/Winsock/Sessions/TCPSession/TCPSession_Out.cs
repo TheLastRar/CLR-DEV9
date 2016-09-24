@@ -15,6 +15,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             {
                 lock (clientSentry)
                 {
+                    //Log_Error("EndConnect");
                     client.EndConnect(res);
                 }
             }
@@ -40,6 +41,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 //so may not be doable
 
                 //open = true;
+                //Log_Error("SendSYNACK packet");
                 state = TCPState.SentSYN_ACK;
                 TCP ret = new TCP(new byte[] { });
                 //Return the fact we connected
@@ -65,7 +67,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     ret.Options.Add(new TCPopNOP());
                     ret.Options.Add(new TCPopTS((UInt32)timeStamp.Elapsed.Seconds, lastRecivedTimeStamp));
                 }
+                //Log_Error("Pushed onto buffer");
                 PushRecvBuff(ret);
+                //Log_Error(_recvBuff.Count.ToString());
             }
             else
             {
@@ -205,6 +209,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         //PS2 responding to our SYN-ACK (by sending ACK)
         private bool SendConnected(TCP tcp)
         {
+            //Log_Error("SendConnected");
             if (tcp.SYN == true)
             {
                 Log_Error("Attempt to Connect to an operning Port");
@@ -459,7 +464,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 if (ResultFIN == NumCheckResult.Bad) { Log_Error("Bad TCP Numbers Received"); throw new Exception("Bad TCP Numbers Received"); ; }
                 if (tcp.GetPayload().Length != 0)
                 {
+                    uint delta = GetDelta(expectedSeqNumber, tcp.SequenceNumber);
+                    if (delta == 0)
+                    {
+                        return true;
+                    }
                     Log_Error("Invalid Packet, Packet Has Data");
+
                     throw new Exception("Invalid Packet");
                 }
                 if (myNumberACKed.WaitOne(0))

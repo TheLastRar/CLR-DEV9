@@ -4,6 +4,7 @@ using CLRDEV9.DEV9.SMAP.Winsock.PacketReader.ARP;
 using CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP;
 using CLRDEV9.DEV9.SMAP.Winsock.Sessions;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -71,7 +72,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
         IPAddress adapterIP = IPAddress.Any;
         //List<Session> Connections = new List<Session>();
         object sentry = new object();
+
         Dictionary<ConnectionKey, Session> connections = new Dictionary<ConnectionKey, Session>();
+        ConcurrentQueue<Session> deadConnections = new ConcurrentQueue<Session>();
 
         static public List<string[]> GetAdapters()
         {
@@ -139,7 +142,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             ConnectionKey dhcpKey = new ConnectionKey();
             dhcpKey.Protocol = (byte)IPType.UDP;
             dhcpKey.SRVPort = 67;
-            
+
             dhcpServer = new UDP_DHCPsession(dhcpKey, adapter, dns1, dns2);
             dhcpServer.ConnectionClosedEvent += HandleConnectionClosed;
 
@@ -188,6 +191,14 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                             result = true;
                             break;
                         }
+                    }
+
+                    Session s;
+                    while (deadConnections.TryDequeue(out s))
+                    {
+                        connections.Remove(s.Key);
+                        s.Dispose();
+                        //Log_Error("Closed Dead Connection");
                     }
                 }
             }
@@ -434,12 +445,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
         {
             Session s = (Session)sender;
             s.ConnectionClosedEvent -= HandleConnectionClosed;
-            lock (sentry)
-            {
-                connections.Remove(s.Key);
-                s.Dispose();
-                Log_Verb("Closed Dead Connection");
-            }
+            deadConnections.Enqueue(s);
+            //lock (sentry)
+            //{
+            //    connections.Remove(s.Key);
+            //    s.Dispose();
+            //    Log_Error("Closed Dead Connection");
+            //}
         }
 
         public override void Close()
@@ -464,6 +476,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     }
                     vRecBuffer.Clear();
                     connections.Clear();
+                    Session s;
+                    while (deadConnections.TryDequeue(out s)) { }
                     //Connections.Add("DHCP", DCHP_server);
                     dhcpServer.Dispose();
                 }

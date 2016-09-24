@@ -13,6 +13,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             {
                 return ret;
             }
+            //Don't read data untill PS2 ACKs
+            //connection
+            if (state == TCPState.SentSYN_ACK)
+            {
+                return null;
+            }
             //When TCP connection is closed by the server
             //the server is the last to send a packet
             //so the event must be raised here

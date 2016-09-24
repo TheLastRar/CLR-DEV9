@@ -1,5 +1,6 @@
 ﻿using CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
@@ -31,26 +32,27 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         }
 
         #region ReciveBuffer
-        List<TCP> _recvBuff = new List<TCP>();
+        //List<TCP> _recvBuff = new List<TCP>();
+        ConcurrentQueue<TCP> _recvBuff = new ConcurrentQueue<TCP>();
         private void PushRecvBuff(TCP tcp)
         {
-            lock (_recvBuff)
-            {
-                _recvBuff.Add(tcp);
-            }
+            //Log_Error("Fake TCP Packet Pushed");
+            _recvBuff.Enqueue(tcp);
         }
         private TCP PopRecvBuff()
         {
-            lock (_recvBuff)
+            TCP tcp;
+            if (_recvBuff.TryDequeue(out tcp))
             {
-                if (_recvBuff.Count != 0)
-                {
-                    TCP tcp = _recvBuff[0];
-                    _recvBuff.RemoveAt(0);
-                    return tcp;
-                }
-                else
-                    return null;
+                //if (state == TCPState.SentSYN_ACK)
+                //{
+                //    Log_Error("Fake TCP Packet Poped");
+                //}
+                return tcp;
+            }
+            else
+            {
+                return null;
             }
         }
         #endregion
