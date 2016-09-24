@@ -288,7 +288,7 @@ namespace CLRDEV9.DEV9.ATA
             {
                 size >>= 1;
                 Log_Verb("DMA read, size " + size + ", transferred " + rdTransferred + ", total size " + nsector * 512);
-                Log_Info("rATA");
+                //Log_Info("rATA");
 
                 //read
                 byte[] temp = new byte[size];
@@ -307,7 +307,7 @@ namespace CLRDEV9.DEV9.ATA
                     status = DEV9Header.ATA_STAT_READY | DEV9Header.ATA_STAT_SEEK;
                     if (sendIRQ) dev9.DEV9irq(3, 1); //0x6c
                     rdTransferred = 0;
-                    dev9.Dev9Wu16((int)DEV9Header.SPD_R_IF_CTRL, (UInt16)(dev9.Dev9Ru16((int)DEV9Header.SPD_R_IF_CTRL) & ~DEV9Header.SPD_IF_DMA_ENABLE));
+                    //dev9.Dev9Wu16((int)DEV9Header.SPD_R_IF_CTRL, (UInt16)(dev9.Dev9Ru16((int)DEV9Header.SPD_R_IF_CTRL) & ~DEV9Header.SPD_IF_DMA_ENABLE));
                 }
             }
         }
@@ -339,7 +339,7 @@ namespace CLRDEV9.DEV9.ATA
                     status = DEV9Header.ATA_STAT_READY | DEV9Header.ATA_STAT_SEEK;
                     if (sendIRQ) dev9.DEV9irq(3, 1); //0x6C
                     wrTransferred = 0;
-                    dev9.Dev9Wu16((int)DEV9Header.SPD_R_IF_CTRL, (UInt16)(dev9.Dev9Ru16((int)DEV9Header.SPD_R_IF_CTRL) & ~DEV9Header.SPD_IF_DMA_ENABLE));
+                    //dev9.Dev9Wu16((int)DEV9Header.SPD_R_IF_CTRL, (UInt16)(dev9.Dev9Ru16((int)DEV9Header.SPD_R_IF_CTRL) & ~DEV9Header.SPD_IF_DMA_ENABLE));
                 }
             }
         }

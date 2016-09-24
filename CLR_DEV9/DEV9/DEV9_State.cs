@@ -411,6 +411,7 @@ namespace CLRDEV9.DEV9
             {
                 case DEV9Header.SPD_R_DMA_CTRL: //??
                     Log_Verb("SPD_R_DMA_CTRL 16bit write " + value.ToString("X"));
+                    isDMAforSMAP = (value & 0x1) == 1;
                     Dev9Wu16((int)DEV9Header.SPD_R_DMA_CTRL, value);
                     return;
                 case DEV9Header.SPD_R_INTR_MASK:
@@ -430,16 +431,20 @@ namespace CLRDEV9.DEV9
                     Log_Verb("SPD_R_38 16bit write " + value.ToString("X"));
                     Dev9Wu16((int)DEV9Header.SPD_R_38, value);
                     break;
-                case DEV9Header.SPD_R_IF_CTRL:
+                case DEV9Header.SPD_R_IF_CTRL: //ATA only?
                     Log_Verb("SPD_R_IF_CTRL 16bit write " + value.ToString("X"));
                     Dev9Wu16((int)DEV9Header.SPD_R_IF_CTRL, value);
                     break;
-                case DEV9Header.SPD_R_PIO_MODE: //??
-                    Log_Verb("SPD_R_PIO_MODE 16bit write " + value.ToString("X"));
+                case DEV9Header.SPD_R_PIO_MODE: //ATA only? or includeds EEPROM?
+                    Log_Error("SPD_R_PIO_MODE 16bit write " + value.ToString("X"));
                     Dev9Wu16((int)DEV9Header.SPD_R_PIO_MODE, value);
                     break;
-                case DEV9Header.SPD_R_UDMA_MODE:
-                    Log_Verb("SPD_R_UDMA_MODE 16bit write " + value.ToString("X"));
+                case DEV9Header.SPD_R_MWDMA_MODE: //ATA only?
+                    Log_Error("SPD_R_MDMA_MODE 16bit write " + value.ToString("X"));
+                    Dev9Wu16((int)DEV9Header.SPD_R_MWDMA_MODE, value);
+                    break;
+                case DEV9Header.SPD_R_UDMA_MODE: //ATA only?
+                    Log_Error("SPD_R_UDMA_MODE 16bit write " + value.ToString("X"));
                     Dev9Wu16((int)DEV9Header.SPD_R_UDMA_MODE, value);
                     break;
                 default:
@@ -490,12 +495,18 @@ namespace CLRDEV9.DEV9
             Log_Verb("*DEV9readDMA8Mem: size " + size.ToString("X"));
             //Log_Info("rDMA");
             long ptr = pMem.Position;
-            smap.SMAP_ReadDMA8Mem(pMem, size);
-            
-            //#ifdef ENABLE_ATA
-            ata.ATAreadDMA8Mem(pMem, size);
-            //#endif
-            if (pMem.Position - ptr == 0)
+
+            if (isDMAforSMAP)
+            {
+                smap.SMAP_ReadDMA8Mem(pMem, size);
+            }
+            else
+            {
+                ata.ATAreadDMA8Mem(pMem, size);
+            }
+
+            long delta = pMem.Position - ptr;
+            if (delta == 0)
             {
                 Log_Error("rDMA No Data Read");
             }
@@ -506,11 +517,18 @@ namespace CLRDEV9.DEV9
             Log_Verb("*DEV9writeDMA8Mem: size " + size.ToString("X"));
             //Log_Info("wDMA");
             long ptr = pMem.Position;
-            smap.SMAP_WriteDMA8Mem(pMem, size);
-            //#ifdef ENABLE_ATA
-            ata.ATAwriteDMA8Mem(pMem, size);
-            //#endif
-            if (pMem.Position - ptr == 0)
+
+            if (isDMAforSMAP)
+            {
+                smap.SMAP_WriteDMA8Mem(pMem, size);
+            }
+            else
+            {
+                ata.ATAwriteDMA8Mem(pMem, size);
+            }
+
+            long delta = pMem.Position - ptr;
+            if (delta == 0)
             {
                 Log_Error("wDMA No Data Written");
             }
