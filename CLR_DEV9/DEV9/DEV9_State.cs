@@ -436,15 +436,15 @@ namespace CLRDEV9.DEV9
                     Dev9Wu16((int)DEV9Header.SPD_R_IF_CTRL, value);
                     break;
                 case DEV9Header.SPD_R_PIO_MODE: //ATA only? or includeds EEPROM?
-                    Log_Error("SPD_R_PIO_MODE 16bit write " + value.ToString("X"));
+                    Log_Verb("SPD_R_PIO_MODE 16bit write " + value.ToString("X"));
                     Dev9Wu16((int)DEV9Header.SPD_R_PIO_MODE, value);
                     break;
                 case DEV9Header.SPD_R_MWDMA_MODE: //ATA only?
-                    Log_Error("SPD_R_MDMA_MODE 16bit write " + value.ToString("X"));
+                    Log_Verb("SPD_R_MDMA_MODE 16bit write " + value.ToString("X"));
                     Dev9Wu16((int)DEV9Header.SPD_R_MWDMA_MODE, value);
                     break;
                 case DEV9Header.SPD_R_UDMA_MODE: //ATA only?
-                    Log_Error("SPD_R_UDMA_MODE 16bit write " + value.ToString("X"));
+                    Log_Verb("SPD_R_UDMA_MODE 16bit write " + value.ToString("X"));
                     Dev9Wu16((int)DEV9Header.SPD_R_UDMA_MODE, value);
                     break;
                 default:
