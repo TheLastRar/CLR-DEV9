@@ -97,16 +97,23 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             {
                 lock (clientSentry)
                 {
-                    if (client.Connected)
+                    if (client != null)
                     {
-                        client.Close();
-                        state = TCPState.CloseCompleted;
-                        //open = false;
-                        //PS2 sent RST, clearly not expecting
-                        //more data
-                        RaiseEventConnectionClosed();
-                        return true;
+                        if (client.Connected)
+                        {
+                            client.Close();
+                            //open = false;
+                            //PS2 sent RST, clearly not expecting
+                            //more data
+                        }
                     }
+                    else
+                    {
+                        Log_Error("RESET CLOSED CONNECTION");
+                    }
+                    state = TCPState.CloseCompleted;
+                    RaiseEventConnectionClosed();
+                    return true;
                 }
             }
 
@@ -193,8 +200,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
             lock (clientSentry)
             {
-                if (client != null)
-                    client.Close();
+                client?.Close();
                 client = null;
             }
             netStream = null;

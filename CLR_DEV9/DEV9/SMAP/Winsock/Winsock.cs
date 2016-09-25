@@ -198,7 +198,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     {
                         connections.Remove(s.Key);
                         s.Dispose();
-                        //Log_Error("Closed Dead Connection");
+                        //if (s.Key.Protocol == (byte)IPType.TCP)
+                        //{
+                        //    Log_Info("TCP Connection Closed");
+                        //}
+                        Log_Verb("Closed Dead Connection");
                     }
                 }
             }

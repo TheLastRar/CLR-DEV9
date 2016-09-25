@@ -150,7 +150,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             //open = false;
             lock (clientSentry)
             {
-                client.Close();
+                client?.Close();
             }
             myNumberACKed.Dispose();
         }
