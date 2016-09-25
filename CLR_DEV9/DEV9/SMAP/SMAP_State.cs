@@ -63,6 +63,14 @@ namespace CLRDEV9.DEV9.SMAP
             if (space < 1514)
                 return false;
 
+            //int soff = (int)((DEV9Header.SMAP_BD_RX_BASE & 0xffff) + dev9.rxbdi * SMAP_bd.GetSize());
+            //SMAP_bd pbd = new SMAP_bd(dev9.dev9R, soff);
+
+            //if (!((pbd.CtrlStat & DEV9Header.SMAP_BD_RX_EMPTY) != 0))
+            //{
+            //    return false;
+            //}
+
             //we can recv a packet !
             return true;
         }
@@ -81,8 +89,8 @@ namespace CLRDEV9.DEV9.SMAP
 
             if (!((pbd.CtrlStat & DEV9Header.SMAP_BD_RX_EMPTY) != 0))
             {
-                Log_Error("ERROR (!(pbd->ctrl_stat & SMAP_BD_RX_EMPTY))");
-                Log_Error("ERROR : Discarding " + bytes + " bytes (RX" + dev9.rxbdi + " not ready)");
+                Log_Info("(!(pbd->ctrl_stat & SMAP_BD_RX_EMPTY))");
+                Log_Info("Discarding " + bytes + " bytes (RX" + dev9.rxbdi + " not ready)");
                 return;
             }
 
@@ -97,7 +105,7 @@ namespace CLRDEV9.DEV9.SMAP
             {
                 //increase RXBD
                 dev9.rxbdi++;
-                dev9.rxbdi &= (uint)((DEV9Header.SMAP_BD_SIZE / 8) - 1);
+                dev9.rxbdi &= ((DEV9Header.SMAP_BD_SIZE / 8u) - 1u);
 
                 //Fill the BD with info !
                 pbd.Length = (ushort)pk.size;
@@ -168,7 +176,7 @@ namespace CLRDEV9.DEV9.SMAP
 
                     if (!(pbd.Pointer >= 0x1000))
                     {
-                        Log_Verb("ERROR: odd , !pbd->pointer>0x1000 | 0x" + pbd.Pointer.ToString("X") + " " + pbd.Length.ToString());
+                        Log_Error("ERROR: odd , !pbd->pointer>0x1000 | 0x" + pbd.Pointer.ToString("X") + " " + pbd.Length.ToString());
                     }
 
                     if (_base + pbd.Length > 16384)

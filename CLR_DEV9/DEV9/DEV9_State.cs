@@ -492,6 +492,7 @@ namespace CLRDEV9.DEV9
 
         public void DEV9_ReadDMA8Mem(System.IO.UnmanagedMemoryStream pMem, int size)
         {
+            size >>= 1;
             Log_Verb("*DEV9readDMA8Mem: size " + size.ToString("X"));
             //Log_Info("rDMA");
             long ptr = pMem.Position;
@@ -514,6 +515,7 @@ namespace CLRDEV9.DEV9
 
         public void DEV9_WriteDMA8Mem(System.IO.UnmanagedMemoryStream pMem, int size)
         {
+            size >>= 1;
             Log_Verb("*DEV9writeDMA8Mem: size " + size.ToString("X"));
             //Log_Info("wDMA");
             long ptr = pMem.Position;

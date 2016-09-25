@@ -64,6 +64,9 @@ namespace CLRDEV9.DEV9.SMAP
                     //printf("SMAP_R_TXFIFO_FRAME_CNT read 16\n");
                     Log_Verb("SMAP_R_TXFIFO_FRAME_CNT 16bit read " + dev9.Dev9Ru16((int)addr).ToString("X"));
                     return dev9.Dev9Ru16((int)addr);
+                case DEV9Header.SMAP_R_TXFIFO_WR_PTR:
+                    Log_Verb("SMAP_R_TXFIFO_WR_PTR 16bit read " + dev9.Dev9Ru16((int)addr).ToString("X"));
+                    return dev9.Dev9Ru16((int)addr);
                 case DEV9Header.SMAP_R_RXFIFO_FRAME_CNT:
                     //printf("SMAP_R_RXFIFO_FRAME_CNT read 16\n");
                     Log_Verb("SMAP_R_RXFIFO_FRAME_CNT 16bit read " + dev9.Dev9Ru16((int)addr).ToString("X"));
@@ -106,6 +109,22 @@ namespace CLRDEV9.DEV9.SMAP
 
                 case DEV9Header.SMAP_R_EMAC3_INTR_ENABLE_H:
                     Log_Verb("SMAP_R_EMAC3_INTR_ENABLE_H 16bit read " + dev9.Dev9Ru16((int)addr).ToString("X"));
+                    return dev9.Dev9Ru16((int)addr);
+
+                case DEV9Header.SMAP_R_EMAC3_ADDR_HI_L:
+                    Log_Verb("SMAP_R_EMAC3_ADDR_HI_L 16bit read " + dev9.Dev9Ru16((int)addr).ToString("X"));
+                    return dev9.Dev9Ru16((int)addr);
+
+                case DEV9Header.SMAP_R_EMAC3_ADDR_HI_H:
+                    Log_Verb("SMAP_R_EMAC3_ADDR_HI_H 16bit read " + dev9.Dev9Ru16((int)addr).ToString("X"));
+                    return dev9.Dev9Ru16((int)addr);
+
+                case DEV9Header.SMAP_R_EMAC3_ADDR_LO_L:
+                    Log_Verb("SMAP_R_EMAC3_ADDR_LO_L 16bit read " + dev9.Dev9Ru16((int)addr).ToString("X"));
+                    return dev9.Dev9Ru16((int)addr);
+
+                case DEV9Header.SMAP_R_EMAC3_ADDR_LO_H:
+                    Log_Verb("SMAP_R_EMAC3_ADDR_LO_H 16bit read " + dev9.Dev9Ru16((int)addr).ToString("X"));
                     return dev9.Dev9Ru16((int)addr);
 
                 case DEV9Header.SMAP_R_EMAC3_TxMODE0_L:
@@ -196,7 +215,7 @@ namespace CLRDEV9.DEV9.SMAP
                 int pMemAddr = 0;
                 int valueSize = 4;
                 dev9.Dev9Wu32((int)DEV9Header.SMAP_R_RXFIFO_RD_PTR, dev9.Dev9Ru32((int)DEV9Header.SMAP_R_RXFIFO_RD_PTR) & 16383);
-                size >>= 1;
+                //size >>= 1;
                 Log_Verb("DMA READ START: rd_ptr=" + dev9.Dev9Ru32((int)DEV9Header.SMAP_R_RXFIFO_RD_PTR).ToString() + ", wr_ptr=" + dev9.rxFifoWrPtr.ToString());
                 Log_Info("rSMAP");
 

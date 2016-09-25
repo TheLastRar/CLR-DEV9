@@ -178,7 +178,6 @@ namespace CLRDEV9.DEV9.SMAP
                 if (dev9.bdSwap != 0)
                     value = (UInt16)((value >> 8) | (value << 8));
                 dev9.Dev9Wu16((int)addr, value);
-
                 return;
             }
             else if (addr >= DEV9Header.SMAP_BD_RX_BASE && addr < (DEV9Header.SMAP_BD_RX_BASE + DEV9Header.SMAP_BD_SIZE))
@@ -350,7 +349,7 @@ namespace CLRDEV9.DEV9.SMAP
                 int pMemAddr = 0;
                 int valueSize = 4;
                 dev9.Dev9Wu32((int)DEV9Header.SMAP_R_TXFIFO_WR_PTR, dev9.Dev9Ru32((int)DEV9Header.SMAP_R_TXFIFO_WR_PTR) & 16383);
-                size >>= 1;
+                //size >>= 1;
                 Log_Verb("DMA WRITE START: wr_ptr=" + dev9.Dev9Ru32((int)DEV9Header.SMAP_R_TXFIFO_WR_PTR).ToString() + ", rd_ptr=" + dev9.txFifoRdPtr.ToString());
                 Log_Info("wSMAP");
 
