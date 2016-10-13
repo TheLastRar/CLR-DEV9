@@ -1,4 +1,5 @@
-﻿using CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP;
+﻿using CLRDEV9.DEV9.SMAP.Winsock.PacketReader;
+using CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP;
 using System;
 //using System.Collections.Generic;
 using System.Diagnostics;
@@ -66,6 +67,16 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     iRet.DestinationPort = srcPort;
                     iRet.SourcePort = destPort;
                     deathClock.Restart();
+
+                    if (iRet.DestinationPort == 1900)
+                    {
+                        Log_Error("Recv");
+                        int off = 0;
+                        string ret;
+                        NetLib.ReadCString(iRet.GetPayload(), ref off, int.MaxValue, out ret);
+                        Log_Error(ret);
+                    }
+
                     return iRet;
                 }
             }
@@ -139,6 +150,15 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             else
             {
                 client.Send(udp.GetPayload(), udp.GetPayload().Length);
+            }
+
+            if (udp.DestinationPort == 1900)
+            {
+                Log_Error("Send");
+                int off = 0;
+                string ret;
+                NetLib.ReadCString(udp.GetPayload(), ref off, int.MaxValue, out ret);
+                Log_Error(ret);
             }
 
             //Error.WriteLine("UDP Sent");

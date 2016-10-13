@@ -138,7 +138,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader
             int realMax = remainingLen < maxLength ? remainingLen : maxLength;
 
             for (
-                 ; 0 != buffer[offset + length] && length < realMax
+                 ; length < realMax && 0 != buffer[offset + length]
                  ; ++length)
             { }
             value = targetEncoding.GetString(buffer, offset, length);

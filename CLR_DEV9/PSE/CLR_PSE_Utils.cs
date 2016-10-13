@@ -16,13 +16,6 @@ namespace PSE
                 case PlatformID.Win32Windows:
                 case PlatformID.WinCE:
                     return true;
-                ////Needs Wrapper
-                //case PlatformID.Unix: //Also MAC
-                //    return false;
-                ////Not Supported by PCSX2
-                //case PlatformID.MacOSX:
-                //case PlatformID.Xbox:
-                //    return false;
                 default:
                     return false;
             }

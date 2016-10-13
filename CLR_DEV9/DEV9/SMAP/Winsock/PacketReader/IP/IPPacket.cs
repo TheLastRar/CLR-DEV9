@@ -164,6 +164,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
                     _pl = new ICMP(buffer, pktOffset, Length - hLen);
                     //((ICMP)_pl).VerifyCheckSum(SourceIP, DestinationIP);
                     break;
+                case (byte)IPType.IGMP:
+                    _pl = new IGMP(buffer, pktOffset, Length - hLen);
+                    //((ICMP)_pl).VerifyCheckSum(SourceIP, DestinationIP);
+                    break;
                 case (byte)IPType.TCP:
                     _pl = new TCP(buffer, pktOffset, Length - hLen);
                     //((TCP)_pl).VerifyCheckSum(SourceIP, DestinationIP);

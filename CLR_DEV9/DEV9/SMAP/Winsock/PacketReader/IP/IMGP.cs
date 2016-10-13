@@ -1,25 +1,26 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
 {
-    class ICMP : IPPayload
+    class IGMP : IPPayload
     {
         public byte Type;
-        public byte Code;
+        private byte maxResponseTime; //todo implement for values >128
         protected UInt16 checksum;
+        public byte[] GroupAddress;
         public override byte Protocol
         {
-            get { return 0x01; }
+            get { return 0x02; }
         }
-
-        public byte[] HeaderData = new byte[4];
-        public byte[] Data = new byte[0];
 
         public override ushort Length
         {
             get
             {
-                return (UInt16)(4 + HeaderData.Length + Data.Length);
+                return 8;
             }
             protected set
             {
@@ -30,22 +31,18 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
         {
             throw new NotImplementedException();
         }
-        public ICMP(byte[] data)
-        {
-            Data = data;
-        }
 
-        public ICMP(byte[] buffer, int offset, int Length) //Length = IP payload len
+        public IGMP(){}
+
+        public IGMP(byte[] buffer, int offset, int Length)
         {
             NetLib.ReadByte08(buffer, ref offset, out Type);
-            //Error.WriteLine("Type = " + Type);
-            NetLib.ReadByte08(buffer, ref offset, out Code);
-            //Error.WriteLine("Code = " + Code);
+            NetLib.ReadByte08(buffer, ref offset, out maxResponseTime);
             NetLib.ReadUInt16(buffer, ref offset, out checksum);
-            NetLib.ReadByteArray(buffer, ref offset, 4, out HeaderData);
-
-            NetLib.ReadByteArray(buffer, ref offset, Length - 8, out Data);
+            NetLib.ReadByteArray(buffer, ref offset, 4, out GroupAddress);
+            //TODO version 3
         }
+
         public override void CalculateCheckSum(byte[] srcIP, byte[] dstIP)
         {
             int pHeaderLen = ((Length));
@@ -71,13 +68,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
                 //Error.WriteLine("OddSizedPacket");
                 pHeaderLen += 1;
             }
-            
+
             byte[] headerSegment = new byte[pHeaderLen];
             int counter = 0;
             NetLib.WriteByteArray(ref headerSegment, ref counter, GetBytes());
 
             UInt16 CsumCal = IPPacket.InternetChecksum(headerSegment);
-            //Error.WriteLine("ICMP Checksum Good = " + (CsumCal == 0));
+            //Error.WriteLine("IGMP Checksum Good = " + (CsumCal == 0));
             return (CsumCal == 0);
         }
         public override byte[] GetBytes()
@@ -85,10 +82,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             byte[] ret = new byte[Length];
             int counter = 0;
             NetLib.WriteByte08(ref ret, ref counter, Type);
-            NetLib.WriteByte08(ref ret, ref counter, Code);
+            NetLib.WriteByte08(ref ret, ref counter, maxResponseTime);
             NetLib.WriteUInt16(ref ret, ref counter, checksum);
-            NetLib.WriteByteArray(ref ret, ref counter, HeaderData);
-            NetLib.WriteByteArray(ref ret, ref counter, Data);
+            NetLib.WriteByteArray(ref ret, ref counter, GroupAddress);
+            //TODO version 3
             return ret;
         }
     }

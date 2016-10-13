@@ -335,7 +335,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             switch (ipPkt.Protocol) //(Prase Payload)
             {
                 case (byte)IPType.ICMP:
-                    return SendIMCP(Key, ipPkt);
+                    return SendICMP(Key, ipPkt);
+                case (byte)IPType.IGMP:
+                    return SendIGMP(Key, ipPkt);
                 case (byte)IPType.TCP:
                     return SendTCP(Key, ipPkt);
                 case (byte)IPType.UDP:
@@ -347,7 +349,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             }
         }
 
-        public bool SendIMCP(ConnectionKey Key, IPPacket ipPkt)
+        public bool SendICMP(ConnectionKey Key, IPPacket ipPkt)
         {
             Log_Verb("ICMP");
             lock (sentry)
@@ -361,6 +363,28 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 {
                     Log_Verb("Creating New Connection with key " + Key);
                     ICMPSession s = new ICMPSession(Key, connections);
+                    s.ConnectionClosedEvent += HandleConnectionClosed;
+                    s.DestIP = ipPkt.DestinationIP;
+                    s.SourceIP = dhcpServer.PS2IP;
+                    connections.Add(Key, s);
+                    return s.Send(ipPkt.Payload);
+                }
+            }
+        }
+        public bool SendIGMP(ConnectionKey Key, IPPacket ipPkt)
+        {
+            Log_Verb("IGMP");
+            lock (sentry)
+            {
+                int res = SendFromConnection(Key, ipPkt);
+                if (res == 1)
+                    return true;
+                else if (res == 0)
+                    return false;
+                else
+                {
+                    Log_Verb("Creating New Connection with key " + Key);
+                    IGMPSession s = new IGMPSession(Key, adapterIP);
                     s.ConnectionClosedEvent += HandleConnectionClosed;
                     s.DestIP = ipPkt.DestinationIP;
                     s.SourceIP = dhcpServer.PS2IP;

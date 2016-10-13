@@ -107,6 +107,8 @@
   <ItemGroup>
     <Compile Include="DEV9\SMAP\SMAP_State_Read.cs" />
     <Compile Include="DEV9\SMAP\SMAP_State_Write.cs" />
+    <Compile Include="DEV9\SMAP\Winsock\PacketReader\IP\IMGP.cs" />
+    <Compile Include="DEV9\SMAP\Winsock\Sessions\IGMPSession.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="PSE\CLR_PSE_NativeLogger.cs" />
     <Compile Include="Config.cs" />
