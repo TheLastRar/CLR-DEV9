@@ -5,6 +5,7 @@ using System.Text;
 using CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP;
 using System.Net;
 using System.Net.Sockets;
+using System.Diagnostics;
 
 namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 {
@@ -13,7 +14,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
     //expecting data
     class IGMPSession : Session
     {
-        UdpClient client;
+        //UdpClient client;
+        IPAddress groupAddress;
 
         public override IPPayload Recv()
         {
@@ -23,13 +25,33 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         public IGMPSession(ConnectionKey parKey, IPAddress parAdapterIP)
             : base(parKey, parAdapterIP)
         {
+            //Stub implemtation
         }
 
         public override bool Send(IPPayload payload)
         {
             IGMP igmpPkt = (IGMP)payload;
-            client = new UdpClient(new IPEndPoint(adapterIP, 0));
-            client.JoinMulticastGroup(new IPAddress(igmpPkt.GroupAddress));
+            groupAddress = new IPAddress(igmpPkt.GroupAddress);
+
+            switch (igmpPkt.Type)
+            {
+                case 0x12: //Ver 1 Join
+                case 0x16: //Ver 2 Join
+                case 0x22: //Ver 3 Join
+                    Log_Info("TODO IGMP Multicast Join Packet");
+                    break;
+                case 0x17: //Leave group
+                    RaiseEventConnectionClosed();
+                    return true;
+                case 0x11: //Group query
+                    break;
+                default:
+                    Log_Error("Unkown IGMP packet");
+                    break;
+            }
+
+            //client = new UdpClient(new IPEndPoint(adapterIP, 0));
+            //client.JoinMulticastGroup(groupAddress);
             return true;
             //throw new NotImplementedException();
         }
@@ -42,7 +64,20 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         public override void Dispose()
         {
-            client.Close();
+            //client.DropMulticastGroup(groupAddress);
+            //client.Close();
+        }
+        protected void Log_Error(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.IGMPSession, str);
+        }
+        protected void Log_Info(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.IGMPSession, str);
+        }
+        protected void Log_Verb(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.IGMPSession, str);
         }
     }
 }

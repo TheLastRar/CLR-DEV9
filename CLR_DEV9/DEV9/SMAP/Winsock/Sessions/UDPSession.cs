@@ -18,9 +18,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         UInt16 destPort = 0;
         //Broadcast
         byte[] broadcastAddr;
+        byte[] multicastAddr;
         bool isBroadcast = false;
-        byte[] broadcastResponseData = null;
-        byte[] broadcastResponseIP = null;
+        bool isMulticast = false;
+        //byte[] broadcastResponseData = null;
+        //byte[] broadcastResponseIP = null;
         //EndBroadcast
 
         Stopwatch deathClock = new Stopwatch();
@@ -31,6 +33,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             broadcastAddr = parBroadcastIP;
             deathClock.Start();
         }
+        //bool thing = false;
         public override IPPayload Recv()
         {
             //if (recvbuff.Count != 0)
@@ -49,7 +52,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 if (client.Available != 0)
                 {
                     IPEndPoint remoteIPEndPoint;
-                    if (isBroadcast)
+                    if (isBroadcast | isMulticast)
                     {
                         remoteIPEndPoint = new IPEndPoint(IPAddress.Any, 0);
                     }
@@ -59,23 +62,45 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     }
                     byte[] recived = client.Receive(ref remoteIPEndPoint);
                     //Error.WriteLine("UDP Got Data");
-                    if (isBroadcast)
+
+                    string ret;
+                    System.Text.Encoding targetEncoding = System.Text.Encoding.ASCII;
+                    ret = targetEncoding.GetString(recived, 0, recived.Length);
+                    //if (thing)
+                    //{
+                    //    //Log_Error("Fudging packet");
+                    //    //recived = targetEncoding.GetBytes(ret.Replace("WANCommonInterfaceConfig", "InternetGatewayDevice"));
+                    //    //ret = targetEncoding.GetString(recived, 0, recived.Length);
+                    //}
+                    if (ret.StartsWith("HTTP/1.1 200 OK"))
                     {
-                        DestIP = remoteIPEndPoint.Address.GetAddressBytes(); //assumes ipv4
+                        Log_Error("Fudging packet");
+                        //ret = ret.TrimEnd();
+                        //ret = ret + "\r\nBOOTID.UPNP.ORG: 56\r\n\r\n";
+                        //ret = ret.Replace("\r\n", "\n");
+                        //ret = ret.Replace("UPnP/1.0","UPnP/1.1");
+                        //recived = targetEncoding.GetBytes(ret);
+                        ////thing = true;
                     }
+
                     UDP iRet = new UDP(recived);
                     iRet.DestinationPort = srcPort;
                     iRet.SourcePort = destPort;
+
+                    if (isBroadcast | isMulticast)
+                    {
+                        Log_Error(remoteIPEndPoint.ToString());
+                        DestIP = remoteIPEndPoint.Address.GetAddressBytes(); //assumes ipv4
+                        iRet.SourcePort = (UInt16)remoteIPEndPoint.Port;
+                    }
+
                     deathClock.Restart();
 
-                    if (iRet.DestinationPort == 1900)
-                    {
+                    //if (iRet.DestinationPort == 1900 | (DestIP[0] == 192 & DestIP[1] == 168))
+                    //{
                         Log_Error("Recv");
-                        int off = 0;
-                        string ret;
-                        NetLib.ReadCString(iRet.GetPayload(), ref off, int.MaxValue, out ret);
                         Log_Error(ret);
-                    }
+                    //}
 
                     return iRet;
                 }
@@ -105,15 +130,19 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 destPort = udp.DestinationPort;
                 srcPort = udp.SourcePort;
 
+                //Multicast address start with 0b1110
                 if (Utils.memcmp(DestIP, 0, broadcastAddr, 0, 4))
                 {
                     isBroadcast = true;
+                }
+                if ((DestIP[0] & 0xF0) == 0xE0)
+                {
+                    isMulticast = true;
                 }
 
                 if (isBroadcast)
                 {
                     Log_Info("Is Broadcast");
-
                     client = new UdpClient(new IPEndPoint(adapterIP, srcPort)); //Assuming broadcast wants a return message
                     client.EnableBroadcast = true;
 
@@ -121,6 +150,14 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     //client = new UdpClient(SrcPort);
                     //client.BeginReceive(ReceiveFromBroadcast, new object());
                     //open = true;
+                }
+                else if (isMulticast)
+                {
+                    Log_Info("Is Multicast");
+                    multicastAddr = DestIP;
+                    client = new UdpClient(new IPEndPoint(adapterIP, 0));
+                    IPAddress address = new IPAddress(multicastAddr);
+                    client.JoinMulticastGroup(address);
                 }
                 else
                 {
@@ -147,32 +184,37 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             {
                 client.Send(udp.GetPayload(), udp.GetPayload().Length, new IPEndPoint(IPAddress.Broadcast, destPort));
             }
-            else
+            else if (isMulticast)
+            {
+                client.Send(udp.GetPayload(), udp.GetPayload().Length, new IPEndPoint(new IPAddress(multicastAddr), destPort));
+            }
+            else 
             {
                 client.Send(udp.GetPayload(), udp.GetPayload().Length);
             }
 
-            if (udp.DestinationPort == 1900)
-            {
+            //if (udp.DestinationPort == 1900 | (DestIP[0] == 192 & DestIP[1] == 168))
+            //{
                 Log_Error("Send");
-                int off = 0;
                 string ret;
-                NetLib.ReadCString(udp.GetPayload(), ref off, int.MaxValue, out ret);
-                Log_Error(ret);
-            }
+            //NetLib.ReadCString(udp.GetPayload(), ref off, int.MaxValue, out ret);
+            System.Text.Encoding targetEncoding = System.Text.Encoding.ASCII;
+            ret = targetEncoding.GetString(udp.GetPayload(), 0, udp.GetPayload().Length);
+            Log_Error(ret);
+            //}
 
             //Error.WriteLine("UDP Sent");
             return true;
         }
 
-        private void ReceiveFromBroadcast(IAsyncResult ar)
-        {
-            Log_Verb("Got Data");
-            IPEndPoint ip = new IPEndPoint(IPAddress.Any, destPort);
-            byte[] bytes = client.EndReceive(ar, ref ip);
-            broadcastResponseData = bytes;
-            broadcastResponseIP = ip.Address.GetAddressBytes();
-        }
+        //private void ReceiveFromBroadcast(IAsyncResult ar)
+        //{
+        //    Log_Verb("Got Data");
+        //    IPEndPoint ip = new IPEndPoint(IPAddress.Any, destPort);
+        //    byte[] bytes = client.EndReceive(ar, ref ip);
+        //    broadcastResponseData = bytes;
+        //    broadcastResponseIP = ip.Address.GetAddressBytes();
+        //}
         public override void Reset()
         {
             client.Close();

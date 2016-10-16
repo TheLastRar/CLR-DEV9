@@ -13,17 +13,18 @@ namespace UPNP_Test_Thing
         static void Main(string[] args)
         {
             Encoding targetEncoding = Encoding.ASCII;
-            UdpClient c = new UdpClient(1900);
+            UdpClient c = new UdpClient(2000);
 
             IPEndPoint sp = new IPEndPoint(new IPAddress(new byte[] { 239, 255, 255, 250 }),1900);
 
-            c.JoinMulticastGroup(new IPAddress(new byte[] { 239, 255, 255, 250 }));
+            //c.JoinMulticastGroup(new IPAddress(new byte[] { 239, 255, 255, 250 }));
             //byte[] payload = targetEncoding.GetBytes("M-SEARCH * HTTP/1.1\r\nHOST: 239.255.255.250:1900\r\nMAN: \"ssdp:discover\"\r\nMX: 2\r\nST: urn:schemas-upnp-org:service:InternetGatewayDevice:1\r\n\r\n");
-            //c.Send(payload, payload.Length, sp);
+            byte[] payload = targetEncoding.GetBytes("M-SEARCH * HTTP/1.1\r\nHOST:239.255.255.250:1900\r\nMAN:\"ssdp:discover\"\r\nST:ssdp:all\r\nMX:3\r\n\r\n");
+            c.Send(payload, payload.Length, sp);
 
             while (true)
             {
-                IPEndPoint rp = new IPEndPoint(new IPAddress(new byte[] { 192, 168, 1, 75 }), 1900);
+                IPEndPoint rp = new IPEndPoint(IPAddress.Any, 0);
 
                 byte[] ret = c.Receive(ref rp);
                 Console.WriteLine(rp.ToString());

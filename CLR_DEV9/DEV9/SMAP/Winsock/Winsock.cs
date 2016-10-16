@@ -442,7 +442,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 else
                 {
                     Log_Verb("Creating New Connection with key " + Key);
-                    Log_Info("Creating New UDP Connection with Dest Port " + udp.DestinationPort);
+                    Log_Info("Creating New UDP Connection with Dest Port " + udp.DestinationPort); // + " And IP " + (new IPAddress(ipPkt.DestinationIP)).ToString());
                     UDPSession s = new UDPSession(Key, adapterIP, dhcpServer.Broadcast);
                     s.ConnectionClosedEvent += HandleConnectionClosed;
                     s.DestIP = ipPkt.DestinationIP;

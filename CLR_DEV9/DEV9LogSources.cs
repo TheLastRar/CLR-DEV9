@@ -16,7 +16,7 @@ namespace CLRDEV9
         //ABCDE
         //A = 1 (winsock)
         //B = EtherFrameType (1=IP)
-        //C = IP Protocol Type (1 = IMCP, 2 = UCP, 3 = TCP)
+        //C = IP Protocol Type (1 = ICMP, 2 = UCP, 3 = TCP, 4 = IGMP)
         //D = Palyload type (i.e. is DHCP?)
         //E = Component
         //10xxx Ether/Other packets/winsock base
@@ -27,7 +27,8 @@ namespace CLRDEV9
         //Options   = XXXX2
         IPPacket    = 11001,
 
-        IMCPSession = 11100,
+        ICMPSession = 11100,
+        IGMPSession = 11400,
 
         TCPSession  = 11200,
         TCPPacket   = 11201,
