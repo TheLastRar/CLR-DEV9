@@ -73,8 +73,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
         //List<Session> Connections = new List<Session>();
         object sentry = new object();
 
-        Dictionary<ConnectionKey, Session> connections = new Dictionary<ConnectionKey, Session>();
-        ConcurrentQueue<Session> deadConnections = new ConcurrentQueue<Session>();
+        ConcurrentDictionary<ConnectionKey, Session> connections = new ConcurrentDictionary<ConnectionKey, Session>();
 
         static public List<string[]> GetAdapters()
         {
@@ -149,7 +148,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             dhcpServer.SourceIP = new byte[] { 255, 255, 255, 255 };
             dhcpServer.DestIP = DefaultDHCPConfig.DHCP_IP;
 
-            connections.Add(dhcpKey, dhcpServer);
+            if (!connections.TryAdd(dhcpKey, dhcpServer)) { throw new Exception("Connection Add Failed"); }
         }
 
         public override bool Blocks()
@@ -173,10 +172,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 //List<ConnectionKey> DeadConnections = new List<ConnectionKey>();
                 lock (sentry)
                 {
-                    Session[] sessions = connections.Values.ToArray();
-                    foreach (Session session in sessions) //ToDo: better multi-connection stuff?
+                    ConnectionKey[] keys = connections.Keys.ToArray();
+                    foreach (ConnectionKey key in keys)
                     {
                         IPPayload pl;
+                        Session session;
+                        if (!connections.TryGetValue(key,out session)) { continue; }
                         pl = session.Recv();
                         if (!(pl == null))
                         {
@@ -191,18 +192,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                             result = true;
                             break;
                         }
-                    }
-
-                    Session s;
-                    while (deadConnections.TryDequeue(out s))
-                    {
-                        connections.Remove(s.Key);
-                        s.Dispose();
-                        //if (s.Key.Protocol == (byte)IPType.TCP)
-                        //{
-                        //    Log_Info("TCP Connection Closed");
-                        //}
-                        Log_Verb("Closed Dead Connection");
                     }
                 }
             }
@@ -236,10 +225,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     lock (sentry)
                     {
                         Log_Verb("Reset " + connections.Count + " Connections");
-                        Session[] sessions = connections.Values.ToArray();
-                        foreach (Session session in sessions)
+                        ConnectionKey[] keys = connections.Keys.ToArray();
+                        foreach (ConnectionKey key in keys)
                         {
-                            //connections[key].Reset();
+                            Session session;
+                            if (!connections.TryGetValue(key, out session)) { continue; }
                             session.Reset();
                         }
                     }
@@ -366,7 +356,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     s.ConnectionClosedEvent += HandleConnectionClosed;
                     s.DestIP = ipPkt.DestinationIP;
                     s.SourceIP = dhcpServer.PS2IP;
-                    connections.Add(Key, s);
+                    if (!connections.TryAdd(Key, s)) { throw new Exception("Connection Add Failed"); }
                     return s.Send(ipPkt.Payload);
                 }
             }
@@ -388,7 +378,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     s.ConnectionClosedEvent += HandleConnectionClosed;
                     s.DestIP = ipPkt.DestinationIP;
                     s.SourceIP = dhcpServer.PS2IP;
-                    connections.Add(Key, s);
+                    if (!connections.TryAdd(Key, s)) { throw new Exception("Connection Add Failed"); }
                     return s.Send(ipPkt.Payload);
                 }
             }
@@ -415,7 +405,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     s.ConnectionClosedEvent += HandleConnectionClosed;
                     s.DestIP = ipPkt.DestinationIP;
                     s.SourceIP = dhcpServer.PS2IP;
-                    connections.Add(Key, s);
+                    if (!connections.TryAdd(Key, s)) { throw new Exception("Connection Add Failed"); }
                     return s.Send(ipPkt.Payload);
                 }
             }
@@ -442,12 +432,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 else
                 {
                     Log_Verb("Creating New Connection with key " + Key);
-                    Log_Info("Creating New UDP Connection with Dest Port " + udp.DestinationPort); // + " And IP " + (new IPAddress(ipPkt.DestinationIP)).ToString());
+                    Log_Info("Creating New UDP Connection with Dest Port " + udp.DestinationPort);
                     UDPSession s = new UDPSession(Key, adapterIP, dhcpServer.Broadcast);
                     s.ConnectionClosedEvent += HandleConnectionClosed;
                     s.DestIP = ipPkt.DestinationIP;
                     s.SourceIP = dhcpServer.PS2IP;
-                    connections.Add(Key, s);
+                    if (!connections.TryAdd(Key, s)) { throw new Exception("Connection Add Failed"); }
                     return s.Send(ipPkt.Payload);
                 }
             }
@@ -455,15 +445,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
         //Must lock in calling function
         public int SendFromConnection(ConnectionKey Key, IPPacket ipPkt)
         {
-            if (connections.ContainsKey(Key))
+            Session s;
+            connections.TryGetValue(Key, out s);
+            if (s != null)
             {
-                //if (connections[Key].isOpen() == false)
-                //{
-                //    Log_Error("Attempt to send on Closed Connection");
-                //    throw new Exception("Attempt to send on Closed Connection");
-                //}
-                //Error.WriteLine("Found Open Connection");
-                return connections[Key].Send(ipPkt.Payload) ? 1 : 0;
+                return s.Send(ipPkt.Payload) ? 1 : 0;   
             }
             else
                 return -1;
@@ -472,14 +458,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
         public void HandleConnectionClosed(object sender, EventArgs e)
         {
             Session s = (Session)sender;
+            Session dummy;
             s.ConnectionClosedEvent -= HandleConnectionClosed;
-            deadConnections.Enqueue(s);
-            //lock (sentry)
-            //{
-            //    connections.Remove(s.Key);
-            //    s.Dispose();
-            //    Log_Error("Closed Dead Connection");
-            //}
+            //deadConnections.Enqueue(s);
+            connections.TryRemove(s.Key, out dummy);
+            s.Dispose();
+            Log_Error("Closed Dead Connection");
         }
 
         public override void Close()
@@ -504,8 +488,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     }
                     vRecBuffer.Clear();
                     connections.Clear();
-                    Session s;
-                    while (deadConnections.TryDequeue(out s)) { }
                     //Connections.Add("DHCP", DCHP_server);
                     dhcpServer.Dispose();
                 }

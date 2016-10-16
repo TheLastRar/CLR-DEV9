@@ -1,5 +1,6 @@
 ﻿using CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
@@ -15,9 +16,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         List<Ping> pings = new List<Ping>();
 
-        Dictionary<ConnectionKey, Session> connections;
+        ConcurrentDictionary<ConnectionKey, Session> connections;
 
-        public ICMPSession(ConnectionKey parKey, Dictionary<ConnectionKey, Session> parConnections)
+        public ICMPSession(ConnectionKey parKey, ConcurrentDictionary<ConnectionKey, Session> parConnections)
             : base(parKey, IPAddress.Any)
         {
             connections = parConnections;
@@ -135,9 +136,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                             Key.Protocol = prot;
                             Key.PS2Port = ps2Port;
                             Key.SRVPort = srvPort;
-                            if (connections.ContainsKey(Key)) //TODO, Prevent this from removing permanent sessions
+
+                            Session s;
+                            connections.TryGetValue(Key, out s);
+
+                            if (s != null)
                             {
-                                connections[Key].Reset();
+                                s.Reset();
                                 Log_Info("Reset Rejected Connection");
                             }
                             else
