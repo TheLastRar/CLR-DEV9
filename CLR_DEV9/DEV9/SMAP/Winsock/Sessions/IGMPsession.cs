@@ -39,6 +39,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 case 0x16: //Ver 2 Join
                 case 0x22: //Ver 3 Join
                     Log_Info("TODO IGMP Multicast Join Packet");
+                    RaiseEventConnectionClosed();
                     break;
                 case 0x17: //Leave group
                     RaiseEventConnectionClosed();
@@ -47,6 +48,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     break;
                 default:
                     Log_Error("Unkown IGMP packet");
+                    RaiseEventConnectionClosed();
                     break;
             }
 

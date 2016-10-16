@@ -72,16 +72,16 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     //    //recived = targetEncoding.GetBytes(ret.Replace("WANCommonInterfaceConfig", "InternetGatewayDevice"));
                     //    //ret = targetEncoding.GetString(recived, 0, recived.Length);
                     //}
-                    if (ret.StartsWith("HTTP/1.1 200 OK"))
-                    {
-                        Log_Error("Fudging packet");
+                    //if (ret.StartsWith("HTTP/1.1 200 OK"))
+                    //{
+                        //Log_Error("Fudging packet");
                         //ret = ret.TrimEnd();
                         //ret = ret + "\r\nBOOTID.UPNP.ORG: 56\r\n\r\n";
                         //ret = ret.Replace("\r\n", "\n");
                         //ret = ret.Replace("UPnP/1.0","UPnP/1.1");
                         //recived = targetEncoding.GetBytes(ret);
                         ////thing = true;
-                    }
+                    //}
 
                     UDP iRet = new UDP(recived);
                     iRet.DestinationPort = srcPort;
@@ -98,8 +98,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
                     //if (iRet.DestinationPort == 1900 | (DestIP[0] == 192 & DestIP[1] == 168))
                     //{
-                        Log_Error("Recv");
-                        Log_Error(ret);
+                        //Log_Error("Recv");
+                        //Log_Error(ret);
                     //}
 
                     return iRet;
@@ -195,12 +195,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
             //if (udp.DestinationPort == 1900 | (DestIP[0] == 192 & DestIP[1] == 168))
             //{
-                Log_Error("Send");
-                string ret;
-            //NetLib.ReadCString(udp.GetPayload(), ref off, int.MaxValue, out ret);
-            System.Text.Encoding targetEncoding = System.Text.Encoding.ASCII;
-            ret = targetEncoding.GetString(udp.GetPayload(), 0, udp.GetPayload().Length);
-            Log_Error(ret);
+                //Log_Error("Send");
+                //string ret;
+                //System.Text.Encoding targetEncoding = System.Text.Encoding.ASCII;
+                //ret = targetEncoding.GetString(udp.GetPayload(), 0, udp.GetPayload().Length);
+                //Log_Error(ret);
             //}
 
             //Error.WriteLine("UDP Sent");
