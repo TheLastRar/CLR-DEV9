@@ -67,7 +67,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
 
     sealed class Winsock : NetAdapter
     {
-        List<NetPacket> vRecBuffer = new List<NetPacket>(); //Non IP packets
+        ConcurrentQueue<NetPacket> vRecBuffer = new ConcurrentQueue<NetPacket>(); //Non IP packets
         UDP_DHCPsession dhcpServer;
         IPAddress adapterIP = IPAddress.Any;
         //List<Session> Connections = new List<Session>();
@@ -167,11 +167,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             Log_Verb("Reciving NetPacket");
             bool result = false;
 
-            if (vRecBuffer.Count == 0)
+
+            if (!vRecBuffer.TryDequeue(out pkt))
             {
                 //List<ConnectionKey> DeadConnections = new List<ConnectionKey>();
-                lock (sentry)
-                {
+                //lock (sentry)
+                //{
+                    pkt = null;
                     ConnectionKey[] keys = connections.Keys.ToArray();
                     foreach (ConnectionKey key in keys)
                     {
@@ -193,12 +195,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                             break;
                         }
                     }
-                }
+                //}
             }
             else
             {
-                pkt = vRecBuffer[0];
-                vRecBuffer.RemoveAt(0);
                 result = true;
             }
 
@@ -222,8 +222,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 case (int)EtherFrameType.NULL:
                     //Adapter Reset
 
-                    lock (sentry)
-                    {
+                    //lock (sentry)
+                    //{
                         Log_Verb("Reset " + connections.Count + " Connections");
                         ConnectionKey[] keys = connections.Keys.ToArray();
                         foreach (ConnectionKey key in keys)
@@ -232,7 +232,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                             if (!connections.TryGetValue(key, out session)) { continue; }
                             session.Reset();
                         }
-                    }
+                    //}
                     break;
                 case (int)EtherFrameType.IPv4:
                     result = SendIP((IPPacket)ef.Payload);
@@ -283,7 +283,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                             retARP.DestinationMAC = ps2MAC;
                             retARP.SourceMAC = virturalDHCPMAC;
                             retARP.Protocol = (UInt16)EtherFrameType.ARP;
-                            vRecBuffer.Add(retARP.CreatePacket());
+                            vRecBuffer.Enqueue(retARP.CreatePacket());
                             break;
                         }
                     }
@@ -342,8 +342,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
         public bool SendICMP(ConnectionKey Key, IPPacket ipPkt)
         {
             Log_Verb("ICMP");
-            lock (sentry)
-            {
+            //lock (sentry)
+            //{
                 int res = SendFromConnection(Key, ipPkt);
                 if (res == 1)
                     return true;
@@ -359,13 +359,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     if (!connections.TryAdd(Key, s)) { throw new Exception("Connection Add Failed"); }
                     return s.Send(ipPkt.Payload);
                 }
-            }
+            //}
         }
         public bool SendIGMP(ConnectionKey Key, IPPacket ipPkt)
         {
             Log_Verb("IGMP");
-            lock (sentry)
-            {
+            //lock (sentry)
+            //{
                 int res = SendFromConnection(Key, ipPkt);
                 if (res == 1)
                     return true;
@@ -381,7 +381,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     if (!connections.TryAdd(Key, s)) { throw new Exception("Connection Add Failed"); }
                     return s.Send(ipPkt.Payload);
                 }
-            }
+            //}
         }
         public bool SendTCP(ConnectionKey Key, IPPacket ipPkt)
         {
@@ -390,8 +390,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
 
             Key.PS2Port = tcp.SourcePort; Key.SRVPort = tcp.DestinationPort;
 
-            lock (sentry)
-            {
+            //lock (sentry)
+            //{
                 int res = SendFromConnection(Key, ipPkt);
                 if (res == 1)
                     return true;
@@ -408,7 +408,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     if (!connections.TryAdd(Key, s)) { throw new Exception("Connection Add Failed"); }
                     return s.Send(ipPkt.Payload);
                 }
-            }
+            //}
         }
         public bool SendUDP(ConnectionKey Key, IPPacket ipPkt)
         {
@@ -417,8 +417,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
 
             Key.PS2Port = udp.SourcePort; Key.SRVPort = udp.DestinationPort;
 
-            lock (sentry)
-            {
+            //lock (sentry)
+            //{
                 if (udp.DestinationPort == 67)
                 { //DHCP
                     return dhcpServer.Send(ipPkt.Payload);
@@ -440,9 +440,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     if (!connections.TryAdd(Key, s)) { throw new Exception("Connection Add Failed"); }
                     return s.Send(ipPkt.Payload);
                 }
-            }
+            //}
         }
-        //Must lock in calling function
+        
         public int SendFromConnection(ConnectionKey Key, IPPacket ipPkt)
         {
             Session s;
@@ -486,7 +486,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     {
                         connections[key].Dispose();
                     }
-                    vRecBuffer.Clear();
+                    NetPacket p;
+                    while (vRecBuffer.TryDequeue(out p)) { }
                     connections.Clear();
                     //Connections.Add("DHCP", DCHP_server);
                     dhcpServer.Dispose();

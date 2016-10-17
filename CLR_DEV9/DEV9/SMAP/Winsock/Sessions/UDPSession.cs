@@ -31,7 +31,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             : base(parKey, parAdapterIP)
         {
             broadcastAddr = parBroadcastIP;
-            deathClock.Start();
+            lock (deathClock)
+            {
+                deathClock.Start();
+            }
         }
         //bool thing = false;
         public override IPPayload Recv()
@@ -61,7 +64,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                         remoteIPEndPoint = new IPEndPoint(new IPAddress(DestIP), destPort);
                     }
                     byte[] recived = client.Receive(ref remoteIPEndPoint);
-                    //Error.WriteLine("UDP Got Data");
+                    Log_Error("UDP Got Data");
 
                     string ret;
                     System.Text.Encoding targetEncoding = System.Text.Encoding.ASCII;
@@ -93,8 +96,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                         DestIP = remoteIPEndPoint.Address.GetAddressBytes(); //assumes ipv4
                         iRet.SourcePort = (UInt16)remoteIPEndPoint.Port;
                     }
-
-                    deathClock.Restart();
+                    lock (deathClock)
+                    {
+                        deathClock.Restart();
+                    }
 
                     //if (iRet.DestinationPort == 1900 | (DestIP[0] == 192 & DestIP[1] == 168))
                     //{
@@ -105,16 +110,22 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     return iRet;
                 }
             }
-            if (deathClock.Elapsed.TotalSeconds > MAX_IDLE)
+            lock (deathClock)
             {
-                client.Close();
-                RaiseEventConnectionClosed();
+                if (deathClock.Elapsed.TotalSeconds > MAX_IDLE)
+                {
+                    client.Close();
+                    RaiseEventConnectionClosed();
+                }
             }
             return null;
         }
         public override bool Send(IPPayload payload)
         {
-            deathClock.Restart();
+            lock (deathClock)
+            {
+                deathClock.Restart();
+            }
             UDP udp = (UDP)payload;
 
             if (destPort != 0)

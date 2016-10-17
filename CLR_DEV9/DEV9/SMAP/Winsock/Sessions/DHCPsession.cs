@@ -1,6 +1,7 @@
 ﻿using CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP;
 using CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
@@ -29,7 +30,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         public byte[] Broadcast;
         #endregion
 
-        List<UDP> recvBuff = new List<UDP>();
+        ConcurrentQueue<UDP> recvBuff = new ConcurrentQueue<UDP>();
         byte hType;
         byte hLen;
         UInt32 xID = 0;
@@ -280,11 +281,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         public override IPPayload Recv()
         {
-            if (recvBuff.Count == 0)
-                return null;
-            UDP ret = recvBuff[0];
-            recvBuff.RemoveAt(0);
-            return ret;
+            UDP ret;
+            if (recvBuff.TryDequeue(out ret))
+                return ret;
+            return null;
         }
         public override bool Send(IPPayload payload)
         {
@@ -447,7 +447,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             UDP retudp = new UDP(udpPayload);
             retudp.SourcePort = 67;
             retudp.DestinationPort = 68;
-            recvBuff.Add(retudp);
+            recvBuff.Enqueue(retudp);
             return true;
         }
         public override void Reset()
