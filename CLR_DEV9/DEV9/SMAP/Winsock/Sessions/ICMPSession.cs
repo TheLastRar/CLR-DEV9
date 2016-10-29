@@ -80,7 +80,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     return ret;
                 }
             }
-
             return null;
         }
         public override bool Send(IPPayload payload)

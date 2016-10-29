@@ -11,6 +11,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
     class UDPSession : Session
     {
         //List<UDP> recvbuff = new List<UDP>();
+        volatile bool open = false;
 
         UdpClient client;
 
@@ -39,6 +40,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         //bool thing = false;
         public override IPPayload Recv()
         {
+            if (!open)
+            {
+                return null;
+            }
             //if (recvbuff.Count != 0)
             //{
             //    UDP ret = recvbuff[0];
@@ -140,6 +145,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
             if (destPort != 0)
             {
+                //client already created
                 if (!(udp.DestinationPort == destPort && udp.SourcePort == srcPort))
                 {
                     Log_Error("UDP packet invalid for current session (Duplicate key?)");
@@ -178,7 +184,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     multicastAddr = DestIP;
                     client = new UdpClient(new IPEndPoint(adapterIP, 0));
                     IPAddress address = new IPAddress(multicastAddr);
-                    client.JoinMulticastGroup(address);
+                    //client.JoinMulticastGroup(address);
                 }
                 else
                 {
@@ -199,6 +205,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                         //open = true;
                     }
                 }
+                open = true;
             }
 
             if (isBroadcast)
@@ -237,6 +244,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         //}
         public override void Reset()
         {
+            open = false;
             client.Close();
             RaiseEventConnectionClosed();
         }
