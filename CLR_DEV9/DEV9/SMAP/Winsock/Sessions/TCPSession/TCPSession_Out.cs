@@ -1,6 +1,7 @@
 ﻿using CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 
@@ -292,9 +293,18 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     {
                         netStream.Write(tcp.GetPayload(), (int)delta, tcp.GetPayload().Length - (int)delta);
                     }
-                    catch (Exception e)
+                    catch (IOException e)
                     {
-                        System.Windows.Forms.MessageBox.Show("Got IO Error: " + e.ToString());
+                        if (e.InnerException != null && e.InnerException is SocketException)
+                        {
+                            SocketException err = e.InnerException as SocketException;
+                            Log_Error("UDP Recv Error: " + err.Message);
+                            Log_Error("Error Code: " + err.ErrorCode);
+                        }
+                        else
+                        {
+                            System.Windows.Forms.MessageBox.Show("Got IO Error: " + e.ToString());
+                        }
                         //Connection Lost
                         //Send Shutdown by RST (Untested)
                         CloseByRemoteRST();

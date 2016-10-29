@@ -63,12 +63,23 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     {
                         remoteIPEndPoint = new IPEndPoint(new IPAddress(DestIP), destPort);
                     }
-                    byte[] recived = client.Receive(ref remoteIPEndPoint);
-                    Log_Error("UDP Got Data");
+                    byte[] recived = null;
+                    try
+                    {
+                        recived = client.Receive(ref remoteIPEndPoint);
+                        Log_Error("UDP Got Data");
+                    }
+                    catch (SocketException err)
+                    {
+                        Log_Error("UDP Recv Error: " + err.Message);
+                        Log_Error("Error Code: " + err.ErrorCode);
+                        RaiseEventConnectionClosed();
+                        return null;
+                    }
 
-                    string ret;
-                    System.Text.Encoding targetEncoding = System.Text.Encoding.ASCII;
-                    ret = targetEncoding.GetString(recived, 0, recived.Length);
+                    //string ret;
+                    //System.Text.Encoding targetEncoding = System.Text.Encoding.ASCII;
+                    //ret = targetEncoding.GetString(recived, 0, recived.Length);
                     //if (thing)
                     //{
                     //    //Log_Error("Fudging packet");
@@ -85,7 +96,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                         //recived = targetEncoding.GetBytes(ret);
                         ////thing = true;
                     //}
-
                     UDP iRet = new UDP(recived);
                     iRet.DestinationPort = srcPort;
                     iRet.SourcePort = destPort;
