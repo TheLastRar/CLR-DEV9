@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="PSE.h" />
+    <ClInclude Include="DEV9.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="PS2E.cpp" />
+    <ClCompile Include="DEV9.cpp" />
+  </ItemGroup>
+</Project>
