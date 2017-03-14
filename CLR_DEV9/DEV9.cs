@@ -310,7 +310,6 @@ namespace CLRDEV9
         //freeze
         //config
         //about
-        //test
         public static int Test()
         {
             try

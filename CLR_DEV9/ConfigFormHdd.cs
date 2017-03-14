@@ -55,10 +55,14 @@ namespace CLRDEV9
 
             string path = "";
 
-            if (tbPath.Text.Contains("\\") || tbPath.Text.Contains("/"))
+            if (tbPath.Text.Contains(Path.DirectorySeparatorChar.ToString()) || tbPath.Text.Contains(Path.AltDirectorySeparatorChar.ToString()))
                 path = tbPath.Text;
             else
-                path = iniFolder + "\\" + tbPath.Text;
+            {
+                path = iniFolder.TrimEnd(Path.DirectorySeparatorChar);
+                path = path.TrimEnd(Path.AltDirectorySeparatorChar);
+                path = path + Path.DirectorySeparatorChar + tbPath.Text;
+            }
 
             if (File.Exists(path))
             {

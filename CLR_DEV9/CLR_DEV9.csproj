@@ -195,6 +195,7 @@
     <Compile Include="PSE\CLR_PSE_SudoPtr.cs" />
     <Compile Include="PSE\CLR_PSE_Utils.cs" />
     <Compile Include="PSE\CLR_PSE_Version.cs" />
+    <Compile Include="PSE\CLR_PSE_Mono.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="DEV9\SMAP\Winsock\Winsock.cs" />
   </ItemGroup>

@@ -120,7 +120,7 @@ namespace PSE
                 stdErr.Filter = new EventTypeFilter(consoleErrLevel);
                 stdErr.Name = "StdErr";
 
-                currentLogPath = logFolderPath + "\\" + logFileName;
+                currentLogPath = logFolderPath + Path.DirectorySeparatorChar + logFileName;
                 //Text File
                 try
                 {

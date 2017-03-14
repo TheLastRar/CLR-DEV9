@@ -69,15 +69,15 @@ namespace PSE
                 }
             }
             else
-            //might not work?
+            //Works on Linux (mono)
             {
                 if (std == 2)
                 {
-                    Console.Error.WriteLine(value);
+                    Console.Error.Write(value);
                 }
                 else
                 {
-                    Console.WriteLine(value);
+                    Console.Write(value);
                 }
             }
         }

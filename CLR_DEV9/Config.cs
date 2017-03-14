@@ -68,7 +68,10 @@ namespace CLRDEV9
 
         public static void SaveConf(string iniFolderPath, string iniFileName)
         {
-            string filePath = iniFolderPath + "\\" + iniFileName;
+            iniFolderPath = iniFolderPath.TrimEnd(Path.DirectorySeparatorChar);
+            iniFolderPath = iniFolderPath.TrimEnd(Path.AltDirectorySeparatorChar);
+
+            string filePath = iniFolderPath + Path.DirectorySeparatorChar + iniFileName;
             DataContractSerializer ConfSerializer = new DataContractSerializer(typeof(Config));
 
             var settings = new XmlWriterSettings()
@@ -87,7 +90,10 @@ namespace CLRDEV9
 
         public static void LoadConf(string iniFolderPath, string iniFileName)
         {
-            string filePath = iniFolderPath + "\\" + iniFileName;
+            iniFolderPath = iniFolderPath.TrimEnd(Path.DirectorySeparatorChar);
+            iniFolderPath = iniFolderPath.TrimEnd(Path.AltDirectorySeparatorChar);
+
+            string filePath = iniFolderPath + Path.DirectorySeparatorChar + iniFileName;
 
             if (File.Exists(filePath))
             {
