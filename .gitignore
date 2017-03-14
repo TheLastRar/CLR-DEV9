@@ -252,5 +252,5 @@ paket-files/
 *.sln.iml
 
 # external headers from Linux
-external/usr/
-external/lib/
+**/external/usr/
+**/external/lib/
