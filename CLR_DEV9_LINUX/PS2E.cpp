@@ -2,7 +2,7 @@
 
 using namespace std;
 
-const char* pseDomainName = "/home/air/.config/PCSX2/inis/CLR_DEV9.dll";
+const string pseDomainName = "PSE_Mono";
 
 MonoDomain* pseDomain;
 
@@ -46,41 +46,41 @@ MonoDomain* InitMonoSafer(string monousrlibPath, string monoetcPath)
 	//mono_domain_foreach((MonoDomainFunc)CheckAppDomainsFunc, &isInit);
 
 	//if only this worked
-	//pseDomain = mono_get_root_domain();
+	pseDomain = mono_get_root_domain();
 
 	if (pseDomain == NULL)
 	{
-		//PSELog.Write("Set Dirs\n");
+		PSELog.Write("Set Dirs\n");
 
-		//if (monousrlibPath.length() == 0)
-		//{
-		//	monousrlibPath = "/usr/lib/";
-		//}
-		//if (monoetcPath.length() == 0)
-		//{
-		//	monoetcPath = "/etc/";
-		//}
+		if (monousrlibPath.length() == 0)
+		{
+			monousrlibPath = "/usr/lib/";
+		}
+		if (monoetcPath.length() == 0)
+		{
+			monoetcPath = "/etc/";
+		}
 
-		//mono_set_dirs(monousrlibPath.c_str(), monoetcPath.c_str());
-		//mono_config_parse(NULL);
+		mono_set_dirs(monousrlibPath.c_str(), monoetcPath.c_str());
+		mono_config_parse(NULL);
 
-		//PSELog.Write("Set Debug (if only)\n");
+		PSELog.Write("Set Debug (if only)\n");
 
-		//mono_debug_init(MONO_DEBUG_FORMAT_MONO);
+		mono_debug_init(MONO_DEBUG_FORMAT_MONO);
 
 		PSELog.Write("jit init\n");
-		pseDomain = mono_jit_init(pseDomainName);
-		//if (pseDomain == NULL)
-		//{
-		//	PSELog.Write("Init Mono Failed At jit_init\n");
-		//	return NULL;
-		//}
-		//else
-		//{
-		//	PSELog.WriteLn(mono_domain_get_friendly_name(pseDomain));
-		//}
+		pseDomain = mono_jit_init(pseDomainName.c_str());
+		if (pseDomain == NULL)
+		{
+			PSELog.Write("Init Mono Failed At jit_init\n");
+			return NULL;
+		}
+		else
+		{
+			PSELog.WriteLn(mono_domain_get_friendly_name(pseDomain));
+		}
 	}
-	return NULL;//pseDomain;//mono_domain_create();
+	return mono_domain_create();
 }
 
 
