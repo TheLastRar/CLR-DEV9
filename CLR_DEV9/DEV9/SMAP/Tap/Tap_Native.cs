@@ -113,36 +113,15 @@ namespace CLRDEV9.DEV9.SMAP.Tap
 
             ManagementScope scope = new ManagementScope("\\\\.\\ROOT\\cimv2");
 
-            ObjectQuery query = new ObjectQuery("SELECT NetConnectionID,Description,ServiceName,PNPDeviceID,GUID FROM Win32_NetworkAdapter");
+            ObjectQuery query = new ObjectQuery("SELECT NetConnectionID,Description,ServiceName,PNPDeviceID,GUID FROM Win32_NetworkAdapter WHERE ServiceName LIKE 'tap%'");
             using (ManagementObjectSearcher netSearcher = new ManagementObjectSearcher(scope, query))
             {
                 using (ManagementObjectCollection netQueryCollection = netSearcher.Get())
                 {
                     foreach (ManagementObject netMO in netQueryCollection)
                     {
-                        //Console.Error.WriteLine("Name {0}, PNPDevID {1} En {2}", netMO["Description"], netMO["PNPDeviceID"], netMO["GUID"]);
-                    
-                        if (netMO["PNPDeviceID"] == null)
-                            continue;
-
-                        try
-                        {
-                            if (netMO["ServiceName"] == null)
-                            continue;
-                        }
-                        catch
-                        {
-                            //WINE hackfix
-                            break;
-
-                        }
-
-                        //ServiceName == hardwareID?
-                        if (((string)netMO["ServiceName"]).StartsWith("tap"))
-                        {
-                            //NetConnectionID is what the user has named the connection
-                            names.Add(new string[] { (string)netMO["NetConnectionID"], (string)netMO["Description"], (string)netMO["GUID"] });
-                        }
+                        //NetConnectionID is what the user has named the connection
+                        names.Add(new string[] { (string)netMO["NetConnectionID"], (string)netMO["Description"], (string)netMO["GUID"] });
                     }
                 }
             }
