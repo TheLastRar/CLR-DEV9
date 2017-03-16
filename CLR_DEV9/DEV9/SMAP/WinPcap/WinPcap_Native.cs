@@ -252,10 +252,6 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
                     devices.Add(new string[] { d.description, d.name });
                 }
             }
-            //catch (Exception e)
-            //{
-            //    throw e;
-            //}
             finally
             {
                 NativeMethods.pcap_freealldevs(rawPcapAdapter);

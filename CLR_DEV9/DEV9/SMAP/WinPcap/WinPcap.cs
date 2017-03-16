@@ -39,9 +39,18 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             foreach (string[] adapter in pcapDevs)
             {
                 //return adapter
-                if (GetFriendlyName(adapter[1].Substring(@"\Device\NPF_".Length)) != null)
+                if (adapter[1].StartsWith(@"\Device\NPF_"))
                 {
-                    names.Add(new string[] { GetFriendlyName(adapter[1].Substring(@"\Device\NPF_".Length)), adapter[0], adapter[1].Substring(@"\Device\NPF_".Length) });
+                    //We are running under windows
+                    if (GetFriendlyName(adapter[1].Substring(@"\Device\NPF_".Length)) != null)
+                    {
+                        names.Add(new string[] { GetFriendlyName(adapter[1].Substring(@"\Device\NPF_".Length)), adapter[0], adapter[1].Substring(@"\Device\NPF_".Length) });
+                    }
+                }
+                else
+                {
+                    //We are running under wine
+                    names.Add(new string[] { adapter[1], adapter[0], adapter[1] });
                 }
             }
 
@@ -70,11 +79,12 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             }
             hostMAC = hostAdapter.GetPhysicalAddress().GetAddressBytes();
 
-            //DEV9Header.config.Eth.Substring(12, DEV9Header.config.Eth.Length - 12)
-            if (!PcapInitIO(@"\Device\NPF_" + parDevice))
+            //If parDevice starts with "{", assume device is given by GUID (as it would be under windows)
+            //else, use the string as is (wine)
+            if (!PcapInitIO(parDevice.StartsWith("{") ? @"\Device\NPF_" + parDevice : parDevice))
             {
-                Log_Error("Can't Open Device " + DEV9Header.config.Eth);
-                System.Windows.Forms.MessageBox.Show("Can't Open Device " + DEV9Header.config.Eth);
+                Log_Error("Can't Open Device " + parDevice);
+                System.Windows.Forms.MessageBox.Show("Can't Open Device " + parDevice);
                 return;
             }
 
