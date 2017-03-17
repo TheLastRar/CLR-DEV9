@@ -126,10 +126,10 @@ int32_t LoadAssembly()
 	managedOpen = (ThunkOpen)mono_method_get_unmanaged_thunk(meth);
 	//close
 	meth = mono_class_get_method_from_name(pluginClassDEV9, "DEV9close", 0);
-	managedClose = (ThunkClose)mono_method_get_unmanaged_thunk(meth);
+	managedClose = (ThunkVoid)mono_method_get_unmanaged_thunk(meth);
 	//shutdown
 	meth = mono_class_get_method_from_name(pluginClassDEV9, "DEV9shutdown", 0);
-	managedClose = (ThunkShutdown)mono_method_get_unmanaged_thunk(meth);
+	managedClose = (ThunkVoid)mono_method_get_unmanaged_thunk(meth);
 	//set log + config
 	//read
 	meth = mono_class_get_method_from_name(pluginClassDEV9, "DEV9read8", 1);
@@ -158,6 +158,10 @@ int32_t LoadAssembly()
 	managedIrqCallback = (ThunkIrqCallback)mono_method_get_unmanaged_thunk(meth);
 	meth = mono_class_get_method_from_name(pluginClassDEV9, "DEV9irqHandler", 0);
 	managedIrqHandler = (ThunkIrqHandler)mono_method_get_unmanaged_thunk(meth);
+
+	//config
+	meth = mono_class_get_method_from_name(pluginClassDEV9, "DEV9configure", 0);
+	managedConfig = (ThunkVoid)mono_method_get_unmanaged_thunk(meth);
 	return 0;
 }
 
@@ -219,7 +223,7 @@ DEV9open(void* pDsp)
 EXPORT_C_(void)
 DEV9close()
 {
-	mono_thread_attach(mono_get_root_domain());
+	//mono_thread_attach(mono_get_root_domain());
 	MonoException* ex;
 	managedClose(&ex);
 
@@ -294,7 +298,6 @@ DEV9setLogDir(const char* dir)
 	PSELog.Write("SetLog\n");
 	logDir = dir;
 }
-//log + settings dir
 
 EXPORT_C_(uint8_t)
 DEV9read8(uint32_t addr)
@@ -371,25 +374,25 @@ DEV9write32(uint32_t addr, uint32_t value)
 EXPORT_C_(void)
 DEV9readDMA8Mem(uint8_t* memPointer, int32_t size)
 {
-	//MonoException* ex;
-	//managedReadDMA8(memPointer, size, &ex);
+	MonoException* ex;
+	managedReadDMA8(memPointer, size, &ex);
 
-	//if (ex)
-	//	throw;
+	if (ex)
+		throw;
 }
 
 EXPORT_C_(void)
 DEV9writeDMA8Mem(uint8_t* memPointer, int32_t size)
 {
-	//MonoException* ex;
-	//managedWriteDMA8(memPointer, size, &ex);
+	MonoException* ex;
+	managedWriteDMA8(memPointer, size, &ex);
 
-	//if (ex)
-	//	throw;
+	if (ex)
+		throw;
 }
 
 EXPORT_C_(void)
-Dev9async(uint32_t cycles)
+DEV9async(uint32_t cycles)
 {
 	//mono_thread_attach(mono_get_root_domain());
 	MonoException* ex;
@@ -473,5 +476,13 @@ DEV9irqHandler()
 EXPORT_C_(void)
 DEV9configure()
 {
-	PSELog.Write("Configure\n");
+	int32_t ret = LoadAssembly();
+	mono_thread_attach(mono_get_root_domain());
+	if (ret == 0)
+	{
+		MonoException* ex;
+		managedConfig(&ex);
+		if (ex)
+			throw;
+	}
 }

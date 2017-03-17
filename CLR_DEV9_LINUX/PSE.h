@@ -18,7 +18,7 @@
 #include <mono/metadata/reflection.h>
 
 #define EXPORT_C_(type) extern "C" __attribute__((stdcall, externally_visible, visibility("default"))) type
-#define CALLBACK(type) __attribute__((stdcall)) type
+#define CALLBACK __attribute__((stdcall))
 
 //set by specific plugin
 extern const std::string pluginName;

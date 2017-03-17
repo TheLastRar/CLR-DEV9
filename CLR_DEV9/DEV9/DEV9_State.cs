@@ -55,7 +55,7 @@ namespace CLRDEV9.DEV9
 
         public int _DEV9irqHandler()
         {
-            Log_Verb("_DEV9irqHandler " + irqCause.ToString("X") + ", " + Dev9Ru16((int)DEV9Header.SPD_R_INTR_MASK).ToString("x"));
+            Log_Verb("DEV9irqHandler " + irqCause.ToString("X") + ", " + Dev9Ru16((int)DEV9Header.SPD_R_INTR_MASK).ToString("x"));
 
             //Pass IRQ to other handlers
             int ret = 0;
@@ -70,7 +70,7 @@ namespace CLRDEV9.DEV9
 
         public void DEV9irq(int cause, int cycles)
         {
-            Log_Verb("_DEV9irq " + cause.ToString("X") + ", " + Dev9Ru16((int)DEV9Header.SPD_R_INTR_MASK).ToString("X"));
+            Log_Verb("DEV9irq " + cause.ToString("X") + ", " + Dev9Ru16((int)DEV9Header.SPD_R_INTR_MASK).ToString("X"));
 
             irqCause |= cause;
 

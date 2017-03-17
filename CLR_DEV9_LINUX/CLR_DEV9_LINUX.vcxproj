@@ -160,12 +160,11 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <Link>
-      <LibraryDependencies>monosgen-2.0;m;rt;dl;pthread</LibraryDependencies>
+      <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
       <AdditionalOptions>
       </AdditionalOptions>
       <AdditionalDependencies>$(StlAdditionalDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <NoExecStackRequired>true</NoExecStackRequired>
     </Link>
     <ClCompile>
       <PositionIndependentCode>true</PositionIndependentCode>
@@ -180,12 +179,11 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
     <Link>
-      <LibraryDependencies>monosgen-2.0;m;rt;dl;pthread</LibraryDependencies>
+      <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
       <AdditionalOptions>
       </AdditionalOptions>
       <AdditionalDependencies>$(StlAdditionalDependencies);%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <NoExecStackRequired>true</NoExecStackRequired>
     </Link>
     <ClCompile>
       <PositionIndependentCode>true</PositionIndependentCode>

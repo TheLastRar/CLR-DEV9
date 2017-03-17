@@ -11,11 +11,10 @@ static ThunkInit managedInit;
 typedef uint32_t(*ThunkOpen)(void* pDsp, MonoException** ex);
 static ThunkOpen managedOpen;
 
-typedef void(*ThunkClose)(MonoException** ex);
-static ThunkClose managedClose;
+typedef void(*ThunkVoid)(MonoException** ex);
+static ThunkVoid managedClose;
 
-typedef void(*ThunkShutdown)(MonoException** ex);
-static ThunkShutdown managedShutdown;
+static ThunkVoid managedShutdown;
 
 //set dirs
 
@@ -45,3 +44,5 @@ static ThunkIrqCallback managedIrqCallback;
 
 typedef MonoObject*(*ThunkIrqHandler)(MonoException** ex);
 static ThunkIrqHandler managedIrqHandler;
+
+static ThunkVoid managedConfig;
