@@ -27,6 +27,14 @@ extern const uint8_t pluginVerMajor;
 extern const uint8_t pluginVerMinor;
 extern const uint8_t pluginVerPatch;
 
+//helper methods
+
+typedef MonoObject*(*ThunkGetDelegate)(void* func, MonoException** ex);
+extern ThunkGetDelegate CyclesCallbackFromFunctionPointer;
+
+typedef void*(*ThunkGetFuncPtr)(MonoObject* func, MonoException** ex);
+extern ThunkGetFuncPtr FunctionPointerFromIRQHandler;
+
 //temp logging code
 struct PluginLog
 {
@@ -52,4 +60,6 @@ struct PluginLog
 };
 extern PluginLog PSELog;
 
-MonoDomain *InitMonoSafer(std::string monousrlibPath, std::string monoetcPath);
+MonoDomain *LoadMonoSafer(std::string monousrlibPath, std::string monoetcPath);
+
+MonoImage* LoadPluginPSE(MonoAssembly *pluginAssembly, std::string pluginPath);

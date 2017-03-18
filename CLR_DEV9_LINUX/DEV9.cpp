@@ -12,32 +12,27 @@ string pluginPath;
 string monoLibPath;
 string monoEtcPath;
 
+string configFileName = "CLR_DEV9_lx.ini";
+string pluginFileName = "CLR_DEV9.dll";
+
 string configDir;
 string logDir;
 
 MonoDomain *pluginDomain = NULL;
-MonoAssembly *pluginAssembly;
-MonoImage *pluginImage;
-MonoClass *pluginClassPSE;
-MonoClass *pluginClassPSE_Mono;
-MonoClass *pluginClassDEV9;
-
-string GetParentDirectory(const string& str)
-{
-	size_t found;
-	found = str.find_last_of("/\\");
-	return str.substr(0, found);
-}
+MonoAssembly *pluginAssembly = NULL;
+MonoImage *pluginImage = NULL;
+MonoClass *pluginClassDEV9 = NULL;
 
 int32_t LoadAssembly()
 {
+	PSELog.WriteLn("Init Mono");
+
 	if (pluginDomain != NULL)
 	{
 		return 0;
 	}
 
-	PSELog.WriteLn("Init Mono");
-	pluginDomain = InitMonoSafer(monoLibPath, monoEtcPath);
+	pluginDomain = LoadMonoSafer(monoLibPath, monoEtcPath);
 
 	PSELog.WriteLn("Load Assemblies");
 	pluginAssembly = mono_domain_assembly_open(pluginDomain, pluginPath.c_str());
@@ -45,78 +40,48 @@ int32_t LoadAssembly()
 	if (!pluginAssembly)
 	{
 		PSELog.WriteLn("Init Mono Failed At PluginAssembly");
+		mono_domain_free(pluginDomain,false);
+		pluginDomain = NULL;
 		return -1;
 	}
 
-	string mainPath = GetParentDirectory(pluginPath) + "/DummyMain.exe";
+	PSELog.WriteLn("Load Plugin Image");
+	pluginImage = LoadPluginPSE(pluginAssembly, pluginPath.c_str());
 
-	MonoAssembly *dummyAssembly = mono_domain_assembly_open(pluginDomain, mainPath.c_str());
-
-	if (!dummyAssembly)
+	if (!pluginImage)
 	{
-		PSELog.WriteLn("Init Mono Failed At DummyAssembly");
+		PSELog.WriteLn("Load Plugin Image Failed");
+		mono_domain_free(pluginDomain, false);
+		pluginDomain = NULL;
 		return -1;
 	}
 
-	char* argv[1];
-	argv[0] = (char *)mainPath.c_str();
-
-	PSELog.WriteLn("jit_exec");
-
-	int32_t ret = mono_jit_exec(pluginDomain, dummyAssembly, 1, argv);
-
-	if (ret != 0)
-	{
-		PSELog.WriteLn("Init Mono Failed At jit_exec");
-		return ret;
-	}
-
-	PSELog.WriteLn("Get Plugin Image");
-	pluginImage = mono_assembly_get_image(pluginAssembly);
-
-	if (!dummyAssembly)
-	{
-		PSELog.WriteLn("Init Mono Failed At get_image");
-		return -1;
-	}
-
-	PSELog.WriteLn("Get Classes");
-	pluginClassPSE = mono_class_from_name(pluginImage, "PSE", "CLR_PSE");
-
-	if (!pluginClassPSE)
-	{
-		PSELog.WriteLn("Init Mono Failed At Get CLR_PSE");
-		return -1;
-	}
-
-	pluginClassPSE_Mono = mono_class_from_name(pluginImage, "PSE", "CLR_PSE_Mono");
-
-	if (!pluginClassPSE_Mono)
-	{
-		PSELog.WriteLn("Init Mono Failed At Get CLR_PSE_Mono");
-		return -1;
-	}
-
+	PSELog.WriteLn("Get DEV9 Class");
 	pluginClassDEV9 = mono_class_from_name(pluginImage, "PSE", "CLR_PSE_DEV9");
 
 	if (!pluginClassDEV9)
 	{
 		PSELog.WriteLn("Init Mono Failed At Get CLR_PSE_DEV9");
+		mono_image_close(pluginImage);
+		pluginImage = NULL;
+		mono_domain_free(pluginDomain, false);
+		pluginDomain = NULL;
 		return -1;
 	}
 
-	if ((mono_class_init(pluginClassPSE) & mono_class_init(pluginClassDEV9)) == false)
+	if (mono_class_init(pluginClassDEV9) == false)
 	{
 		PSELog.WriteLn("Classes Failed To Init");
+		mono_image_close(pluginImage);
+		pluginImage = NULL;
+		mono_domain_free(pluginDomain, false);
+		pluginDomain = NULL;
 		return -1;
 	}
 
 	PSELog.WriteLn("Get Methods");
 	//Load Methods
 	MonoMethod *meth;
-	//
-	mono_image_addref(pluginImage);
-	mono_gchandle_new(mono_object_new(pluginDomain,pluginClassDEV9),false);
 
 	//init
 	meth = mono_class_get_method_from_name(pluginClassDEV9, "DEV9init", 0);
@@ -242,17 +207,27 @@ DEV9shutdown()
 
 	if (ex)
 		throw;
+
+	//Cleanup refrences
+	if (pluginImage != NULL)
+	{
+		mono_image_close(pluginImage);
+		pluginImage = NULL;
+	}
+	if (pluginDomain != NULL)
+	{
+		mono_domain_free(pluginDomain, false);
+		pluginDomain = NULL;
+	}
 }
 
 EXPORT_C_(void)
 DEV9setSettingsDir(const char* dir)
 {
 	PSELog.Write("SetSetting\n");
-	string configName = "CLR_DEV9_lx.ini";
-	string pluginName = "CLR_DEV9.dll";
 
 	configDir = dir;
-	string configPath = configDir + configName;
+	string configPath = configDir + configFileName;
 
 	ifstream reader;
 	reader.open(configPath, ios::in);
@@ -273,7 +248,7 @@ DEV9setSettingsDir(const char* dir)
 	else
 	{
 		pluginPath.append(configDir);
-		pluginPath.append(pluginName);
+		pluginPath.append(pluginFileName);
 
 		ofstream writer;
 		writer.open(configPath, ios::out | ios::trunc);
@@ -291,8 +266,8 @@ DEV9setSettingsDir(const char* dir)
 
 	//create default file if none exists
 }
-EXPORT_C_(void)
 
+EXPORT_C_(void)
 DEV9setLogDir(const char* dir)
 {
 	PSELog.Write("SetLog\n");
@@ -409,15 +384,8 @@ DEV9irqCallback(void* DEV9callback)
 	PSELog.WriteLn("SetCallback");
 	MonoException* ex;
 
-	PSELog.WriteLn("GetHelper");
-	MonoMethod *getDelegate = mono_class_get_method_from_name(pluginClassPSE_Mono, "CyclesCallbackFromFunctionPointer", 1);
-
-	MonoObject*(*getDelegateThunk)(void* func, MonoException** ex);
-
-	getDelegateThunk = (MonoObject*(*)(void* func, MonoException** ex))mono_method_get_unmanaged_thunk(getDelegate);
-
 	PSELog.WriteLn("Call Helper");
-	MonoObject *ret = getDelegateThunk((void*)DEV9callback, &ex);
+	MonoObject *ret = CyclesCallbackFromFunctionPointer((void*)DEV9callback, &ex);
 
 	if (ex)
 		throw;
@@ -442,22 +410,14 @@ DEV9irqHandler()
 	if (ex)
 		throw;
 
-	PSELog.WriteLn("GetHelper");
-	MonoMethod *getFucnPtr = mono_class_get_method_from_name(pluginClassPSE_Mono, "FunctionPointerFromIRQHandler", 1);
-
-	void*(*getFucnPtrThunk)(MonoObject* func, MonoException** ex);
-
-	getFucnPtrThunk = (void*(*)(MonoObject* func, MonoException** ex))mono_method_get_unmanaged_thunk(getFucnPtr);
-
 	PSELog.WriteLn("Call Helper");
-	void *retPtr = getFucnPtrThunk(ret, &ex);
+	void *retPtr = FunctionPointerFromIRQHandler(ret, &ex);
 
 	if (ex)
 		throw;
 
 	return retPtr;
 }
-
 
 //freeze
 
@@ -476,13 +436,34 @@ DEV9irqHandler()
 EXPORT_C_(void)
 DEV9configure()
 {
-	int32_t ret = LoadAssembly();
-	mono_thread_attach(mono_get_root_domain());
-	if (ret == 0)
+	bool preInit = false;
+	if (pluginDomain == NULL)
 	{
-		MonoException* ex;
-		managedConfig(&ex);
-		if (ex)
+		preInit = true;
+		int32_t ret = LoadAssembly();
+		
+		if (ret != 0)
 			throw;
+	}
+	mono_thread_attach(mono_get_root_domain());
+
+	MonoException* ex;
+	managedConfig(&ex);
+	if (ex)
+		throw;
+
+	if (preInit)
+	{
+		//Cleanup refrences
+		if (pluginImage != NULL)
+		{
+			mono_image_close(pluginImage);
+			pluginImage = NULL;
+		}
+		if (pluginDomain != NULL)
+		{
+			mono_domain_free(pluginDomain, false);
+			pluginDomain = NULL;
+		}
 	}
 }
