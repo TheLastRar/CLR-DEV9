@@ -16,9 +16,9 @@ namespace UPNP_Test_Thing
             UdpClient c = new UdpClient(2000);
 
             IPEndPoint sp = new IPEndPoint(new IPAddress(new byte[] { 239, 255, 255, 250 }),1900);
-
+            Console.WriteLine("Start");
             //c.JoinMulticastGroup(new IPAddress(new byte[] { 239, 255, 255, 250 }));
-            //byte[] payload = targetEncoding.GetBytes("M-SEARCH * HTTP/1.1\r\nHOST: 239.255.255.250:1900\r\nMAN: \"ssdp:discover\"\r\nMX: 2\r\nST: urn:schemas-upnp-org:service:InternetGatewayDevice:1\r\n\r\n");
+            //byte[] payload = targetEncoding.GetBytes("M-SEARCH * HTTP/1.1\r\nHOST: 239.255.255.250:1900\r\nMAN: \"ssdp:discover\"\r\nMX: 2\r\nST: urn:schemas-upnp-org:device:InternetGatewayDevice:1\r\n\r\n");
             byte[] payload = targetEncoding.GetBytes("M-SEARCH * HTTP/1.1\r\nHOST:239.255.255.250:1900\r\nMAN:\"ssdp:discover\"\r\nST:ssdp:all\r\nMX:3\r\n\r\n");
             c.Send(payload, payload.Length, sp);
 
