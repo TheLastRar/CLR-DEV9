@@ -10,7 +10,7 @@ using System.Diagnostics;
 namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 {
     //This has to be paried with a UDP session of the correct port
-    //Which means we can only do it if the PS2 sends to toe group before
+    //Which means we can only do it if the PS2 sends to the group before
     //expecting data
     class IGMPSession : Session
     {

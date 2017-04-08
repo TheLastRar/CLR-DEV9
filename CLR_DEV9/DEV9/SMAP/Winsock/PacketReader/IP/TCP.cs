@@ -63,8 +63,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             get { return ((flags & (1 << 7)) != 0); }
             set
             {
-                if (value) { flags |= (1 << 4); }
-                else { flags &= unchecked((byte)(~(1 << 4))); }
+                if (value) { flags |= (1 << 7); }
+                else { flags &= unchecked((byte)(~(1 << 7))); }
             }
         }
         public bool ECE
@@ -72,8 +72,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             get { return ((flags & (1 << 6)) != 0); }
             set
             {
-                if (value) { flags |= (1 << 4); }
-                else { flags &= unchecked((byte)(~(1 << 4))); }
+                if (value) { flags |= (1 << 6); }
+                else { flags &= unchecked((byte)(~(1 << 6))); }
             }
         }
         public bool URG
@@ -81,8 +81,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             get { return ((flags & (1 << 5)) != 0); }
             set
             {
-                if (value) { flags |= (1 << 4); }
-                else { flags &= unchecked((byte)(~(1 << 4))); }
+                if (value) { flags |= (1 << 5); }
+                else { flags &= unchecked((byte)(~(1 << 5))); }
             }
         }
         public bool ACK
@@ -212,7 +212,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
                             break;
                         default:
                             Log_Error("Got TCP Unknown Option " + opKind + "with len" + opLen);
-                            break;
+                            throw new Exception("Got TCP Unknown Option " + opKind + "with len" + opLen);
+                            //break;
                     }
                     offset += opLen;
                     if (offset == initialOffset + headerLength)
