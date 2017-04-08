@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
@@ -6,8 +7,113 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
     sealed class IPPacket : EthernetPayload //IPv4 Only
     {
         const byte _verHi = 4 << 4; //Assume it is always 4
-        int hLen; //convert this back to num of 32bit words
-        byte typeOfService; //TODO, Implement this
+        int hLen;
+        byte typeOfService;
+        #region 'DSCP_TOS'
+        public byte Class //Equal to Precedence for TOS
+        {
+            //DSCP vs TOS
+            //Default (xxx000)
+            //0 = Routine
+            //Assured Forwarding (xxx000, xxx010, xxx100, xxx110)
+            //1 = Priority
+            //2 = Immediate
+            //3 = Flash
+            //4 = Flash Override
+            //Expedited Forwarding (xxx110, xxx100)
+            //5 = Critical
+            //Not Defined (xxx000)
+            //6 = Internetwork Control
+            //7 = Network Control
+            get { return (byte)((typeOfService >> 5) & 0x7); }
+            set { typeOfService = (byte)((typeOfService & ~(0x7 << 5)) | ((value & 0x7) << 5)); }
+        }
+        public byte DropProbability
+        {
+            //Low = 0, Mid = 2, High = 3
+            //Except for Expedited, where Low = 3
+            //3rd bit set to zero
+            get { return (byte)((typeOfService >> 3) & 0x3); }
+            set { typeOfService = (byte)((typeOfService & ~(0x3 << 3)) | ((value & 0x3) << 3)); }
+        }
+        bool ECT
+        {
+            get { return ((typeOfService & (1 << 1)) != 0); }
+            set
+            {
+                if (value) { typeOfService |= (1 << 1); }
+                else { typeOfService &= unchecked((byte)(~(1 << 1))); }
+            }
+        }
+        bool CE
+        {
+            get { return ((typeOfService & (1)) != 0); }
+            set
+            {
+                if (value) { typeOfService |= (1); }
+                else { typeOfService &= unchecked((byte)(~(1))); }
+            }
+        }
+        public bool IsECNCapable
+        {
+            get { return ECT | CE; }
+            set
+            {
+                if (value)
+                {
+                    ECT = true;
+                }
+                else
+                {
+                    ECT = false;
+                    CE = false;
+                }
+            }
+        }
+        public bool CongestionEvent //Equivalent to a droped packet
+        {
+            get { return ECT & CE; }
+            set { CE = value; }
+        }
+        //Legacy
+        public bool TOSDelay //1 = low
+        {
+            get { return ((typeOfService & (1 << 4)) != 0); }
+            set
+            {
+                if (value) { typeOfService |= (1 << 4); }
+                else { typeOfService &= unchecked((byte)(~(1 << 4))); }
+            }
+        }
+        public bool TOSThroughout //1 = high
+        {
+            get { return ((typeOfService & (1 << 3)) != 0); }
+            set
+            {
+                if (value) { typeOfService |= (1 << 3); }
+                else { typeOfService &= unchecked((byte)(~(1 << 3))); }
+            }
+        }
+        public bool TOSReliability //1 = High (Ignored on DSCP)
+        {
+            get { return ((typeOfService & (1 << 2)) != 0); }
+            set
+            {
+                if (value) { typeOfService |= (1 << 2); }
+                else { typeOfService &= unchecked((byte)(~(1 << 2))); }
+            }
+        }
+        public bool TOSCost //1 = low (Now ECT)
+        {
+            get { return ((typeOfService & (1 << 1)) != 0); }
+            set
+            {
+                if (value) { typeOfService |= (1 << 1); }
+                else { typeOfService &= unchecked((byte)(~(1 << 1))); }
+            }
+        }
+        //TOSMustBeZero (Now CE)
+        #endregion
         UInt16 _Length;
         public override UInt16 Length
         {
@@ -20,7 +126,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
                 _Length = value;
             }
         }
-        private UInt16 id;
+        private UInt16 id; //used during reassembly fragmented packets
         #region "Fragment"
         private UInt16 FragmentFlags;
         public UInt16 FragmentOffset
@@ -55,6 +161,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
         private UInt16 checksum;
         public byte[] SourceIP = new byte[4];
         public byte[] DestinationIP = new byte[4];
+        public List<IPOptions> Options = new List<IPOptions>();
 
         IPPayload _pl;
         public IPPayload Payload
@@ -114,6 +221,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
 
         private void ReadBuffer(byte[] buffer, int offset, int bufferSize)
         {
+            int initialOffset = offset;
             int pktOffset = offset;
 
             //Bits 0-31
@@ -121,6 +229,19 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             NetLib.ReadByte08(buffer, ref pktOffset, out v_hl);
             hLen = ((v_hl & 0xF) << 2);
             NetLib.ReadByte08(buffer, ref pktOffset, out typeOfService); //TODO, Implement this
+
+            //Not sure PS2 supports this
+
+            //Log_Error("Class :" + Class.ToString());
+            ////(DSCP support)
+            //Log_Error("DropValue :" + DropProbability.ToString());
+            //Log_Error("Supports ECN :" + IsECNCapable.ToString());
+            //Log_Error("Congestion :" + CongestionEvent.ToString());
+            ////TOS Support
+            //Log_Error("LowDelay :" + TOSDelay.ToString());
+            //Log_Error("HighThroughput :" + TOSThroughout.ToString());
+            //Log_Error("LowCost :" + TOSCost.ToString());
+
             NetLib.ReadUInt16(buffer, ref pktOffset, out _Length);
             if (_Length > bufferSize - offset)
             {
@@ -136,14 +257,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             if (MoreFragments)
             {
                 Log_Error("FragmentedPacket");
+                throw new NotImplementedException("Fragmented Packets are not supported");
             }
 
             //Bits 64-95
             NetLib.ReadByte08(buffer, ref pktOffset, out ttl);
             NetLib.ReadByte08(buffer, ref pktOffset, out Protocol);
             NetLib.ReadUInt16(buffer, ref pktOffset, out checksum);
-            //bool ccsum = verifyCheckSum(Ef.RawPacket.buffer, pktoffset);
-            //Error.WriteLine("IP Checksum Good? " + ccsum);//Should ALWAYS be true
 
             //Bits 96-127
             NetLib.ReadByteArray(buffer, ref pktOffset, 4, out SourceIP);
@@ -155,9 +275,35 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             if (hLen > 20) //IP options (if any)
             {
                 Log_Error("hlen=" + hLen + " > 20");
-                Log_Error("IP options are not supported");
-                throw new NotImplementedException("IP options are not supported");
+
+                bool opReadFin = false;
+                do
+                {
+                    byte opKind = buffer[pktOffset];
+                    byte opLen = buffer[pktOffset + 1];
+                    switch (opKind)
+                    {
+                        case 0:
+                            opReadFin = true;
+                            break;
+                        case 1:
+                            Options.Add(new IPopNOP());
+                            pktOffset += 1;
+                            continue;
+                        default:
+                            Log_Error("Got IP Unknown Option " + opKind + "with len" + opLen);
+                            throw new Exception("Got IP Unknown Option " + opKind + "with len" + opLen);
+                            //break;
+                    }
+                    pktOffset += opLen;
+                    if (pktOffset == initialOffset + hLen)
+                    {
+                        opReadFin = true;
+                    }
+                } while (opReadFin == false);
             }
+            pktOffset = initialOffset + hLen;
+
             switch (Protocol) //(Prase Payload)
             {
                 case (byte)IPType.ICMP:
