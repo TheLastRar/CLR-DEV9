@@ -24,11 +24,6 @@
         }
     }
 
-    //class IPopEOOL
-    //{
-
-    //}
-
     class IPopNOP : IPOptions
     {
         public IPopNOP()

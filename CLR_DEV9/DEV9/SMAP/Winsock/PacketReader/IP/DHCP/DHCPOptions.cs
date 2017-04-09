@@ -1,6 +1,5 @@
 ﻿using CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP;
 using System;
-using System.Diagnostics;
 using System.Text;
 
 namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP

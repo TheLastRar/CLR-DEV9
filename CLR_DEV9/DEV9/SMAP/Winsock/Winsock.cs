@@ -14,57 +14,6 @@ using System.Net.Sockets;
 
 namespace CLRDEV9.DEV9.SMAP.Winsock
 {
-    struct ConnectionKey
-    {
-        public byte IP0;
-        public byte IP1;
-        public byte IP2;
-        public byte IP3;
-        public byte Protocol;
-        public ushort PS2Port;
-        public ushort SRVPort;
-
-        public override bool Equals(object obj)
-        {
-            return obj is ConnectionKey && this == (ConnectionKey)obj;
-        }
-        public override int GetHashCode()
-        {
-            unchecked // Overflow is fine, just wrap
-            {
-                int hash = 17;
-                hash = hash * 23 + IP0.GetHashCode();
-                hash = hash * 23 + IP1.GetHashCode();
-                hash = hash * 23 + IP2.GetHashCode();
-                hash = hash * 23 + IP3.GetHashCode();
-                hash = hash * 23 + Protocol.GetHashCode();
-                hash = hash * 23 + PS2Port.GetHashCode();
-                hash = hash * 23 + SRVPort.GetHashCode();
-                return hash;
-            }
-        }
-        public static bool operator ==(ConnectionKey x, ConnectionKey y)
-        {
-            return x.IP0 == y.IP0 &&
-                x.IP1 == y.IP1 &&
-                x.IP2 == y.IP2 &&
-                x.IP3 == y.IP3 &&
-                x.Protocol == y.Protocol &&
-                x.PS2Port == y.PS2Port &&
-                x.SRVPort == y.SRVPort;
-        }
-        public static bool operator !=(ConnectionKey x, ConnectionKey y)
-        {
-            return !(x == y);
-        }
-
-        public override string ToString()
-        {
-            return (IP0 + "." + IP1 + "." + IP2 + "." + IP3 +
-                    "-" + Protocol + "-" + PS2Port + ":" + SRVPort);
-        }
-    }
-
     sealed class Winsock : NetAdapter
     {
         ConcurrentQueue<NetPacket> vRecBuffer = new ConcurrentQueue<NetPacket>(); //Non IP packets
@@ -74,6 +23,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
         object sentry = new object();
 
         ConcurrentDictionary<ConnectionKey, Session> connections = new ConcurrentDictionary<ConnectionKey, Session>();
+
+        List<PortForwardRule> forwardedPorts = new List<PortForwardRule>();
+        Dictionary<ushort, UDPFixedPort> fixedUDPPorts = new Dictionary<ushort, UDPFixedPort>();
 
         static public List<string[]> GetAdapters()
         {
@@ -111,6 +63,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
         public Winsock(DEV9_State parDev9, string parDevice)
             : base(parDev9)
         {
+            //Testing crash tag team racing
+            forwardedPorts.Add(new PortForwardRule(IPType.UDP, 8324));
+            forwardedPorts.Add(new PortForwardRule(IPType.UDP, 3658));
+
+
+
+
             //Add allways on connections
             byte[] dns1 = null;
             byte[] dns2 = null;
@@ -148,7 +107,58 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             dhcpServer.SourceIP = new byte[] { 255, 255, 255, 255 };
             dhcpServer.DestIP = DefaultDHCPConfig.DHCP_IP;
 
-            if (!connections.TryAdd(dhcpKey, dhcpServer)) { throw new Exception("Connection Add Failed"); }
+            if (!connections.TryAdd(dhcpServer.Key, dhcpServer)) { throw new Exception("Connection Add Failed"); }
+
+            foreach (PortForwardRule port in forwardedPorts)
+            {
+                ConnectionKey Key = new ConnectionKey();
+                Key.Protocol = (byte)port.Protocol;
+                Key.PS2Port = port.Port;
+                Key.SRVPort = port.Port;
+
+                Session s = null;
+
+                if (port.Protocol == IPType.UDP)
+                {
+                    //avoid duplicates
+                    if (fixedUDPPorts.ContainsKey(port.Port))
+                    {
+                        continue;
+                    }
+
+                    ConnectionKey fKey = new ConnectionKey();
+                    fKey.Protocol = (byte)IPType.UDP;
+                    fKey.PS2Port = port.Port;
+                    fKey.SRVPort = 0;
+
+                    UDPFixedPort fPort = new UDPFixedPort(fKey, adapterIP, port.Port);
+                    fPort.ConnectionClosedEvent += HandleConnectionClosed;
+
+                    fPort.DestIP = new byte[] { 0, 0, 0, 0 };
+                    fPort.SourceIP = dhcpServer.PS2IP;
+
+                    if (!connections.TryAdd(fPort.Key, fPort))
+                    {
+                        fPort.Dispose();
+                        throw new Exception("Connection Add Failed");
+                    }
+
+                    fixedUDPPorts.Add(port.Port, fPort);
+
+                    s = fPort.NewListenSession(Key);
+                }
+
+                s.ConnectionClosedEvent += HandleConnectionClosed;
+
+                s.SourceIP = dhcpServer.PS2IP;
+                s.DestIP = dhcpServer.Broadcast;
+
+                if (!connections.TryAdd(s.Key, s))
+                {
+                    s.Dispose();
+                    throw new Exception("Connection Add Failed");
+                }
+            }
         }
 
         public override bool Blocks()
@@ -167,35 +177,30 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             Log_Verb("Reciving NetPacket");
             bool result = false;
 
-
             if (!vRecBuffer.TryDequeue(out pkt))
             {
-                //List<ConnectionKey> DeadConnections = new List<ConnectionKey>();
-                //lock (sentry)
-                //{
-                    pkt = null;
-                    ConnectionKey[] keys = connections.Keys.ToArray();
-                    foreach (ConnectionKey key in keys)
+                pkt = null;
+                ConnectionKey[] keys = connections.Keys.ToArray();
+                foreach (ConnectionKey key in keys)
+                {
+                    IPPayload pl;
+                    Session session;
+                    if (!connections.TryGetValue(key, out session)) { continue; }
+                    pl = session.Recv();
+                    if (!(pl == null))
                     {
-                        IPPayload pl;
-                        Session session;
-                        if (!connections.TryGetValue(key,out session)) { continue; }
-                        pl = session.Recv();
-                        if (!(pl == null))
-                        {
-                            IPPacket ipPkt = new IPPacket(pl);
-                            ipPkt.DestinationIP = session.SourceIP;
-                            ipPkt.SourceIP = session.DestIP;
-                            EthernetFrame ef = new EthernetFrame(ipPkt);
-                            ef.SourceMAC = virturalDHCPMAC;
-                            ef.DestinationMAC = ps2MAC;
-                            ef.Protocol = (UInt16)EtherFrameType.IPv4;
-                            pkt = ef.CreatePacket();
-                            result = true;
-                            break;
-                        }
+                        IPPacket ipPkt = new IPPacket(pl);
+                        ipPkt.DestinationIP = session.SourceIP;
+                        ipPkt.SourceIP = session.DestIP;
+                        EthernetFrame ef = new EthernetFrame(ipPkt);
+                        ef.SourceMAC = virturalDHCPMAC;
+                        ef.DestinationMAC = ps2MAC;
+                        ef.Protocol = (UInt16)EtherFrameType.IPv4;
+                        pkt = ef.CreatePacket();
+                        result = true;
+                        break;
                     }
-                //}
+                }
             }
             else
             {
@@ -224,14 +229,14 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
 
                     //lock (sentry)
                     //{
-                        Log_Verb("Reset " + connections.Count + " Connections");
-                        ConnectionKey[] keys = connections.Keys.ToArray();
-                        foreach (ConnectionKey key in keys)
-                        {
-                            Session session;
-                            if (!connections.TryGetValue(key, out session)) { continue; }
-                            session.Reset();
-                        }
+                    Log_Verb("Reset " + connections.Count + " Connections");
+                    ConnectionKey[] keys = connections.Keys.ToArray();
+                    foreach (ConnectionKey key in keys)
+                    {
+                        Session session;
+                        if (!connections.TryGetValue(key, out session)) { continue; }
+                        session.Reset();
+                    }
                     //}
                     break;
                 case (int)EtherFrameType.IPv4:
@@ -239,55 +244,39 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     break;
                 #region "ARP"
                 case (int)EtherFrameType.ARP:
-                    Log_Verb("ARP (Ignoring)");
+                    Log_Verb("ARP");
                     ARPPacket arpPkt = ((ARPPacket)ef.Payload);
 
-                    ////Detect ARP Packet Types
-                    //if (Utils.memcmp(arppkt.SenderProtocolAddress, 0, new byte[] { 0, 0, 0, 0 }, 0, 4))
-                    //{
-                    //    WriteLine("ARP Probe"); //(Who has my IP?)
-                    //    break;
-                    //}
-                    //if (Utils.memcmp(arppkt.SenderProtocolAddress, 0, arppkt.TargetProtocolAddress, 0, 4))
-                    //{
-                    //    if (Utils.memcmp(arppkt.TargetHardwareAddress, 0, new byte[] { 0, 0, 0, 0, 0, 0 }, 0, 6) & arppkt.OP == 1)
-                    //    {
-                    //        WriteLine("ARP Announcement Type 1");
-                    //        break;
-                    //    }
-                    //    if (Utils.memcmp(arppkt.SenderHardwareAddress, 0, arppkt.TargetHardwareAddress, 0, 6) & arppkt.OP == 2)
-                    //    {
-                    //        WriteLine("ARP Announcement Type 2");
-                    //        break;
-                    //    }
-                    //}
-
-                    if (arpPkt.OP == 1) //ARP request
+                    if (arpPkt.Protocol == (UInt16)EtherFrameType.IPv4)
                     {
-                        byte[] gateway;
-                        lock (sentry)
+                        if (arpPkt.OP == 1) //ARP request
                         {
-                            gateway = dhcpServer.Gateway;
-                        }
-                        if (Utils.memcmp(arpPkt.TargetProtocolAddress, 0, gateway, 0, 4))
-                        //it's trying to resolve the virtual gateway's mac addr
-                        {
-                            Log_Verb("ARP Attempt to Resolve Gateway Mac");
-                            arpPkt.TargetHardwareAddress = arpPkt.SenderHardwareAddress;
-                            arpPkt.SenderHardwareAddress = virturalDHCPMAC;
-                            arpPkt.TargetProtocolAddress = arpPkt.SenderProtocolAddress;
-                            arpPkt.SenderProtocolAddress = gateway;
-                            arpPkt.OP = 2;
+                            byte[] gateway;
+                            lock (sentry)
+                            {
+                                gateway = dhcpServer.Gateway;
+                            }
+                            //if (Utils.memcmp(arpPkt.TargetProtocolAddress, 0, gateway, 0, 4))
+                            if (!Utils.memcmp(arpPkt.TargetProtocolAddress, 0, dhcpServer.PS2IP, 0, 4))
+                            //it's trying to resolve the virtual gateway's mac addr
+                            {
+                                ARPPacket arpRet = new ARPPacket();
+                                arpRet.TargetHardwareAddress = arpPkt.SenderHardwareAddress;
+                                arpRet.SenderHardwareAddress = virturalDHCPMAC;
+                                arpRet.TargetProtocolAddress = arpPkt.SenderProtocolAddress;
+                                arpRet.SenderProtocolAddress = arpPkt.TargetProtocolAddress;
+                                arpRet.OP = 2;
+                                arpRet.Protocol = arpPkt.Protocol;
 
-                            EthernetFrame retARP = new EthernetFrame(arpPkt);
-                            retARP.DestinationMAC = ps2MAC;
-                            retARP.SourceMAC = virturalDHCPMAC;
-                            retARP.Protocol = (UInt16)EtherFrameType.ARP;
-                            vRecBuffer.Enqueue(retARP.CreatePacket());
-                            break;
+                                EthernetFrame retARP = new EthernetFrame(arpRet);
+                                retARP.DestinationMAC = ps2MAC;
+                                retARP.SourceMAC = virturalDHCPMAC;
+                                retARP.Protocol = (UInt16)EtherFrameType.ARP;
+                                vRecBuffer.Enqueue(retARP.CreatePacket());
+                                break;
+                            }
                         }
                     }
-                    //Error.WriteLine("Unhandled ARP packet");
 
                     result = true;
                     break;
@@ -344,21 +333,21 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             Log_Verb("ICMP");
             //lock (sentry)
             //{
-                int res = SendFromConnection(Key, ipPkt);
-                if (res == 1)
-                    return true;
-                else if (res == 0)
-                    return false;
-                else
-                {
-                    Log_Verb("Creating New Connection with key " + Key);
-                    ICMPSession s = new ICMPSession(Key, connections);
-                    s.ConnectionClosedEvent += HandleConnectionClosed;
-                    s.DestIP = ipPkt.DestinationIP;
-                    s.SourceIP = dhcpServer.PS2IP;
-                    if (!connections.TryAdd(Key, s)) { throw new Exception("Connection Add Failed"); }
-                    return s.Send(ipPkt.Payload);
-                }
+            int res = SendFromConnection(Key, ipPkt);
+            if (res == 1)
+                return true;
+            else if (res == 0)
+                return false;
+            else
+            {
+                Log_Verb("Creating New Connection with key " + Key);
+                ICMPSession s = new ICMPSession(Key, connections);
+                s.ConnectionClosedEvent += HandleConnectionClosed;
+                s.DestIP = ipPkt.DestinationIP;
+                s.SourceIP = dhcpServer.PS2IP;
+                if (!connections.TryAdd(Key, s)) { throw new Exception("Connection Add Failed"); }
+                return s.Send(ipPkt.Payload);
+            }
             //}
         }
         public bool SendIGMP(ConnectionKey Key, IPPacket ipPkt)
@@ -366,21 +355,21 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             Log_Verb("IGMP");
             //lock (sentry)
             //{
-                int res = SendFromConnection(Key, ipPkt);
-                if (res == 1)
-                    return true;
-                else if (res == 0)
-                    return false;
-                else
-                {
-                    Log_Verb("Creating New Connection with key " + Key);
-                    IGMPSession s = new IGMPSession(Key, adapterIP);
-                    s.ConnectionClosedEvent += HandleConnectionClosed;
-                    s.DestIP = ipPkt.DestinationIP;
-                    s.SourceIP = dhcpServer.PS2IP;
-                    if (!connections.TryAdd(Key, s)) { throw new Exception("Connection Add Failed"); }
-                    return s.Send(ipPkt.Payload);
-                }
+            int res = SendFromConnection(Key, ipPkt);
+            if (res == 1)
+                return true;
+            else if (res == 0)
+                return false;
+            else
+            {
+                Log_Verb("Creating New Connection with key " + Key);
+                IGMPSession s = new IGMPSession(Key, adapterIP);
+                s.ConnectionClosedEvent += HandleConnectionClosed;
+                s.DestIP = ipPkt.DestinationIP;
+                s.SourceIP = dhcpServer.PS2IP;
+                if (!connections.TryAdd(Key, s)) { throw new Exception("Connection Add Failed"); }
+                return s.Send(ipPkt.Payload);
+            }
             //}
         }
         public bool SendTCP(ConnectionKey Key, IPPacket ipPkt)
@@ -390,25 +379,22 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
 
             Key.PS2Port = tcp.SourcePort; Key.SRVPort = tcp.DestinationPort;
 
-            //lock (sentry)
-            //{
-                int res = SendFromConnection(Key, ipPkt);
-                if (res == 1)
-                    return true;
-                else if (res == 0)
-                    return false;
-                else
-                {
-                    Log_Verb("Creating New Connection with key " + Key);
-                    Log_Info("Creating New TCP Connection with Dest Port " + tcp.DestinationPort);
-                    TCPSession s = new TCPSession(Key, adapterIP);
-                    s.ConnectionClosedEvent += HandleConnectionClosed;
-                    s.DestIP = ipPkt.DestinationIP;
-                    s.SourceIP = dhcpServer.PS2IP;
-                    if (!connections.TryAdd(Key, s)) { throw new Exception("Connection Add Failed"); }
-                    return s.Send(ipPkt.Payload);
-                }
-            //}
+            int res = SendFromConnection(Key, ipPkt);
+            if (res == 1)
+                return true;
+            else if (res == 0)
+                return false;
+            else
+            {
+                Log_Verb("Creating New Connection with key " + Key);
+                Log_Info("Creating New TCP Connection with Dest Port " + tcp.DestinationPort);
+                TCPSession s = new TCPSession(Key, adapterIP);
+                s.ConnectionClosedEvent += HandleConnectionClosed;
+                s.DestIP = ipPkt.DestinationIP;
+                s.SourceIP = dhcpServer.PS2IP;
+                if (!connections.TryAdd(Key, s)) { throw new Exception("Connection Add Failed"); }
+                return s.Send(ipPkt.Payload);
+            }
         }
         public bool SendUDP(ConnectionKey Key, IPPacket ipPkt)
         {
@@ -417,39 +403,78 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
 
             Key.PS2Port = udp.SourcePort; Key.SRVPort = udp.DestinationPort;
 
-            //lock (sentry)
-            //{
-                if (udp.DestinationPort == 67)
-                { //DHCP
-                    return dhcpServer.Send(ipPkt.Payload);
-                }
+            if (udp.DestinationPort == 67)
+            { //DHCP
+                return dhcpServer.Send(ipPkt.Payload);
+            }
 
-                int res = SendFromConnection(Key, ipPkt);
-                if (res == 1)
-                    return true;
-                else if (res == 0)
-                    return false;
+            int res = SendFromConnection(Key, ipPkt);
+            if (res == 1)
+                return true;
+            else if (res == 0)
+                return false;
+            else
+            {
+                Log_Verb("Creating New Connection with key " + Key);
+                Log_Info("Creating New UDP Connection with Dest Port " + udp.DestinationPort);
+                UDPSession s;
+                if (udp.SourcePort == udp.DestinationPort || //Used for LAN games that assume the destination port
+                    Utils.memcmp(ipPkt.DestinationIP, 0, dhcpServer.Broadcast, 0, 4)) //|| //Broadcast packets
+                    //fixedUDPPorts.ContainsKey(udp.SourcePort)) //forwarded port
+                {
+                    //Limit of one udpclient per local port
+                    //need to reuse the udpclient
+                    UDPFixedPort fPort;
+                    if (fixedUDPPorts.ContainsKey(udp.SourcePort))
+                    {
+                        Log_Verb("Using Existing UDPFixedPort");
+                        fPort = fixedUDPPorts[udp.SourcePort];
+                    }
+                    else
+                    {  
+                        ConnectionKey fKey = new ConnectionKey();
+                        fKey.Protocol = (byte)IPType.UDP;
+                        fKey.PS2Port = udp.SourcePort;
+                        fKey.SRVPort = 0;
+
+                        Log_Verb("Creating New UDPFixedPort with key " + fKey);
+                        Log_Info("Creating New UDPFixedPort with Port " + udp.SourcePort);
+
+                        fPort = new UDPFixedPort(fKey, adapterIP, udp.SourcePort);
+                        fPort.ConnectionClosedEvent += HandleConnectionClosed;
+
+                        fPort.DestIP = new byte[] { 0, 0, 0, 0 };
+                        fPort.SourceIP = dhcpServer.PS2IP;
+
+                        if (!connections.TryAdd(fKey, fPort))
+                        {
+                            fPort.Dispose();
+                            throw new Exception("Connection Add Failed");
+                        }
+
+                        fixedUDPPorts.Add(udp.SourcePort, fPort);
+                    }
+                    s = fPort.NewClientSession(Key, Utils.memcmp(ipPkt.DestinationIP, 0, dhcpServer.Broadcast, 0, 4));
+                }
                 else
                 {
-                    Log_Verb("Creating New Connection with key " + Key);
-                    Log_Info("Creating New UDP Connection with Dest Port " + udp.DestinationPort);
-                    UDPSession s = new UDPSession(Key, adapterIP, dhcpServer.Broadcast);
-                    s.ConnectionClosedEvent += HandleConnectionClosed;
-                    s.DestIP = ipPkt.DestinationIP;
-                    s.SourceIP = dhcpServer.PS2IP;
-                    if (!connections.TryAdd(Key, s)) { throw new Exception("Connection Add Failed"); }
-                    return s.Send(ipPkt.Payload);
+                    s = new UDPSession(Key, adapterIP, dhcpServer.Broadcast);
                 }
-            //}
+                s.ConnectionClosedEvent += HandleConnectionClosed;
+                s.DestIP = ipPkt.DestinationIP;
+                s.SourceIP = dhcpServer.PS2IP;
+                if (!connections.TryAdd(Key, s)) { throw new Exception("Connection Add Failed"); }
+                return s.Send(ipPkt.Payload);
+            }
         }
-        
+
         public int SendFromConnection(ConnectionKey Key, IPPacket ipPkt)
         {
             Session s;
             connections.TryGetValue(Key, out s);
             if (s != null)
             {
-                return s.Send(ipPkt.Payload) ? 1 : 0;   
+                return s.Send(ipPkt.Payload) ? 1 : 0;
             }
             else
                 return -1;
@@ -489,7 +514,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     NetPacket p;
                     while (vRecBuffer.TryDequeue(out p)) { }
                     connections.Clear();
-                    //Connections.Add("DHCP", DCHP_server);
+                    fixedUDPPorts.Clear();
+
                     dhcpServer.Dispose();
                 }
             }

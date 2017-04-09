@@ -4,6 +4,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -52,8 +53,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             {
                 parAdapter = AutoAdapter();
             }
+            //Set PS2 IP to match PC IP to aid LAN
+            HandleIP(parAdapter);
+            //Set DNS
             HandleDNS(parAdapter, parDNS1, parDNS2);
             //Broadcast Address
+            //HandleBroadcast(Gateway, NetMask);
             HandleBroadcast(PS2IP, NetMask);
         }
 
@@ -139,6 +144,19 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 }
             }
             #endregion
+        }
+
+        //Winsock only
+        private void HandleIP(NetworkInterface parAdapter)
+        {
+            if (parAdapter != null)
+            {
+                PS2IP = (from ip in parAdapter.GetIPProperties().UnicastAddresses
+                             where ip.Address.AddressFamily == AddressFamily.InterNetwork
+                             select ip.Address).SingleOrDefault().GetAddressBytes();
+                Utils.memcpy(ref Gateway, 0, PS2IP, 0, 4);
+                Gateway[3] = 1;
+            }
         }
 
         private void HandleDNS(NetworkInterface parAdapter, byte[] parDNS1, byte[] parDNS2)
