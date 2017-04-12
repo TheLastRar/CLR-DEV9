@@ -15,7 +15,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         UInt16 srcPort = 0;
         UInt16 destPort = 0;
         //Broadcast
-        //byte[] broadcastAddr;
         byte[] multicastAddr;
         bool isBroadcast = false;
         bool isMulticast = false;
@@ -24,10 +23,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         Stopwatch deathClock = new Stopwatch();
         const double MAX_IDLE = 72;
+
         public UDPSession(ConnectionKey parKey, IPAddress parAdapterIP, byte[] parBroadcastIP)
             : base(parKey, parAdapterIP)
         {
-            //broadcastAddr = parBroadcastIP;
             lock (deathClock)
             {
                 deathClock.Start();
@@ -56,18 +55,16 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             {
                 return null;
             }
+            if (isFixedPort)
+            {
+                return null;
+            }
 
             if (client.Available != 0)
             {
                 IPEndPoint remoteIPEndPoint;
-                if (isBroadcast | isMulticast)
-                {
-                    remoteIPEndPoint = new IPEndPoint(IPAddress.Any, 0);
-                }
-                else
-                {
-                    remoteIPEndPoint = new IPEndPoint(new IPAddress(DestIP), destPort);
-                }
+                //this isn't a filter
+                remoteIPEndPoint = new IPEndPoint(IPAddress.Any, 0);
                 byte[] recived = null;
                 try
                 {
@@ -86,7 +83,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 iRet.DestinationPort = srcPort;
                 iRet.SourcePort = destPort;
 
-                if (isBroadcast | isMulticast)
+                if (isMulticast)
                 {
                     Log_Error(remoteIPEndPoint.ToString());
                     DestIP = remoteIPEndPoint.Address.GetAddressBytes(); //assumes ipv4
@@ -109,6 +106,22 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             }
             return null;
         }
+
+        internal bool WillRecive(byte[] parDestIP)
+        {
+            if (isBroadcast ||
+                Utils.memcmp(parDestIP, 0, DestIP, 0, 4))
+            {
+                lock (deathClock)
+                {
+                    deathClock.Restart();
+                }
+
+                return true;
+            }
+            return false;
+        }
+
         public override bool Send(IPPayload payload)
         {
             lock (deathClock)
@@ -137,32 +150,18 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     isMulticast = true;
                 }
 
-                else if (isMulticast)
+                if (isMulticast)
                 {
                     Log_Info("Is Multicast");
                     multicastAddr = DestIP;
                     client = new UdpClient(new IPEndPoint(adapterIP, 0));
-                    //IPAddress address = new IPAddress(multicastAddr);
                     //client.JoinMulticastGroup(address);
                 }
                 else
                 {
                     IPAddress address = new IPAddress(DestIP);
-                    if (srcPort == destPort)
-                    {
-                        //client = new UdpClient(new IPEndPoint(adapterIP, srcPort)); //Needed for Crash TTR (and probable other games) LAN
-                        throw new Exception("UDP Session Must Be Created with UDPFixedPort");
-                    }
-                    else
-                    {
-                        client = new UdpClient(new IPEndPoint(adapterIP, 0));
-                    }
-
-                    if (srcPort != 0)
-                    {
-                        //Error.WriteLine("UDP expects Data");
-                        //open = true;
-                    }
+                    client = new UdpClient(new IPEndPoint(adapterIP, 0));
+                    client.Connect(address, destPort);
                 }
                 open = true;
             }
@@ -171,13 +170,19 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             {
                 client.Send(udp.GetPayload(), udp.GetPayload().Length, new IPEndPoint(IPAddress.Broadcast, destPort));
             }
-            else if (isMulticast)
-            {
-                client.Send(udp.GetPayload(), udp.GetPayload().Length, new IPEndPoint(new IPAddress(multicastAddr), destPort));
-            }
-            else 
+            else if (isMulticast | isFixedPort)
             {
                 client.Send(udp.GetPayload(), udp.GetPayload().Length, new IPEndPoint(new IPAddress(DestIP), destPort));
+            }
+            else
+            {
+                client.Send(udp.GetPayload(), udp.GetPayload().Length);
+            }
+
+            if (srcPort == 0)
+            {
+                open = false;
+                RaiseEventConnectionClosed();
             }
 
             return true;

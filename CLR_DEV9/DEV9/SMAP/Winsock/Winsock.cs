@@ -63,7 +63,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
         public Winsock(DEV9_State parDev9, string parDevice)
             : base(parDev9)
         {
-            //Testing crash tag team racing
+            //Testing crash tag team racing and JakX
             forwardedPorts.Add(new PortForwardRule(IPType.UDP, 8324));
             forwardedPorts.Add(new PortForwardRule(IPType.UDP, 3658));
 
