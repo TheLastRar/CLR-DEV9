@@ -1,4 +1,5 @@
-﻿using CLRDEV9.DEV9.SMAP.Data;
+﻿using CLRDEV9.Config;
+using CLRDEV9.DEV9.SMAP.Data;
 using System.Diagnostics;
 using LOG = PSE.CLR_PSE_PluginLog;
 
@@ -21,18 +22,18 @@ namespace CLRDEV9.DEV9.SMAP
             //TODO Make this use EthType
             switch (DEV9Header.config.EthType)
             {
-                case Config.EthAPI.Null:
+                case Settings.EthAPI.Null:
                     return null;
-                case Config.EthAPI.Winsock:
+                case Settings.EthAPI.Winsock:
                     na = new Winsock.Winsock(dev9, DEV9Header.config.Eth);
                     break;
-                case Config.EthAPI.Tap:
+                case Settings.EthAPI.Tap:
                     na = new Tap.TAPAdapter(dev9, DEV9Header.config.Eth);
                     break;
-                case Config.EthAPI.WinPcapBridged:
+                case Settings.EthAPI.WinPcapBridged:
                     na = new WinPcap.WinPcapAdapter(dev9, DEV9Header.config.Eth, false);
                     break;
-                case Config.EthAPI.WinPcapSwitched:
+                case Settings.EthAPI.WinPcapSwitched:
                     na = new WinPcap.WinPcapAdapter(dev9, DEV9Header.config.Eth, true);
                     break;
                 default:

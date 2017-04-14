@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace CLRDEV9
+namespace CLRDEV9.Config
 {
     [DataContract]
     class ConfigDirectIP

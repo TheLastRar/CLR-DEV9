@@ -6,8 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 
-
-namespace CLRDEV9
+namespace CLRDEV9.Config
 {
     partial class ConfigFormEth : Form
     {
@@ -23,7 +22,7 @@ namespace CLRDEV9
         }
         //TODO keep track of which api has which index
 
-        Dictionary<Config.EthAPI, int> apiIndex = new Dictionary<Config.EthAPI, int>();
+        Dictionary<Settings.EthAPI, int> apiIndex = new Dictionary<Settings.EthAPI, int>();
 
         private void ConfigFormEth_Load(object sender, EventArgs e)
         {
@@ -35,7 +34,7 @@ namespace CLRDEV9
             //Detect which API's we have
             //Winsock
             winsockAdapters = Winsock.GetAdapters();
-            apiIndex.Add(Config.EthAPI.Winsock, curIndex);
+            apiIndex.Add(Settings.EthAPI.Winsock, curIndex);
             cbAPI.Items.Add("Sockets (Winsock)");
             curIndex++;
             //Windows Only
@@ -46,7 +45,7 @@ namespace CLRDEV9
                 if (tapAdapters != null)
                 {
                     cbAPI.Items.Add("Tap");
-                    apiIndex.Add(Config.EthAPI.Tap, curIndex);
+                    apiIndex.Add(Settings.EthAPI.Tap, curIndex);
                     curIndex++;
                 }
                 //WinPcap
@@ -54,10 +53,10 @@ namespace CLRDEV9
                 if (winPcapAdapters != null)
                 {
                     cbAPI.Items.Add("WinPcap Bridged");
-                    apiIndex.Add(Config.EthAPI.WinPcapBridged, curIndex);
+                    apiIndex.Add(Settings.EthAPI.WinPcapBridged, curIndex);
                     curIndex++;
                     cbAPI.Items.Add("WinPcap Switched (Promiscuous)");
-                    apiIndex.Add(Config.EthAPI.WinPcapSwitched, curIndex);
+                    apiIndex.Add(Settings.EthAPI.WinPcapSwitched, curIndex);
                     curIndex++;
                 }
             }
@@ -68,7 +67,7 @@ namespace CLRDEV9
             }
             else
             {
-                cbAPI.SelectedIndex = (int)Config.EthAPI.Null;
+                cbAPI.SelectedIndex = (int)Settings.EthAPI.Null;
             }
         }
 
@@ -80,7 +79,7 @@ namespace CLRDEV9
             //And select it (TODO)
 
             //Get API selected
-            KeyValuePair<Config.EthAPI, int> ret = apiIndex.FirstOrDefault(x => x.Value == cbAPI.SelectedIndex + 1);
+            KeyValuePair<Settings.EthAPI, int> ret = apiIndex.FirstOrDefault(x => x.Value == cbAPI.SelectedIndex + 1);
             if (ret.Value == 0)
             {
                 MessageBox.Show("Something when wrong");
@@ -91,22 +90,22 @@ namespace CLRDEV9
 
             switch (ret.Key)
             {
-                case Config.EthAPI.Null:
+                case Settings.EthAPI.Null:
                     selectedAPIAdapters = new List<string[]>();
                     break;
-                case Config.EthAPI.Winsock:
+                case Settings.EthAPI.Winsock:
                     selectedAPIAdapters = winsockAdapters;
 
                     break;
-                case Config.EthAPI.Tap:
+                case Settings.EthAPI.Tap:
                     //cbAdapter.Items.Add("Tap");
                     selectedAPIAdapters = tapAdapters;
                     break;
-                case Config.EthAPI.WinPcapBridged:
+                case Settings.EthAPI.WinPcapBridged:
                     //cbAdapter.Items.Add("WinPcapBridged");
                     selectedAPIAdapters = winPcapAdapters;
                     break;
-                case Config.EthAPI.WinPcapSwitched:
+                case Settings.EthAPI.WinPcapSwitched:
                     //cbAdapter.Items.Add("WinPcapSwitched");
                     selectedAPIAdapters = winPcapAdapters;
 
@@ -115,14 +114,14 @@ namespace CLRDEV9
 
             switch (ret.Key)
             {
-                case Config.EthAPI.Null:
-                case Config.EthAPI.Winsock:
+                case Settings.EthAPI.Null:
+                case Settings.EthAPI.Winsock:
                     cbIntercept.Enabled = false;
                     cbIntercept.Checked = true;
                     break;
-                case Config.EthAPI.Tap:
-                case Config.EthAPI.WinPcapBridged:
-                case Config.EthAPI.WinPcapSwitched:
+                case Settings.EthAPI.Tap:
+                case Settings.EthAPI.WinPcapBridged:
+                case Settings.EthAPI.WinPcapSwitched:
                     cbIntercept.Enabled = true;
                     cbIntercept.Checked = DEV9Header.config.DirectConnectionSettings.InterceptDHCP;
                     break;
@@ -284,7 +283,7 @@ namespace CLRDEV9
         private void btnApply_Click(object sender, EventArgs e)
         {
             //Get API selected
-            KeyValuePair<Config.EthAPI, int> ret = apiIndex.FirstOrDefault(x => x.Value == cbAPI.SelectedIndex + 1);
+            KeyValuePair<Settings.EthAPI, int> ret = apiIndex.FirstOrDefault(x => x.Value == cbAPI.SelectedIndex + 1);
             if (ret.Value == 0)
             {
                 MessageBox.Show("Please select an API");
@@ -301,7 +300,7 @@ namespace CLRDEV9
             //Save Advanced settings
             switch (ret.Key)
             {
-                case Config.EthAPI.Winsock:
+                case Settings.EthAPI.Winsock:
                     DEV9Header.config.SocketConnectionSettings.AutoDNS1 = cbAutoDNS1.Checked;
                     if (!cbAutoDNS1.Checked)
                     {
@@ -314,9 +313,9 @@ namespace CLRDEV9
                         DEV9Header.config.SocketConnectionSettings.DNS2 = tbDNS2.Text;
                     }
                     break;
-                case Config.EthAPI.Tap:
-                case Config.EthAPI.WinPcapBridged:
-                case Config.EthAPI.WinPcapSwitched:
+                case Settings.EthAPI.Tap:
+                case Settings.EthAPI.WinPcapBridged:
+                case Settings.EthAPI.WinPcapSwitched:
                     DEV9Header.config.DirectConnectionSettings.InterceptDHCP = cbIntercept.Checked;
                     if (cbIntercept.Checked)
                     {

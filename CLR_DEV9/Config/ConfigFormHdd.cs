@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Windows.Forms;
 
-namespace CLRDEV9
+namespace CLRDEV9.Config
 {
     partial class ConfigFormHdd : Form
     {

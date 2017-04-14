@@ -1,4 +1,5 @@
-﻿using PSE;
+﻿using CLRDEV9.Config;
+using PSE;
 using PSE.CLR_PSE_Callbacks;
 using System;
 using System.Collections.Generic;
@@ -76,7 +77,7 @@ namespace CLRDEV9
             try
             {
                 Log_Info("Open");
-                Config.LoadConf(iniFolderPath, "CLR_DEV9.ini");
+                Settings.LoadConf(iniFolderPath, "CLR_DEV9.ini");
 
                 if (DEV9Header.config.Hdd.Contains("\\") || DEV9Header.config.Hdd.Contains("/"))
                     return dev9.Open(DEV9Header.config.Hdd);
@@ -338,9 +339,9 @@ namespace CLRDEV9
         {
             try
             {
-                Config.LoadConf(iniFolderPath, "CLR_DEV9.ini");
-                Config.DoConfig(iniFolderPath, "CLR_DEV9.ini");
-                Config.SaveConf(iniFolderPath, "CLR_DEV9.ini");
+                Settings.LoadConf(iniFolderPath, "CLR_DEV9.ini");
+                Settings.DoConfig(iniFolderPath, "CLR_DEV9.ini");
+                Settings.SaveConf(iniFolderPath, "CLR_DEV9.ini");
             }
             catch (Exception e)
             {

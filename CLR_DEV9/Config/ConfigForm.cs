@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace CLRDEV9
+namespace CLRDEV9.Config
 {
     partial class ConfigForm : Form
     {
