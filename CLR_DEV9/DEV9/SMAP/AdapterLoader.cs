@@ -22,18 +22,18 @@ namespace CLRDEV9.DEV9.SMAP
             //TODO Make this use EthType
             switch (DEV9Header.config.EthType)
             {
-                case Settings.EthAPI.Null:
+                case ConfigFile.EthAPI.Null:
                     return null;
-                case Settings.EthAPI.Winsock:
+                case ConfigFile.EthAPI.Winsock:
                     na = new Winsock.Winsock(dev9, DEV9Header.config.Eth);
                     break;
-                case Settings.EthAPI.Tap:
+                case ConfigFile.EthAPI.Tap:
                     na = new Tap.TAPAdapter(dev9, DEV9Header.config.Eth);
                     break;
-                case Settings.EthAPI.WinPcapBridged:
+                case ConfigFile.EthAPI.WinPcapBridged:
                     na = new WinPcap.WinPcapAdapter(dev9, DEV9Header.config.Eth, false);
                     break;
-                case Settings.EthAPI.WinPcapSwitched:
+                case ConfigFile.EthAPI.WinPcapSwitched:
                     na = new WinPcap.WinPcapAdapter(dev9, DEV9Header.config.Eth, true);
                     break;
                 default:

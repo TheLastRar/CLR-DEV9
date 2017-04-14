@@ -7,7 +7,7 @@ namespace CLRDEV9
         public const string ETH_DEF = "Auto";//"eth0";
         public const string HDD_DEF = "DEV9hdd.raw";
 
-        public static Config.Settings config;
+        public static Config.ConfigFile config;
 
         public static PSE.CLR_PSE_Callbacks.CLR_CyclesCallback DEV9irq;
 

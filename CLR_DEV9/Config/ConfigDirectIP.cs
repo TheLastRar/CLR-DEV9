@@ -2,7 +2,7 @@
 
 namespace CLRDEV9.Config
 {
-    [DataContract]
+    [DataContract(Namespace = "http://schemas.datacontract.org/2004/07/CLRDEV9")]
     class ConfigDirectIP
     {
         [DataMember]
@@ -25,19 +25,5 @@ namespace CLRDEV9.Config
         public bool AutoDNS2 = true;
         [DataMember]
         public string DNS2 = "0.0.0.0";
-
-        //[OnDeserializing]
-        //void OnDeserializing(StreamingContext context)
-        //{
-        //    Hdd = DEV9Header.HDD_DEF;
-        //    HddSize = 8 * 1024;
-        //    Eth = DEV9Header.ETH_DEF;
-        //    EthType = EthAPI.Winsock;
-        //    EthEnable = true;
-        //    HddEnable = false;
-
-        //    DirectConnectionSettings = new ConfigDirectIP();
-        //    SocketConnectionSettings = new ConfigSocketIP();
-        //}
     }
 }

@@ -116,7 +116,7 @@
     <Compile Include="DEV9\SMAP\Winsock\Sessions\UDPSession\UDPServerSession.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="PSE\CLR_PSE_NativeLogger.cs" />
-    <Compile Include="Config\Config.cs" />
+    <Compile Include="Config\ConfigFile.cs" />
     <Compile Include="Config\ConfigDirectIP.cs" />
     <Compile Include="Config\ConfigFormEth.cs">
       <SubType>Form</SubType>

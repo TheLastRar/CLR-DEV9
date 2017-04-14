@@ -4,8 +4,8 @@ using System.Xml;
 
 namespace CLRDEV9.Config
 {
-    [DataContract]
-    class Settings
+    [DataContract(Name = "Config", Namespace = "http://schemas.datacontract.org/2004/07/CLRDEV9")]
+    class ConfigFile
     {
         [DataMember]
         public bool EthEnable;
@@ -44,7 +44,7 @@ namespace CLRDEV9.Config
             SocketConnectionSettings = new ConfigSocketIP();
         }
 
-        public Settings()
+        public ConfigFile()
         {
             Init();
         }
@@ -72,7 +72,7 @@ namespace CLRDEV9.Config
             iniFolderPath = iniFolderPath.TrimEnd(Path.AltDirectorySeparatorChar);
 
             string filePath = iniFolderPath + Path.DirectorySeparatorChar + iniFileName;
-            DataContractSerializer ConfSerializer = new DataContractSerializer(typeof(Settings));
+            DataContractSerializer ConfSerializer = new DataContractSerializer(typeof(ConfigFile));
 
             var settings = new XmlWriterSettings()
             {
@@ -97,10 +97,10 @@ namespace CLRDEV9.Config
 
             if (File.Exists(filePath))
             {
-                DataContractSerializer ConfSerializer = new DataContractSerializer(typeof(Settings));
+                DataContractSerializer ConfSerializer = new DataContractSerializer(typeof(ConfigFile));
                 FileStream Reader = new FileStream(filePath, FileMode.Open);
 
-                DEV9Header.config = (Settings)ConfSerializer.ReadObject(Reader);
+                DEV9Header.config = (ConfigFile)ConfSerializer.ReadObject(Reader);
 
                 Reader.Close();
 
@@ -112,7 +112,7 @@ namespace CLRDEV9.Config
                 return;
             }
 
-            DEV9Header.config = new Settings();
+            DEV9Header.config = new ConfigFile();
 
             SaveConf(iniFolderPath, iniFileName);
         }

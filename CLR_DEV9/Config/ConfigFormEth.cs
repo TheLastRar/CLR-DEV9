@@ -22,7 +22,7 @@ namespace CLRDEV9.Config
         }
         //TODO keep track of which api has which index
 
-        Dictionary<Settings.EthAPI, int> apiIndex = new Dictionary<Settings.EthAPI, int>();
+        Dictionary<ConfigFile.EthAPI, int> apiIndex = new Dictionary<ConfigFile.EthAPI, int>();
 
         private void ConfigFormEth_Load(object sender, EventArgs e)
         {
@@ -34,7 +34,7 @@ namespace CLRDEV9.Config
             //Detect which API's we have
             //Winsock
             winsockAdapters = Winsock.GetAdapters();
-            apiIndex.Add(Settings.EthAPI.Winsock, curIndex);
+            apiIndex.Add(ConfigFile.EthAPI.Winsock, curIndex);
             cbAPI.Items.Add("Sockets (Winsock)");
             curIndex++;
             //Windows Only
@@ -45,7 +45,7 @@ namespace CLRDEV9.Config
                 if (tapAdapters != null)
                 {
                     cbAPI.Items.Add("Tap");
-                    apiIndex.Add(Settings.EthAPI.Tap, curIndex);
+                    apiIndex.Add(ConfigFile.EthAPI.Tap, curIndex);
                     curIndex++;
                 }
                 //WinPcap
@@ -53,10 +53,10 @@ namespace CLRDEV9.Config
                 if (winPcapAdapters != null)
                 {
                     cbAPI.Items.Add("WinPcap Bridged");
-                    apiIndex.Add(Settings.EthAPI.WinPcapBridged, curIndex);
+                    apiIndex.Add(ConfigFile.EthAPI.WinPcapBridged, curIndex);
                     curIndex++;
                     cbAPI.Items.Add("WinPcap Switched (Promiscuous)");
-                    apiIndex.Add(Settings.EthAPI.WinPcapSwitched, curIndex);
+                    apiIndex.Add(ConfigFile.EthAPI.WinPcapSwitched, curIndex);
                     curIndex++;
                 }
             }
@@ -67,7 +67,7 @@ namespace CLRDEV9.Config
             }
             else
             {
-                cbAPI.SelectedIndex = (int)Settings.EthAPI.Null;
+                cbAPI.SelectedIndex = (int)ConfigFile.EthAPI.Null;
             }
         }
 
@@ -79,7 +79,7 @@ namespace CLRDEV9.Config
             //And select it (TODO)
 
             //Get API selected
-            KeyValuePair<Settings.EthAPI, int> ret = apiIndex.FirstOrDefault(x => x.Value == cbAPI.SelectedIndex + 1);
+            KeyValuePair<ConfigFile.EthAPI, int> ret = apiIndex.FirstOrDefault(x => x.Value == cbAPI.SelectedIndex + 1);
             if (ret.Value == 0)
             {
                 MessageBox.Show("Something when wrong");
@@ -90,22 +90,22 @@ namespace CLRDEV9.Config
 
             switch (ret.Key)
             {
-                case Settings.EthAPI.Null:
+                case ConfigFile.EthAPI.Null:
                     selectedAPIAdapters = new List<string[]>();
                     break;
-                case Settings.EthAPI.Winsock:
+                case ConfigFile.EthAPI.Winsock:
                     selectedAPIAdapters = winsockAdapters;
 
                     break;
-                case Settings.EthAPI.Tap:
+                case ConfigFile.EthAPI.Tap:
                     //cbAdapter.Items.Add("Tap");
                     selectedAPIAdapters = tapAdapters;
                     break;
-                case Settings.EthAPI.WinPcapBridged:
+                case ConfigFile.EthAPI.WinPcapBridged:
                     //cbAdapter.Items.Add("WinPcapBridged");
                     selectedAPIAdapters = winPcapAdapters;
                     break;
-                case Settings.EthAPI.WinPcapSwitched:
+                case ConfigFile.EthAPI.WinPcapSwitched:
                     //cbAdapter.Items.Add("WinPcapSwitched");
                     selectedAPIAdapters = winPcapAdapters;
 
@@ -114,14 +114,14 @@ namespace CLRDEV9.Config
 
             switch (ret.Key)
             {
-                case Settings.EthAPI.Null:
-                case Settings.EthAPI.Winsock:
+                case ConfigFile.EthAPI.Null:
+                case ConfigFile.EthAPI.Winsock:
                     cbIntercept.Enabled = false;
                     cbIntercept.Checked = true;
                     break;
-                case Settings.EthAPI.Tap:
-                case Settings.EthAPI.WinPcapBridged:
-                case Settings.EthAPI.WinPcapSwitched:
+                case ConfigFile.EthAPI.Tap:
+                case ConfigFile.EthAPI.WinPcapBridged:
+                case ConfigFile.EthAPI.WinPcapSwitched:
                     cbIntercept.Enabled = true;
                     cbIntercept.Checked = DEV9Header.config.DirectConnectionSettings.InterceptDHCP;
                     break;
@@ -283,7 +283,7 @@ namespace CLRDEV9.Config
         private void btnApply_Click(object sender, EventArgs e)
         {
             //Get API selected
-            KeyValuePair<Settings.EthAPI, int> ret = apiIndex.FirstOrDefault(x => x.Value == cbAPI.SelectedIndex + 1);
+            KeyValuePair<ConfigFile.EthAPI, int> ret = apiIndex.FirstOrDefault(x => x.Value == cbAPI.SelectedIndex + 1);
             if (ret.Value == 0)
             {
                 MessageBox.Show("Please select an API");
@@ -300,7 +300,7 @@ namespace CLRDEV9.Config
             //Save Advanced settings
             switch (ret.Key)
             {
-                case Settings.EthAPI.Winsock:
+                case ConfigFile.EthAPI.Winsock:
                     DEV9Header.config.SocketConnectionSettings.AutoDNS1 = cbAutoDNS1.Checked;
                     if (!cbAutoDNS1.Checked)
                     {
@@ -313,9 +313,9 @@ namespace CLRDEV9.Config
                         DEV9Header.config.SocketConnectionSettings.DNS2 = tbDNS2.Text;
                     }
                     break;
-                case Settings.EthAPI.Tap:
-                case Settings.EthAPI.WinPcapBridged:
-                case Settings.EthAPI.WinPcapSwitched:
+                case ConfigFile.EthAPI.Tap:
+                case ConfigFile.EthAPI.WinPcapBridged:
+                case ConfigFile.EthAPI.WinPcapSwitched:
                     DEV9Header.config.DirectConnectionSettings.InterceptDHCP = cbIntercept.Checked;
                     if (cbIntercept.Checked)
                     {

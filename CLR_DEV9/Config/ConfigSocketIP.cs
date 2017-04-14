@@ -3,6 +3,7 @@
 namespace CLRDEV9.Config
 {
     [DataContract]
+    [DataContract(Namespace = "http://schemas.datacontract.org/2004/07/CLRDEV9")]
     class ConfigSocketIP
     {
         [DataMember]

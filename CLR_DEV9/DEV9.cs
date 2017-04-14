@@ -77,7 +77,7 @@ namespace CLRDEV9
             try
             {
                 Log_Info("Open");
-                Settings.LoadConf(iniFolderPath, "CLR_DEV9.ini");
+                ConfigFile.LoadConf(iniFolderPath, "CLR_DEV9.ini");
 
                 if (DEV9Header.config.Hdd.Contains("\\") || DEV9Header.config.Hdd.Contains("/"))
                     return dev9.Open(DEV9Header.config.Hdd);
@@ -339,9 +339,9 @@ namespace CLRDEV9
         {
             try
             {
-                Settings.LoadConf(iniFolderPath, "CLR_DEV9.ini");
-                Settings.DoConfig(iniFolderPath, "CLR_DEV9.ini");
-                Settings.SaveConf(iniFolderPath, "CLR_DEV9.ini");
+                ConfigFile.LoadConf(iniFolderPath, "CLR_DEV9.ini");
+                ConfigFile.DoConfig(iniFolderPath, "CLR_DEV9.ini");
+                ConfigFile.SaveConf(iniFolderPath, "CLR_DEV9.ini");
             }
             catch (Exception e)
             {
