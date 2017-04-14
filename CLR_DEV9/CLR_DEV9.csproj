@@ -105,12 +105,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Config\ConfigIncomingPort.cs" />
     <Compile Include="DEV9\SMAP\SMAP_State_Read.cs" />
     <Compile Include="DEV9\SMAP\SMAP_State_Write.cs" />
     <Compile Include="DEV9\SMAP\Winsock\ConnectionKey.cs" />
     <Compile Include="DEV9\SMAP\Winsock\PacketReader\IP\IGMP.cs" />
     <Compile Include="DEV9\SMAP\Winsock\PacketReader\IP\IPOptions.cs" />
-    <Compile Include="DEV9\SMAP\Winsock\PortForwardRule.cs" />
     <Compile Include="DEV9\SMAP\Winsock\Sessions\IGMPSession.cs" />
     <Compile Include="DEV9\SMAP\Winsock\Sessions\UDPSession\UDPFixedPort.cs" />
     <Compile Include="DEV9\SMAP\Winsock\Sessions\UDPSession\UDPServerSession.cs" />

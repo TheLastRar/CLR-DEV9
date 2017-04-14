@@ -24,7 +24,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
 
         ConcurrentDictionary<ConnectionKey, Session> connections = new ConcurrentDictionary<ConnectionKey, Session>();
 
-        List<PortForwardRule> forwardedPorts = new List<PortForwardRule>();
         Dictionary<ushort, UDPFixedPort> fixedUDPPorts = new Dictionary<ushort, UDPFixedPort>();
 
         static public List<string[]> GetAdapters()
@@ -63,13 +62,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
         public Winsock(DEV9_State parDev9, string parDevice)
             : base(parDev9)
         {
-            //Testing crash tag team racing and JakX
-            forwardedPorts.Add(new PortForwardRule(IPType.UDP, 8324));
-            forwardedPorts.Add(new PortForwardRule(IPType.UDP, 3658));
-
-
-
-
             //Add allways on connections
             byte[] dns1 = null;
             byte[] dns2 = null;
@@ -109,7 +101,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
 
             if (!connections.TryAdd(dhcpServer.Key, dhcpServer)) { throw new Exception("Connection Add Failed"); }
 
-            foreach (PortForwardRule port in forwardedPorts)
+            foreach (Config.ConfigIncomingPort port in 
+                DEV9Header.config.SocketConnectionSettings.IncomingPorts)
             {
                 ConnectionKey Key = new ConnectionKey();
                 Key.Protocol = (byte)port.Protocol;
