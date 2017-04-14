@@ -15,7 +15,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         UInt16 srcPort = 0;
         UInt16 destPort = 0;
         //Broadcast
-        byte[] multicastAddr;
         bool isBroadcast = false;
         bool isMulticast = false;
         bool isFixedPort = false;
@@ -36,22 +35,24 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         public UDPSession(ConnectionKey parKey, IPAddress parAdapterIP, bool parIsBroadcast, UdpClient parClient)
             : base(parKey, parAdapterIP)
         {
-            //broadcastAddr = parBroadcastIP;
-            client = parClient;
+            isFixedPort = true;
 
+            client = parClient;
             srcPort = parKey.PS2Port;
             destPort = parKey.SRVPort;
-            isFixedPort = true;
             isBroadcast = parIsBroadcast;
+            
+            lock (deathClock)
+            {
+                deathClock.Start();
+            }
+
+            open = true;
         }
         //bool thing = false;
         public override IPPayload Recv()
         {
             if (!open)
-            {
-                return null;
-            }
-            if (srcPort == 0)
             {
                 return null;
             }
@@ -107,8 +108,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             return null;
         }
 
-        internal bool WillRecive(byte[] parDestIP)
+        public bool WillRecive(byte[] parDestIP)
         {
+            if (!open)
+            {
+                return false;
+            }
             if (isBroadcast ||
                 Utils.memcmp(parDestIP, 0, DestIP, 0, 4))
             {
@@ -116,7 +121,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 {
                     deathClock.Restart();
                 }
-
                 return true;
             }
             return false;
@@ -128,6 +132,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             {
                 deathClock.Restart();
             }
+
             UDP udp = (UDP)payload;
 
             if (destPort != 0)
@@ -141,6 +146,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             }
             else
             {
+                //create client
                 destPort = udp.DestinationPort;
                 srcPort = udp.SourcePort;
 
@@ -150,10 +156,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     isMulticast = true;
                 }
 
+                //needs testing
                 if (isMulticast)
                 {
                     Log_Info("Is Multicast");
-                    multicastAddr = DestIP;
                     client = new UdpClient(new IPEndPoint(adapterIP, 0));
                     //client.JoinMulticastGroup(address);
                 }
@@ -163,7 +169,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     client = new UdpClient(new IPEndPoint(adapterIP, 0));
                     client.Connect(address, destPort);
                 }
-                open = true;
+                if (srcPort != 0)
+                {
+                    open = true;
+                }
             }
 
             if (isBroadcast)
@@ -181,7 +190,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
             if (srcPort == 0)
             {
-                open = false;
                 RaiseEventConnectionClosed();
             }
 

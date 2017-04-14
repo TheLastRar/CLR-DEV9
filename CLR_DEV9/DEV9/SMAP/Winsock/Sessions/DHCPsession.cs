@@ -151,9 +151,19 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         {
             if (parAdapter != null)
             {
-                PS2IP = (from ip in parAdapter.GetIPProperties().UnicastAddresses
-                             where ip.Address.AddressFamily == AddressFamily.InterNetwork
-                             select ip.Address).SingleOrDefault().GetAddressBytes();
+                IPInterfaceProperties properties = parAdapter.GetIPProperties();
+                UnicastIPAddressInformationCollection IPInfoCollection = properties.UnicastAddresses;
+
+                foreach (UnicastIPAddressInformation IPInfo in IPInfoCollection)
+                {
+                    if (IPInfo.Address.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        PS2IP = IPInfo.Address.GetAddressBytes();
+                        NetMask = IPInfo.IPv4Mask.GetAddressBytes();
+                        break;
+                    }
+                }
+
                 Utils.memcpy(ref Gateway, 0, PS2IP, 0, 4);
                 Gateway[3] = 1;
             }
@@ -306,7 +316,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         }
         public override bool Send(IPPayload payload)
         {
-
             DHCP dhcp = new DHCP(payload.GetPayload());
             hType = dhcp.HardwareType;
             hLen = dhcp.HardwareAddressLength;
