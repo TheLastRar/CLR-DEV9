@@ -136,6 +136,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                             Key.PS2Port = ps2Port;
                             Key.SRVPort = srvPort;
 
+                            //is from NormalPort
                             Session s;
                             connections.TryGetValue(Key, out s);
 
@@ -143,11 +144,21 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                             {
                                 s.Reset();
                                 Log_Info("Reset Rejected Connection");
+                                break;
                             }
-                            else
+
+                            //Is from FixedPort
+                            Key.IP0 = 0; Key.IP1 = 0; Key.IP2 = 0; Key.IP3 = 0;
+                            Key.SRVPort = 0;
+                            connections.TryGetValue(Key, out s);
+                            if (s != null)
                             {
-                                Log_Error("Failed To Reset Rejected Connection");
+                                s.Reset();
+                                Log_Info("Reset Rejected Connection");
+                                break;
                             }
+
+                            Log_Error("Failed To Reset Rejected Connection");
                             break;
                         default:
                             throw new NotImplementedException("Unsupported ICMP Code For Destination Unreachable" + icmp.Code);

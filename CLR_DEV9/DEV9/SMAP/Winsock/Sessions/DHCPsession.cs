@@ -358,7 +358,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                         }
                         break;
                     case 56:
-                        Log_Verb("Got String Message of "+ ((DHCPopMSGStr)dhcp.Options[i]).Message);
+                        Log_Verb("Got String Message of " + ((DHCPopMSGStr)dhcp.Options[i]).Message);
                         break;
                     case 57:
                         maxMs = ((DHCPopMMSGS)(dhcp.Options[i])).MaxMessageSize;
@@ -427,7 +427,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                                     {
                                         retPay.Options.Add(new DHCPopDNS(DNS1, DNS2));
                                     }
-                                    else {
+                                    else
+                                    {
                                         retPay.Options.Add(new DHCPopDNS(DNS1));
                                     }
                                 }

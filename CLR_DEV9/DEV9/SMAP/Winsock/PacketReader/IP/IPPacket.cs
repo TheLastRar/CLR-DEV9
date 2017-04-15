@@ -211,15 +211,29 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
 
         public IPPacket(ICMP icmpkt)
         {
-            ReadBuffer(icmpkt.Data, 0, icmpkt.Data.Length);
+            if ((icmpkt.Data[0] & 0xF0) == (4 << 4))
+            {
+                ReadBuffer(icmpkt.Data, 0, icmpkt.Data.Length, true);
+            }
+            else
+            {
+                Log_Error("Malformed ICMP Packet");
+                int off = 1;
+                while ((icmpkt.Data[off] & 0xF0) != (4 << 4))
+                {
+                    off += 1;
+                }
+                Log_Error("Payload delayed " + off + " bytes");
+                ReadBuffer(icmpkt.Data, off, icmpkt.Data.Length, true);
+            }
         }
 
         public IPPacket(EthernetFrame Ef)
         {
-            ReadBuffer(Ef.RawPacket.buffer, Ef.HeaderLength, Ef.RawPacket.size);
+            ReadBuffer(Ef.RawPacket.buffer, Ef.HeaderLength, Ef.RawPacket.size, false);
         }
 
-        private void ReadBuffer(byte[] buffer, int offset, int bufferSize)
+        private void ReadBuffer(byte[] buffer, int offset, int bufferSize, bool fromICMP)
         {
             int initialOffset = offset;
             int pktOffset = offset;
@@ -245,10 +259,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             NetLib.ReadUInt16(buffer, ref pktOffset, out _Length);
             if (_Length > bufferSize - offset)
             {
-                Log_Error("Unexpected Length");
+                if (!fromICMP) { Log_Error("Unexpected Length"); }
                 _Length = (UInt16)(bufferSize - offset);
             }
-            //Error.WriteLine("len=" + Length); //Includes hlen
 
             //Bits 32-63
             NetLib.ReadUInt16(buffer, ref pktOffset, out id); //Send packets with unique IDs

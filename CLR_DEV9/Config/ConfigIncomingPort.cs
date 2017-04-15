@@ -9,9 +9,13 @@ namespace CLRDEV9.Config
     class ConfigIncomingPort
     {
         [DataMember]
-        public IPType Protocol;
+        public string Desc = "";
         [DataMember]
-        public ushort Port;
+        public IPType Protocol = (IPType)0;
+        [DataMember]
+        public ushort Port = 0;
+        [DataMember]
+        public bool Enabled = false;
 
         public override bool Equals(object obj)
         {

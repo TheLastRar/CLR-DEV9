@@ -101,9 +101,14 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
 
             if (!connections.TryAdd(dhcpServer.Key, dhcpServer)) { throw new Exception("Connection Add Failed"); }
 
-            foreach (Config.ConfigIncomingPort port in 
+            foreach (Config.ConfigIncomingPort port in
                 DEV9Header.config.SocketConnectionSettings.IncomingPorts)
             {
+                if (!port.Enabled)
+                {
+                    continue;
+                }
+
                 ConnectionKey Key = new ConnectionKey();
                 Key.Protocol = (byte)port.Protocol;
                 Key.PS2Port = port.Port;
@@ -412,8 +417,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 Log_Info("Creating New UDP Connection with Dest Port " + udp.DestinationPort);
                 UDPSession s;
                 if (udp.SourcePort == udp.DestinationPort || //Used for LAN games that assume the destination port
-                    Utils.memcmp(ipPkt.DestinationIP, 0, dhcpServer.Broadcast, 0, 4)) //|| //Broadcast packets
-                    //fixedUDPPorts.ContainsKey(udp.SourcePort)) //forwarded port
+                    Utils.memcmp(ipPkt.DestinationIP, 0, dhcpServer.Broadcast, 0, 4)) //Broadcast packets
                 {
                     //Limit of one udpclient per local port
                     //need to reuse the udpclient
@@ -424,7 +428,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                         fPort = fixedUDPPorts[udp.SourcePort];
                     }
                     else
-                    {  
+                    {
                         ConnectionKey fKey = new ConnectionKey();
                         fKey.Protocol = (byte)IPType.UDP;
                         fKey.PS2Port = udp.SourcePort;

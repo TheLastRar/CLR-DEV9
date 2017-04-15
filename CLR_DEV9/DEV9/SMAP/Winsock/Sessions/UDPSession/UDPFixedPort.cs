@@ -69,13 +69,19 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     //packet is then sent from here
                     if (udpS.WillRecive(DestIP)) { return iRet; }
                 }
+                Log_Error("Unexpected packet, dropping");
             }
-            Log_Error("Unexpected packet, dropping");
             return null;
         }
         public override bool Send(IPPayload payload) { throw new NotImplementedException(); }
 
-        public override void Reset() { }
+        public override void Reset()
+        {
+            foreach (Session s in connections)
+            {
+                s.Reset();
+            }
+        }
 
         public override void Dispose()
         {

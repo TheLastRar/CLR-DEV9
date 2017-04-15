@@ -41,7 +41,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             srcPort = parKey.PS2Port;
             destPort = parKey.SRVPort;
             isBroadcast = parIsBroadcast;
-            
+
             lock (deathClock)
             {
                 deathClock.Start();
