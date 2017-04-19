@@ -217,6 +217,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             }
             else
             {
+                //RE Outbreak creates malformed ICMP packets
+                //the data in them is usable, but it's in the
+                //wrong place, search for it.
+                //This issue occurs on real hardware, so it's
+                //not an emulation issue.
                 Log_Error("Malformed ICMP Packet");
                 int off = 1;
                 while ((icmpkt.Data[off] & 0xF0) != (4 << 4))
