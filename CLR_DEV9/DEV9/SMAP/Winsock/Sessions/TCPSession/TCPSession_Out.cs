@@ -298,7 +298,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                         if (e.InnerException != null && e.InnerException is SocketException)
                         {
                             SocketException err = e.InnerException as SocketException;
-                            Log_Error("UDP Recv Error: " + err.Message);
+                            Log_Error("TCP Recv Error: " + err.Message);
                             Log_Error("Error Code: " + err.ErrorCode);
                         }
                         else

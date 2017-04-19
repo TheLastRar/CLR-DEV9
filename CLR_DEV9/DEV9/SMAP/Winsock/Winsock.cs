@@ -485,7 +485,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             //deadConnections.Enqueue(s);
             connections.TryRemove(s.Key, out dummy);
             s.Dispose();
-            Log_Error("Closed Dead Connection");
+            Log_Info("Closed Dead Connection");
         }
 
         public override void Close()

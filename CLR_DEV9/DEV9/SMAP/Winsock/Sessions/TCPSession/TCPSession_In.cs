@@ -59,7 +59,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 }
 
                 byte[] recived = new byte[avaData];
-                Log_Verb("Received " + avaData);
+                //Log_Verb("Received " + avaData);
                 netStream.Read(recived, 0, avaData);
                 Log_Verb("[SRV]Sending " + avaData + " bytes");
                 TCP iRet = CreateBasePacket(recived);
@@ -77,7 +77,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             {
                 if (client.Client.Poll(1, SelectMode.SelectRead) && client.Client.Available == 0 && state == TCPState.Connected)
                 {
-                    Log_Info("Detected Closed By Remote Connection");
+                    //Log_Info("Detected Closed By Remote Connection");
                     CloseByRemoteStage1();
                     client.Close();
                 }
