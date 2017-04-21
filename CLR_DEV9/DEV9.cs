@@ -38,21 +38,23 @@ namespace CLRDEV9
                 }
 
                 CLR_PSE_PluginLog.Open(logFolderPath, "DEV9_CLR.log", "CLR_DEV9", logSources);
-#if DEBUG
-                //Info is defualt
-                CLR_PSE_PluginLog.SetFileLevel(SourceLevels.All);
-                //CLR_PSE_PluginLog.SetSourceLogLevel(SourceLevels.All, (int)DEV9LogSources.ATA);
-                CLR_PSE_PluginLog.SetSourceLogLevel(SourceLevels.All, (int)DEV9LogSources.TCPSession);
-                CLR_PSE_PluginLog.SetSourceLogLevel(SourceLevels.All, (int)DEV9LogSources.Dev9);
-                CLR_PSE_PluginLog.SetSourceLogLevel(SourceLevels.All, (int)DEV9LogSources.SMAP);
 
-                CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.PluginInterface);
-#endif
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.Dev9);
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.SMAP);
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.ATA);
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.Winsock);
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.NetAdapter);
+                CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.UDPSession);
+
+#if DEBUG
+                CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.PluginInterface);
+                //Info is defualt
+                CLR_PSE_PluginLog.SetFileLevel(SourceLevels.All);
+                //CLR_PSE_PluginLog.SetSourceLogLevel(SourceLevels.All, (int)DEV9LogSources.ATA);
+                CLR_PSE_PluginLog.SetSourceLogLevel(SourceLevels.All, (int)DEV9LogSources.TCPSession);
+                CLR_PSE_PluginLog.SetSourceLogLevel(SourceLevels.All, (int)DEV9LogSources.Dev9);
+                CLR_PSE_PluginLog.SetSourceLogLevel(SourceLevels.All, (int)DEV9LogSources.SMAP);           
+#endif
             }
         }
 
