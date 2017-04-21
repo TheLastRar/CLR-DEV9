@@ -40,25 +40,45 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         UInt16 maxMs = 576;
 
-        public UDP_DHCPsession(ConnectionKey parKey, NetworkInterface parAdapter, byte[] parDNS1, byte[] parDNS2)
+        public UDP_DHCPsession(ConnectionKey parKey, NetworkInterface parAdapter, byte[] parDNS1, byte[] parDNS2, bool parLANMode)
             : base(parKey, IPAddress.Any)
         {
-            //Socket Settings
-            //Fill Fixed Settings
-            PS2IP = DefaultDHCPConfig.PS2_IP;
-            NetMask = DefaultDHCPConfig.NETMASK;
-            Gateway = DefaultDHCPConfig.GATEWAY_IP;
+            //Socket
+
             //Load DNS from Adapter
             if (parAdapter == null)
             {
                 parAdapter = AutoAdapter();
             }
-            //Set PS2 IP to match PC IP to aid LAN
-            HandleIP(parAdapter);
+            //Set IP, NetMask and Gateway based on if LANMode is set
+            if (parLANMode)
+            {
+                //Give PS2 same IP as host to allow LAN games to work
+                IPInterfaceProperties properties = parAdapter.GetIPProperties();
+                UnicastIPAddressInformationCollection IPInfoCollection = properties.UnicastAddresses;
+
+                foreach (UnicastIPAddressInformation IPInfo in IPInfoCollection)
+                {
+                    if (IPInfo.Address.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        PS2IP = IPInfo.Address.GetAddressBytes();
+                        break;
+                    }
+                }
+
+                HandleNetMask(parAdapter, null);
+                HandleGateway(parAdapter, null);
+            }
+            else
+            {
+                //Give PS2 different IP from host to allow host-PS2 comunications
+                PS2IP = DefaultDHCPConfig.PS2_IP;
+                HandleNetMask(parAdapter, DefaultDHCPConfig.NETMASK);
+                HandleGateway(parAdapter, DefaultDHCPConfig.GATEWAY_IP);
+            }
             //Set DNS
             HandleDNS(parAdapter, parDNS1, parDNS2);
             //Broadcast Address
-            //HandleBroadcast(Gateway, NetMask);
             HandleBroadcast(PS2IP, NetMask);
         }
 
@@ -66,44 +86,18 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             byte[] parDNS1, byte[] parDNS2)
             : base(parKey, IPAddress.Any)
         {
-            IPInterfaceProperties properties = parAdapter.GetIPProperties();
-            UnicastIPAddressInformationCollection IPInfoCollection = properties.UnicastAddresses;
-            GatewayIPAddressInformationCollection GatewayInfoCollection = properties.GatewayAddresses;
-
+            //DirectAdapter
             PS2IP = parIP;
-            //NetMask
-            NetMask = parNetmask;
-            if (NetMask == null)
-            {
-                foreach (UnicastIPAddressInformation IPInfo in IPInfoCollection)
-                {
-                    if (IPInfo.Address.AddressFamily == AddressFamily.InterNetwork)
-                    {
-                        NetMask = IPInfo.IPv4Mask.GetAddressBytes();
-                        break;
-                    }
-                }
-            }
-            //Gateway
-            Gateway = parGateway;
-            if (Gateway == null)
-            {
-                foreach (GatewayIPAddressInformation GatewayInfo in GatewayInfoCollection)
-                {
-                    if (GatewayInfo.Address.AddressFamily == AddressFamily.InterNetwork)
-                    {
-                        Gateway = GatewayInfo.Address.GetAddressBytes();
-                        break;
-                    }
-                }
-            }
+
+            HandleNetMask(parAdapter, parNetmask);
+            HandleGateway(parAdapter, parGateway);
             HandleDNS(parAdapter, parDNS1, parDNS2);
             HandleBroadcast(PS2IP, NetMask);
             #region ICS
             //Special case for ICS
             if (Gateway == null & PSE.CLR_PSE_Utils.IsWindows())
             {
-                //Retrive ICS IP from Regs
+                //Retrieve ICS IP from Regs
                 byte[] icsIP;
                 try
                 {
@@ -111,22 +105,21 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                                                                     Microsoft.Win32.RegistryHive.LocalMachine,
                                                                     Microsoft.Win32.RegistryView.Registry64))
                     {
-                        //if (localKey != null)
-                        //{
                         using (Microsoft.Win32.RegistryKey icsKey = localKey.OpenSubKey("System\\CurrentControlSet\\Services\\SharedAccess\\Parameters"))
                         {
-                            //    if (icsKey != null)
-                            //    {
                             icsIP = IPAddress.Parse((string)icsKey.GetValue("ScopeAddress")).GetAddressBytes();
-                            //}
                         }
-                        //}
                     }
                 }
                 catch
                 {
                     icsIP = new byte[] { 192, 168, 137, 1 };
                 }
+                //Check if adapter has ICS IP
+                //If so, then adapter is being shared to via ICS
+                IPInterfaceProperties properties = parAdapter.GetIPProperties();
+                UnicastIPAddressInformationCollection IPInfoCollection = properties.UnicastAddresses;
+
                 foreach (UnicastIPAddressInformation IPInfo in IPInfoCollection)
                 {
                     if (IPInfo.Address.AddressFamily == AddressFamily.InterNetwork)
@@ -146,10 +139,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             #endregion
         }
 
-        //Winsock only
-        private void HandleIP(NetworkInterface parAdapter)
+        private void HandleNetMask(NetworkInterface parAdapter, byte[] parNetMask)
         {
-            if (parAdapter != null)
+            NetMask = parNetMask;
+
+            if (NetMask == null &
+                parAdapter != null)
             {
                 IPInterfaceProperties properties = parAdapter.GetIPProperties();
                 UnicastIPAddressInformationCollection IPInfoCollection = properties.UnicastAddresses;
@@ -158,14 +153,31 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 {
                     if (IPInfo.Address.AddressFamily == AddressFamily.InterNetwork)
                     {
-                        PS2IP = IPInfo.Address.GetAddressBytes();
                         NetMask = IPInfo.IPv4Mask.GetAddressBytes();
                         break;
                     }
                 }
+            }
+        }
 
-                Utils.memcpy(ref Gateway, 0, PS2IP, 0, 4);
-                Gateway[3] = 1;
+        private void HandleGateway(NetworkInterface parAdapter, byte[] parNetMask)
+        {
+            NetMask = parNetMask;
+
+            if (NetMask == null &
+                parAdapter != null)
+            {
+                IPInterfaceProperties properties = parAdapter.GetIPProperties();
+                GatewayIPAddressInformationCollection GatewayInfoCollection = properties.GatewayAddresses;
+
+                foreach (GatewayIPAddressInformation GatewayInfo in GatewayInfoCollection)
+                {
+                    if (GatewayInfo.Address.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        Gateway = GatewayInfo.Address.GetAddressBytes();
+                        break;
+                    }
+                }
             }
         }
 

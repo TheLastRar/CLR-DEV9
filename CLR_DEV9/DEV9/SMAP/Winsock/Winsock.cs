@@ -93,7 +93,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             dhcpKey.Protocol = (byte)IPType.UDP;
             dhcpKey.SRVPort = 67;
 
-            dhcpServer = new UDP_DHCPsession(dhcpKey, adapter, dns1, dns2);
+            dhcpServer = new UDP_DHCPsession(dhcpKey, adapter, dns1, dns2, DEV9Header.config.SocketConnectionSettings.LANMode);
             dhcpServer.ConnectionClosedEvent += HandleConnectionClosed;
 
             dhcpServer.SourceIP = new byte[] { 255, 255, 255, 255 };

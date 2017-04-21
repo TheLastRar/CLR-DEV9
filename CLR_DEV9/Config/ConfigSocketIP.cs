@@ -14,6 +14,8 @@ namespace CLRDEV9.Config
         public bool AutoDNS2;
         [DataMember]
         public string DNS2;
+        [DataMember]
+        public bool LANMode;
         [DataMember(EmitDefaultValue = false)]
         public HashSet<ConfigIncomingPort> IncomingPorts;
 
@@ -29,6 +31,7 @@ namespace CLRDEV9.Config
             DNS1 = "0.0.0.0";
             AutoDNS2 = true;
             DNS2 = "0.0.0.0";
+            LANMode = true;
             IncomingPorts = new HashSet<ConfigIncomingPort>();
         }
 
