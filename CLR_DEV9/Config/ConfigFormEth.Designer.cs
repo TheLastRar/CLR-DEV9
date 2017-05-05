@@ -49,6 +49,8 @@
             this.tbDNS2 = new System.Windows.Forms.TextBox();
             this.cbAutoDNS2 = new System.Windows.Forms.CheckBox();
             this.label7 = new System.Windows.Forms.Label();
+            this.btnAdvanced = new System.Windows.Forms.Button();
+            this.cbLANMode = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // label1
@@ -131,7 +133,7 @@
             this.tbIP.Enabled = false;
             this.tbIP.Location = new System.Drawing.Point(99, 115);
             this.tbIP.Name = "tbIP";
-            this.tbIP.Size = new System.Drawing.Size(176, 20);
+            this.tbIP.Size = new System.Drawing.Size(122, 20);
             this.tbIP.TabIndex = 8;
             this.tbIP.Text = "0.0.0.0";
             // 
@@ -262,11 +264,34 @@
             this.label7.TabIndex = 20;
             this.label7.Text = "DNS2 IP";
             // 
+            // btnAdvanced
+            // 
+            this.btnAdvanced.Location = new System.Drawing.Point(200, 247);
+            this.btnAdvanced.Name = "btnAdvanced";
+            this.btnAdvanced.Size = new System.Drawing.Size(75, 23);
+            this.btnAdvanced.TabIndex = 21;
+            this.btnAdvanced.Text = "Options";
+            this.btnAdvanced.UseVisualStyleBackColor = true;
+            this.btnAdvanced.Click += new System.EventHandler(this.btnAdvanced_Click);
+            // 
+            // cbLANMode
+            // 
+            this.cbLANMode.AutoSize = true;
+            this.cbLANMode.Enabled = false;
+            this.cbLANMode.Location = new System.Drawing.Point(227, 118);
+            this.cbLANMode.Name = "cbLANMode";
+            this.cbLANMode.Size = new System.Drawing.Size(53, 17);
+            this.cbLANMode.TabIndex = 22;
+            this.cbLANMode.Text = "PC IP";
+            this.cbLANMode.UseVisualStyleBackColor = true;
+            // 
             // ConfigFormEth
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(287, 282);
+            this.Controls.Add(this.cbLANMode);
+            this.Controls.Add(this.btnAdvanced);
             this.Controls.Add(this.label7);
             this.Controls.Add(this.cbAutoDNS2);
             this.Controls.Add(this.tbDNS2);
@@ -323,5 +348,7 @@
         private System.Windows.Forms.TextBox tbDNS2;
         private System.Windows.Forms.CheckBox cbAutoDNS2;
         private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Button btnAdvanced;
+        private System.Windows.Forms.CheckBox cbLANMode;
     }
 }

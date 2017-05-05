@@ -160,11 +160,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             }
         }
 
-        private void HandleGateway(NetworkInterface parAdapter, byte[] parNetMask)
+        private void HandleGateway(NetworkInterface parAdapter, byte[] parGateway)
         {
-            NetMask = parNetMask;
+            Gateway = parGateway;
 
-            if (NetMask == null &
+            if (Gateway == null &
                 parAdapter != null)
             {
                 IPInterfaceProperties properties = parAdapter.GetIPProperties();

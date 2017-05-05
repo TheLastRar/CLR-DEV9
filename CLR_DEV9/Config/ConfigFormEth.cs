@@ -182,12 +182,17 @@ namespace CLRDEV9.Config
                 }
             }
         }
+
         private void cbIntercept_EnabledChanged(object sender, EventArgs e)
         {
             if (cbIntercept.Enabled == true)
             {
                 //In Direct Mode
                 cbIntercept_CheckedChanged(sender, e);
+                btnAdvanced.Enabled = false;
+
+                cbLANMode.Checked = false;
+                cbLANMode.Enabled = false;
             }
             else
             {
@@ -208,6 +213,11 @@ namespace CLRDEV9.Config
                 cbAutoDNS2.Checked = DEV9Header.config.SocketConnectionSettings.AutoDNS2;
                 tbDNS1.Enabled = !cbAutoDNS1.Checked;
                 tbDNS2.Enabled = !cbAutoDNS2.Checked;
+
+                btnAdvanced.Enabled = true;
+
+                cbLANMode.Enabled = true;
+                cbLANMode.Checked = DEV9Header.config.SocketConnectionSettings.LANMode;
             }
             //Make sure UI gets updated
             tbMask_EnabledChanged(sender, e);
@@ -354,6 +364,33 @@ namespace CLRDEV9.Config
         private void btnCancel_Click(object sender, EventArgs e)
         {
             Close();
+        }
+
+        private void btnAdvanced_Click(object sender, EventArgs e)
+        {
+            //Get API selected
+            KeyValuePair<ConfigFile.EthAPI, int> ret = apiIndex.FirstOrDefault(x => x.Value == cbAPI.SelectedIndex + 1);
+            if (ret.Value == 0)
+            {
+                MessageBox.Show("Something when wrong");
+                return;
+            }
+
+            switch (ret.Key)
+            {
+                case ConfigFile.EthAPI.Null:
+                    break;
+                case ConfigFile.EthAPI.Winsock:
+                    ConfigFormIncomingPorts cfip = new ConfigFormIncomingPorts();
+                    cfip.ShowDialog();
+                    cfip.Dispose();
+                    break;
+                case ConfigFile.EthAPI.Tap:
+                case ConfigFile.EthAPI.WinPcapBridged:
+                case ConfigFile.EthAPI.WinPcapSwitched:
+
+                    break;
+            }
         }
     }
 }

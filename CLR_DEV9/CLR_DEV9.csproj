@@ -105,6 +105,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Config\ConfigFormIncomingPorts.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Config\ConfigFormIncomingPorts.Designer.cs">
+      <DependentUpon>ConfigFormIncomingPorts.cs</DependentUpon>
+    </Compile>
     <Compile Include="Config\ConfigIncomingPort.cs" />
     <Compile Include="DEV9\SMAP\SMAP_State_Read.cs" />
     <Compile Include="DEV9\SMAP\SMAP_State_Write.cs" />
@@ -218,6 +224,9 @@
     <EmbeddedResource Include="Config\ConfigFormHdd.resx">
       <DependentUpon>ConfigFormHdd.cs</DependentUpon>
       <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Config\ConfigFormIncomingPorts.resx">
+      <DependentUpon>ConfigFormIncomingPorts.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="HddCreate.resx">
       <DependentUpon>HddCreate.cs</DependentUpon>
