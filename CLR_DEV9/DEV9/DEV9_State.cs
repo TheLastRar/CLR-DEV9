@@ -82,7 +82,7 @@ namespace CLRDEV9.DEV9
 
         public byte DEV9read8(uint addr)
         {
-            Log_Verb("DEV9read8 @ " + addr.ToString("X"));
+            //Log_Verb("DEV9read8 @ " + addr.ToString("X"));
             byte hard;
             //ATA
             if (addr >= DEV9Header.ATA_DEV9_HDD_BASE && addr < DEV9Header.ATA_DEV9_HDD_END)
@@ -149,7 +149,7 @@ namespace CLRDEV9.DEV9
 
         public ushort DEV9_Read16(uint addr)
         {
-            Log_Verb("DEV9read16 @ " + addr.ToString("X"));
+            //Log_Verb("DEV9read16 @ " + addr.ToString("X"));
             UInt16 hard;
             //ATA
             if (addr >= DEV9Header.ATA_DEV9_HDD_BASE && addr < DEV9Header.ATA_DEV9_HDD_END)
@@ -240,7 +240,7 @@ namespace CLRDEV9.DEV9
 
         public uint DEV9_Read32(uint addr)
         {
-            Log_Verb("DEV9read32 @ " + addr.ToString("X"));
+            //Log_Verb("DEV9read32 @ " + addr.ToString("X"));
             UInt32 hard;
             //ATA
             if (addr >= DEV9Header.ATA_DEV9_HDD_BASE && addr < DEV9Header.ATA_DEV9_HDD_END)

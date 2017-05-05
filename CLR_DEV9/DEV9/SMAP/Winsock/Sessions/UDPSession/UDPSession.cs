@@ -95,6 +95,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     deathClock.Restart();
                 }
 
+                if (destPort == 53)
+                {
+                    Log_Error("DNS Packet Sent From " + remoteIPEndPoint.Address);
+                    Log_Error("Contents");
+                    PacketReader.DNS.DNS pDNS = new PacketReader.DNS.DNS(recived);
+                }
+
                 return iRet;
             }
             lock (deathClock)
@@ -173,6 +180,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 {
                     open = true;
                 }
+            }
+
+            if (destPort == 53)
+            {
+                Log_Error("DNS Packet Sent To " + new IPAddress(DestIP));
+                Log_Error("Contents");
+                PacketReader.DNS.DNS pDNS = new PacketReader.DNS.DNS(udp.GetPayload());
             }
 
             if (isBroadcast)

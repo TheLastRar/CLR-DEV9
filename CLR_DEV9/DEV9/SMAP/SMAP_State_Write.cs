@@ -10,25 +10,150 @@ namespace CLRDEV9.DEV9.SMAP
             switch (addr)
             {
                 case DEV9Header.SMAP_R_EMAC3_MODE0_L:
-                    Log_Verb("SMAP: SMAP_R_EMAC3_MODE0 write " + value.ToString("X"));
+                    Log_Verb("SMAP_R_EMAC3_MODE0 write " + value.ToString("X"));
                     value = (value & (~DEV9Header.SMAP_E3_SOFT_RESET)) | DEV9Header.SMAP_E3_TXMAC_IDLE | DEV9Header.SMAP_E3_RXMAC_IDLE;
                     UInt16 tmp = (UInt16)(dev9.Dev9Ru16((int)DEV9Header.SMAP_R_EMAC3_STA_CTRL_H) | DEV9Header.SMAP_E3_PHY_OP_COMP);
                     dev9.Dev9Wu16((int)DEV9Header.SMAP_R_EMAC3_STA_CTRL_H, tmp);
                     break;
+                case DEV9Header.SMAP_R_EMAC3_MODE1_L:
+                    #region 'MODE1 logs'
+                    //Log_Verb("SMAP_R_EMAC3_MODE1 write " + value.ToString("X"));
+                    //if ((value & DEV9Header.SMAP_E3_FDX_ENABLE) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_FDX_ENABLE Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_INLPBK_ENABLE) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_INLPBK_ENABLE Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_VLAN_ENABLE) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_VLAN_ENABLE Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_FLOWCTRL_ENABLE) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_FLOWCTRL_ENABLE Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_ALLOW_PF) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_ALLOW_PF Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_ALLOW_EXTMNGIF) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_ALLOW_EXTMNGIF Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_IGNORE_SQE) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_IGNORE_SQE Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_MEDIA_FREQ_BITSFT) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_MEDIA_FREQ_BITSFT Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_MEDIA_10M) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_MEDIA_10M Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_MEDIA_100M) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_MEDIA_100M Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_MEDIA_1000M) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_MEDIA_1000M Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_MEDIA_MSK) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_MEDIA_MSK Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_RXFIFO_SIZE_BITSFT) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_RXFIFO_SIZE_BITSFT Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_RXFIFO_512) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_RXFIFO_512 Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_RXFIFO_1K) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_RXFIFO_1K Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_RXFIFO_2K) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_RXFIFO_2K Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_RXFIFO_4K) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_RXFIFO_4K Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_TXFIFO_SIZE_BITSFT) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_TXFIFO_SIZE_BITSFT Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_TXFIFO_512) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_TXFIFO_512 Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_TXFIFO_1K) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_TXFIFO_1K Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_TXFIFO_2K) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_TXFIFO_2K Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_TXREQ0_BITSFT) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_TXREQ0_BITSFT Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_TXREQ0_SINGLE) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_TXREQ0_SINGLE Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_TXREQ0_MULTI) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_TXREQ0_MULTI Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_TXREQ0_DEPEND) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_TXREQ0_DEPEND Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_TXREQ1_BITSFT) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_TXREQ1_BITSFT Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_TXREQ1_SINGLE) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_TXREQ1_SINGLE Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_TXREQ1_MULTI) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_TXREQ1_MULTI Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_TXREQ1_DEPEND) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_TXREQ1_DEPEND Set");
+                    //}
+                    //if ((value & DEV9Header.SMAP_E3_JUMBO_ENABLE) != 0)
+                    //{
+                    //    Log_Error("SMAP_E3_JUMBO_ENABLE Set");
+                    //}
+                    #endregion
+                    break;
                 case DEV9Header.SMAP_R_EMAC3_TxMODE0_L:
-                    Log_Verb("SMAP: SMAP_R_EMAC3_TxMODE0_L write " + value.ToString("X"));
+                    Log_Verb("SMAP_R_EMAC3_TxMODE0 write " + value.ToString("X"));
                     //spams// emu_printf("SMAP: SMAP_R_EMAC3_TxMODE0_L write %x\n", value);
                     //Process TX  here ?
                     if (!(value != 0) & (DEV9Header.SMAP_E3_TX_GNP_0 != 0))
-                        Log_Error("SMAP_R_EMAC3_TxMODE0_L: SMAP_E3_TX_GNP_0 not set");
+                        Log_Error("SMAP_R_EMAC3_TxMODE0: SMAP_E3_TX_GNP_0 not set");
 
                     TxProcess();
                     value = value & ~DEV9Header.SMAP_E3_TX_GNP_0;
                     if (value != 0)
-                        Log_Error("SMAP_R_EMAC3_TxMODE0_L: extra bits set !");
+                        Log_Error("SMAP_R_EMAC3_TxMODE0: extra bits set !");
                     break;
                 case DEV9Header.SMAP_R_EMAC3_TxMODE1_L:
-                    Log_Error("SMAP_R_EMAC3_TxMODE1_L 32bit write " + value.ToString("X"));
+                    Log_Error("SMAP_R_EMAC3_TxMODE1 32bit write " + value.ToString("X"));
                     if (value == 0x380f0000)
                     {
                         Log_Error("Adapter Detection Hack - Resetting RX/TX");
@@ -36,7 +161,7 @@ namespace CLRDEV9.DEV9.SMAP
                     }
                     break;
                 case DEV9Header.SMAP_R_EMAC3_STA_CTRL_L:
-                    Log_Verb("SMAP: SMAP_R_EMAC3_STA_CTRL write " + value.ToString("X"));
+                    Log_Verb("SMAP_R_EMAC3_STA_CTRL write " + value.ToString("X"));
                     {
                         if ((value & (DEV9Header.SMAP_E3_PHY_READ)) != 0)
                         {
@@ -54,7 +179,7 @@ namespace CLRDEV9.DEV9.SMAP
                                         val |= DEV9Header.SMAP_PHY_STS_LINK | DEV9Header.SMAP_PHY_STS_100M | DEV9Header.SMAP_PHY_STS_FDX | DEV9Header.SMAP_PHY_STS_ANCP;
                                     break;
                             }
-                            Log_Verb("phy_read " + reg.ToString() + ": " + val.ToString("X"));
+                            Log_Verb("phy read " + reg.ToString() + ": " + val.ToString("X"));
                             value = (uint)((value & 0xFFFFu) | (uint)((int)val << 16));
                         }
                         if ((value & (DEV9Header.SMAP_E3_PHY_WRITE)) != 0)
@@ -72,7 +197,7 @@ namespace CLRDEV9.DEV9.SMAP
                                     val |= 0x1;
                                     break;
                             }
-                            Log_Verb("phy_write " + reg.ToString() + ": " + val.ToString("X"));
+                            Log_Verb("phy write " + reg.ToString() + ": " + val.ToString("X"));
                             dev9.phyRegs[reg] = val;
                         }
                     }
@@ -89,7 +214,7 @@ namespace CLRDEV9.DEV9.SMAP
             switch (addr)
             {
                 case DEV9Header.SMAP_R_TXFIFO_FRAME_INC:
-                    Log_Verb("SMAP_R_TXFIFO_FRAME_INC 8bit write " + value);
+                    Log_Verb("SMAP_R_TXFIFO_FRAME_INC 8bit write " + value.ToString("X"));
                     {
                         //DEV9Header.dev9Ru8(DEV9Header.SMAP_R_TXFIFO_FRAME_CNT)++;
                         dev9.Dev9Wu8((int)DEV9Header.SMAP_R_TXFIFO_FRAME_CNT, (byte)(dev9.Dev9Ru8((int)DEV9Header.SMAP_R_TXFIFO_FRAME_CNT) + 1));
@@ -97,7 +222,7 @@ namespace CLRDEV9.DEV9.SMAP
                     return;
 
                 case DEV9Header.SMAP_R_RXFIFO_FRAME_DEC:
-                    Log_Verb("SMAP_R_RXFIFO_FRAME_DEC 8bit write " + value);
+                    Log_Verb("SMAP_R_RXFIFO_FRAME_DEC 8bit write " + value.ToString("X"));
                     lock (counterSentry)
                     {
                         dev9.Dev9Wu8((int)addr, value); //yes this is a write
@@ -148,9 +273,10 @@ namespace CLRDEV9.DEV9.SMAP
                     return;
 
                 case DEV9Header.SMAP_R_BD_MODE:
+                    Log_Verb("SMAP_R_BD_MODE 8bit write " + value.ToString("X"));
                     if ((value & DEV9Header.SMAP_BD_SWAP) != 0)
                     {
-                        Log_Verb("SMAP_R_BD_MODE: byteswapped.");
+                        Log_Verb("SMAP_R_BD_MODE: byteswapped");
                         Log_Info("BD byteswapping enabled");
                         dev9.bdSwap = 1;
                     }
@@ -162,7 +288,7 @@ namespace CLRDEV9.DEV9.SMAP
                     }
                     return;
                 default:
-                    Log_Error("SMAP : Unknown 8 bit write @ " + addr.ToString("X8") + " ,v=" + value.ToString("X"));
+                    Log_Error("Unknown 8 bit write @ " + addr.ToString("X8") + ", v=" + value.ToString("X"));
                     dev9.Dev9Wu8((int)addr, value);
                     return;
             }
@@ -174,7 +300,7 @@ namespace CLRDEV9.DEV9.SMAP
         {
             if (addr >= DEV9Header.SMAP_BD_TX_BASE && addr < (DEV9Header.SMAP_BD_TX_BASE + DEV9Header.SMAP_BD_SIZE))
             {
-                Log_Verb("SMAP : Generic TX 16bit write " + value.ToString("X"));
+                Log_Verb("Generic SMAP_BD_TX 16bit write " + value.ToString("X"));
                 if (dev9.bdSwap != 0)
                     value = (UInt16)((value >> 8) | (value << 8));
                 dev9.Dev9Wu16((int)addr, value);
@@ -182,7 +308,7 @@ namespace CLRDEV9.DEV9.SMAP
             }
             else if (addr >= DEV9Header.SMAP_BD_RX_BASE && addr < (DEV9Header.SMAP_BD_RX_BASE + DEV9Header.SMAP_BD_SIZE))
             {
-                Log_Verb("SMAP : Generic RX 16bit write " + value.ToString("X"));
+                Log_Verb("Generic SMAP_BD_RX 16bit write " + value.ToString("X"));
                 //int rx_index = (int)((addr - DEV9Header.SMAP_BD_RX_BASE) >> 3);
                 if (dev9.bdSwap != 0)
                     value = (UInt16)((value >> 8) | (value << 8));
@@ -193,24 +319,24 @@ namespace CLRDEV9.DEV9.SMAP
             switch (addr)
             {
                 case DEV9Header.SMAP_R_RXFIFO_RD_PTR:
-                    Log_Verb("SMAP: SMAP_R_RXFIFO_RD_PTR 16bit write " + value.ToString("X"));
+                    Log_Verb("SMAP_R_RXFIFO_RD_PTR 16bit write " + value.ToString("X"));
                     dev9.Dev9Wu16((int)addr, value);
                     break;
                 case DEV9Header.SMAP_R_RXFIFO_SIZE:
-                    Log_Verb("SMAP: SMAP_R_34 16bit write " + value.ToString("X"));
+                    Log_Verb("SMAP_R_34 16bit write " + value.ToString("X"));
                     dev9.Dev9Wu16((int)addr, value);
                     break;
                 case DEV9Header.SMAP_R_INTR_CLR:
-                    Log_Verb("SMAP: SMAP_R_INTR_CLR 16bit write " + value.ToString("X"));
+                    Log_Verb("SMAP_R_INTR_CLR 16bit write " + value.ToString("X"));
                     dev9.irqCause &= ~value;
                     return;
 
                 case DEV9Header.SMAP_R_TXFIFO_WR_PTR:
-                    Log_Verb("SMAP: SMAP_R_TXFIFO_WR_PTR 16bit write " + value.ToString("X"));
+                    Log_Verb("SMAP_R_TXFIFO_WR_PTR 16bit write " + value.ToString("X"));
                     dev9.Dev9Wu16((int)addr, value);
                     return;
                 case DEV9Header.SMAP_R_TXFIFO_SIZE:
-                    Log_Verb("SMAP: SMAP_R_TXFIFO_SIZE 16bit write " + value.ToString("X"));
+                    Log_Verb("SMAP_R_TXFIFO_SIZE 16bit write " + value.ToString("X"));
                     dev9.Dev9Wu16((int)addr, value);
                     break;
                 //handle L writes
@@ -220,11 +346,11 @@ namespace CLRDEV9.DEV9.SMAP
                 //        dev9Ru16(addr) = value; \
                 //        return;
                 case DEV9Header.SMAP_R_EMAC3_MODE0_L:
-                    Log_Verb("SMAP: SMAP_R_EMAC3_SMAP_R_EMAC3_MODE0_L 16bit write " + value.ToString("X"));
+                    Log_Verb("SMAP_R_EMAC3_MODE0_L 16bit write " + value.ToString("X"));
                     dev9.Dev9Wu16((int)addr, value);
                     return;
                 case DEV9Header.SMAP_R_EMAC3_MODE1_L:
-                    Log_Verb("SMAP: SMAP_R_EMAC3_SMAP_R_EMAC3_MODE1_L 16bit write " + value.ToString("X"));
+                    Log_Verb("SMAP_R_EMAC3_MODE1_L 16bit write " + value.ToString("X"));
                     dev9.Dev9Wu16((int)addr, value);
                     return;
                 case DEV9Header.SMAP_R_EMAC3_TxMODE0_L:
@@ -253,7 +379,7 @@ namespace CLRDEV9.DEV9.SMAP
                 case DEV9Header.SMAP_R_EMAC3_RX_WATERMARK_L:
                 case DEV9Header.SMAP_R_EMAC3_TX_OCTETS:
                 case DEV9Header.SMAP_R_EMAC3_RX_OCTETS:
-                    Log_Verb("SMAP: SMAP_R_EMAC3_***(L_Write) 16bit write " + value.ToString("X"));
+                    Log_Verb("SMAP_R_EMAC3_***(L_Write) 16bit write " + value.ToString("X"));
                     //Look at all that logging I'm not doing
                     dev9.Dev9Wu16((int)addr, value);
                     return;
@@ -294,13 +420,13 @@ namespace CLRDEV9.DEV9.SMAP
                 case DEV9Header.SMAP_R_EMAC3_TX_OCTETS + 2:
                 case DEV9Header.SMAP_R_EMAC3_RX_OCTETS + 2:
                     // DEV9_LOG("SMAP: " #name " 16 bit write %x\n", value); \
-                    Log_Verb("SMAP: SMAP_R_EMAC3_***(H_Write) 16bit write " + value.ToString("X"));
+                    Log_Verb("SMAP_R_EMAC3_***(H_Write) 16bit write " + value.ToString("X"));
                     dev9.Dev9Wu16((int)addr, value);
                     EMAC3_Write(addr - 2);
                     return;
 
                 default:
-                    Log_Error("SMAP : Unknown 16 bit write @" + addr.ToString("X8") + ",v=" + value.ToString("X"));
+                    Log_Error("Unknown SMAP 16bit write @" + addr.ToString("X8") + ", v=" + value.ToString("X"));
                     dev9.Dev9Wu16((int)addr, value);
                     return;
             }
@@ -312,10 +438,10 @@ namespace CLRDEV9.DEV9.SMAP
         {
             if (addr >= DEV9Header.SMAP_EMAC3_REGBASE && addr < DEV9Header.SMAP_EMAC3_REGEND)
             {
-                Log_Verb("SMAP : 32bit write is double 16bit write");
+                Log_Verb("32bit write is double 16bit write");
                 SMAP_Write16(addr, (UInt16)(value & 0xFFFF));
                 SMAP_Write16(addr + 2, (UInt16)(value >> 16));
-                Log_Verb("SMAP : Double 16bit write combined value " + value.ToString("X"));
+                Log_Verb("Double 16bit write combined value " + value.ToString("X"));
                 return;
             }
             switch (addr)
@@ -333,7 +459,7 @@ namespace CLRDEV9.DEV9.SMAP
                     dev9.Dev9Wu32((int)DEV9Header.SMAP_R_TXFIFO_WR_PTR, (dev9.Dev9Ru32((int)DEV9Header.SMAP_R_TXFIFO_WR_PTR) + 4) & 16383);
                     return;
                 default:
-                    Log_Error("SMAP : Unknown 32 bit write @ " + addr.ToString("X8") + ",v=" + value.ToString("X"));
+                    Log_Error("Unknown 32bit write @ " + addr.ToString("X8") + ", v=" + value.ToString("X"));
                     dev9.Dev9Wu32((int)addr, value);
                     return;
             }

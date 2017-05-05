@@ -35,7 +35,7 @@ namespace PSE
         //EMU Version (Windows only)
         private static string emuName = "";
         private static CLR_PSE_Version_PCSX2 emuVersion = new CLR_PSE_Version_PCSX2(255, 255, 255);
-        internal static string EmuName{ get { return emuName; }}
+        internal static string EmuName { get { return emuName; } }
         internal static CLR_PSE_Version_PCSX2 EmuVersion { get { return emuVersion; } }
 
         public static string PS2EgetLibName()

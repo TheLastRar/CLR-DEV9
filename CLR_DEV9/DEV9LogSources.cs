@@ -38,6 +38,8 @@ namespace CLRDEV9
         //1131x DHCP (subset of UDP)
         DHCPSession = 11310,
         DHCPPacket  = 11311,
-        DHCPOption  = 11312,  
+        DHCPOption  = 11312,
+        //1132x DNS (subset of UDP)
+        DNSPacket = 11321,
     }
 }

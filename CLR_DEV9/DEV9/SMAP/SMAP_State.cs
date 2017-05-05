@@ -183,7 +183,7 @@ namespace CLRDEV9.DEV9.SMAP
                     {
                         UInt32 was = 16384 - _base;
                         Utils.memcpy(ref pk.buffer, 0, dev9.txFifo, (int)_base, (int)was);
-                        Utils.memcpy(ref pk.buffer, (int)was, dev9.txFifo, 0, (int)(pbd.Length - was)); //I thingk this was a bug in the original plugin
+                        Utils.memcpy(ref pk.buffer, (int)was, dev9.txFifo, 0, (int)(pbd.Length - was));
                         Log_Verb("Warped read, was=" + was + ", sz=" + pbd.Length + ", sz-was=" + (pbd.Length - was));
                     }
                     else

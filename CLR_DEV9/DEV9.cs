@@ -45,7 +45,7 @@ namespace CLRDEV9
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.Winsock);
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.NetAdapter);
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.UDPSession);
-
+                CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.DNSPacket);
 #if DEBUG
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.PluginInterface);
                 //Info is defualt
