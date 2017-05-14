@@ -132,11 +132,11 @@
             // cEnable
             // 
             this.cEnable.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
-            this.cEnable.FalseValue = "false";
+            this.cEnable.FalseValue = "";
             this.cEnable.FillWeight = 50F;
             this.cEnable.HeaderText = "Enabled";
             this.cEnable.Name = "cEnable";
-            this.cEnable.TrueValue = "true";
+            this.cEnable.TrueValue = "";
             this.cEnable.Width = 50;
             // 
             // ConfigFormIncomingPorts

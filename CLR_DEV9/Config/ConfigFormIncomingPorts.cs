@@ -18,6 +18,10 @@ namespace CLRDEV9.Config
             cProtocol.DataSource = new IPType[] { IPType.UDP };
             cProtocol.ValueType = typeof(IPType);
 
+            cEnable.ValueType = typeof(bool);
+            cEnable.TrueValue = true;
+            cEnable.FalseValue = false;
+
             foreach (ConfigIncomingPort port in DEV9Header.config.SocketConnectionSettings.IncomingPorts)
             {
                 DataGridViewRow row = new DataGridViewRow();
@@ -175,6 +179,8 @@ namespace CLRDEV9.Config
                     MessageBox.Show("Invalid port specified for " + port.Desc);
                     return;
                 }
+                port.Enabled = (bool)row.Cells[CELL_EN].Value;
+                newconfig.Add(port);
             }
             DEV9Header.config.SocketConnectionSettings.IncomingPorts = newconfig;
             Close();
