@@ -451,6 +451,7 @@ namespace CLRDEV9.DEV9.SMAP
                         value = (value << 24) | (value >> 24) | ((value >> 8) & 0xFF00) | ((value << 8) & 0xFF0000);
 
                     Log_Verb("SMAP_R_TXFIFO_DATA 32bit write " + value.ToString("X"));
+                    Log_Verb("SMAP_R_TXFIFO_WR_PTR is " + dev9.Dev9Ru32((int)DEV9Header.SMAP_R_TXFIFO_WR_PTR).ToString("X"));
                     //*((u32*)(DEV9Header.dev9.txfifo + dev9Ru32(DEV9Header.SMAP_R_TXFIFO_WR_PTR))) = value; //I'm sorry but what??
                     // I think this is how its supposed to work
                     byte[] valuebytes = BitConverter.GetBytes(value);
