@@ -53,19 +53,21 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             //Set IP, NetMask and Gateway based on if LANMode is set
             if (parLANMode)
             {
-                //Give PS2 same IP as host to allow LAN games to work
-                IPInterfaceProperties properties = parAdapter.GetIPProperties();
-                UnicastIPAddressInformationCollection IPInfoCollection = properties.UnicastAddresses;
-
-                foreach (UnicastIPAddressInformation IPInfo in IPInfoCollection)
+                if (parAdapter != null)
                 {
-                    if (IPInfo.Address.AddressFamily == AddressFamily.InterNetwork)
+                    //Give PS2 same IP as host to allow LAN games to work
+                    IPInterfaceProperties properties = parAdapter.GetIPProperties();
+                    UnicastIPAddressInformationCollection IPInfoCollection = properties.UnicastAddresses;
+
+                    foreach (UnicastIPAddressInformation IPInfo in IPInfoCollection)
                     {
-                        PS2IP = IPInfo.Address.GetAddressBytes();
-                        break;
+                        if (IPInfo.Address.AddressFamily == AddressFamily.InterNetwork)
+                        {
+                            PS2IP = IPInfo.Address.GetAddressBytes();
+                            break;
+                        }
                     }
                 }
-
                 HandleNetMask(parAdapter, null);
                 HandleGateway(parAdapter, null);
             }
@@ -165,7 +167,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             Gateway = parGateway;
 
             if (Gateway == null &
-                parAdapter != null)
+                parAdapter != null &
+                NetMask != null)
             {
                 IPInterfaceProperties properties = parAdapter.GetIPProperties();
                 GatewayIPAddressInformationCollection GatewayInfoCollection = properties.GatewayAddresses;
@@ -249,10 +252,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         private void HandleBroadcast(byte[] parPS2IP, byte[] parNetMask)
         {
-            Broadcast = new byte[4];
-            for (int i2 = 0; i2 < 4; i2++)
+            if (parNetMask != null)
             {
-                Broadcast[i2] = (byte)((parPS2IP[i2]) | (~parNetMask[i2]));
+                Broadcast = new byte[4];
+                for (int i2 = 0; i2 < 4; i2++)
+                {
+                    Broadcast[i2] = (byte)((parPS2IP[i2]) | (~parNetMask[i2]));
+                }
             }
         }
 
