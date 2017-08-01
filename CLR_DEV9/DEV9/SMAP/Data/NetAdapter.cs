@@ -13,7 +13,7 @@ namespace CLRDEV9.DEV9.SMAP.Data
 
         protected byte[] ps2MAC;
 
-        public byte[] PS2HWAddress { get { return ps2MAC; } }
+        //public byte[] PS2HWAddress { get { return ps2MAC; } }
         //public byte[] DHCPHWAddress { get { return ps2MAC; } }
 
         protected DEV9_State dev9 = null;
