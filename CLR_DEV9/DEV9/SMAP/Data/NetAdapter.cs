@@ -21,7 +21,7 @@ namespace CLRDEV9.DEV9.SMAP.Data
         public NetAdapter(DEV9_State parDev9)
         {
             dev9 = parDev9;
-            SetMAC(null);
+            //SetMAC(null);
         }
 
         //public abstract List<string[]> getadapters(); //TODO

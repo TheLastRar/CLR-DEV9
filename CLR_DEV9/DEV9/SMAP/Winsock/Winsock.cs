@@ -157,6 +157,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     throw new Exception("Connection Add Failed");
                 }
             }
+
+            SetMAC(adapter.GetPhysicalAddress().GetAddressBytes());
         }
 
         public override bool Blocks()

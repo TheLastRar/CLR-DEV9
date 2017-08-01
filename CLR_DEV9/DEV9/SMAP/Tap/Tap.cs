@@ -45,6 +45,12 @@ namespace CLRDEV9.DEV9.SMAP.Tap
                 }
                 InitDHCP(hostAdapter);
             }
+
+            byte[] tapMAC = TAPGetMac(htap);
+            byte temp = tapMAC[5];
+            tapMAC[5] = tapMAC[4];
+            tapMAC[4] = temp;
+            SetMAC(tapMAC);
         }
 
         public override bool Blocks()

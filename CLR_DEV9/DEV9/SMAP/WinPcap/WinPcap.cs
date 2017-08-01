@@ -92,6 +92,12 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             {
                 InitDHCP(hostAdapter);
             }
+
+            byte[] wMAC = (byte[])hostMAC.Clone();
+            byte temp = wMAC[5];
+            wMAC[5] = wMAC[4];
+            wMAC[4] = temp;
+            SetMAC(wMAC);
         }
 
         public override bool Blocks()

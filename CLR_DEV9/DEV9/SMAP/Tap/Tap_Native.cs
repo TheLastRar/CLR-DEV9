@@ -30,6 +30,8 @@ namespace CLRDEV9.DEV9.SMAP.Tap
             public static extern bool DeviceIoControl(SafeFileHandle hDevice, UInt32 dwIoControlCode, ref Version lpInBuffer, UInt32 nInBufferSize, ref Version lpOutBuffer, UInt32 nOutBufferSize, ref UInt32 lpbytesReturned, IntPtr lpOverlapped);
             [DllImport("kernel32.dll", SetLastError = true)]
             public static extern bool DeviceIoControl(SafeFileHandle hDevice, UInt32 dwIoControlCode, ref bool lpInBuffer, UInt32 nInBufferSize, out bool lpOutBuffer, UInt32 nOutBufferSize, out UInt32 lpbytesReturned, IntPtr lpOverlapped);
+            [DllImport("kernel32.dll", SetLastError = true)]
+            public static extern bool DeviceIoControl(SafeFileHandle hDevice, UInt32 dwIoControlCode, ref byte[] lpInBuffer, UInt32 nInBufferSize, ref byte[] lpOutBuffer, UInt32 nOutBufferSize, ref UInt32 lpbytesReturned, IntPtr lpOverlapped);
         }
         //CreateFile
         const UInt32 GENERIC_READ = (0x80000000);
@@ -42,6 +44,7 @@ namespace CLRDEV9.DEV9.SMAP.Tap
         const UInt32 FILE_ANY_ACCESS = 0;
         const UInt32 METHOD_BUFFERED = 0;
 
+        const UInt32 TAP_IOCTL_GET_MAC = ((FILE_DEVICE_UNKNOWN) << 16) | ((FILE_ANY_ACCESS) << 14) | ((1) << 2) | (METHOD_BUFFERED);//TAP_CONTROL_CODE(1, METHOD_BUFFERED);
         const UInt32 TAP_IOCTL_GET_VERSION = ((FILE_DEVICE_UNKNOWN) << 16) | ((FILE_ANY_ACCESS) << 14) | ((2) << 2) | (METHOD_BUFFERED);//TAP_CONTROL_CODE(2, METHOD_BUFFERED);
         const UInt32 TAP_IOCTL_SET_MEDIA_STATUS = ((FILE_DEVICE_UNKNOWN) << 16) | ((FILE_ANY_ACCESS) << 14) | ((6) << 2) | (METHOD_BUFFERED);//TAP_CONTROL_CODE(6, METHOD_BUFFERED);
         #endregion
@@ -105,6 +108,24 @@ namespace CLRDEV9.DEV9.SMAP.Tap
             }
 
             return handle;
+        }
+
+        byte[] TAPGetMac(SafeFileHandle handle)
+        {
+            UInt32 retLen = 0;
+
+            byte[] ret = new byte[6];
+
+            IntPtr nullptr = IntPtr.Zero;
+            bool bret = NativeMethods.DeviceIoControl(handle, TAP_IOCTL_GET_MAC,
+                                   ref ret, 6,
+                                   ref ret, 6, ref retLen, nullptr);
+            if (bret == false)
+            {
+                Log_Error("Error @ DIOC " + Marshal.GetLastWin32Error());
+                return null;
+            }
+            return ret;
         }
 
         private static List<string[]> TAPGetAdaptersWMI()
