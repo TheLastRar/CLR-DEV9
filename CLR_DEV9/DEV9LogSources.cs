@@ -16,8 +16,8 @@ namespace CLRDEV9
         //ABCDE
         //A = 1 (winsock)
         //B = EtherFrameType (1=IP)
-        //C = IP Protocol Type (1 = ICMP, 2 = UCP, 3 = TCP, 4 = IGMP)
-        //D = Palyload type (i.e. is DHCP?)
+        //C = IP Protocol Type (1 = ICMP, 2 = UDP, 3 = TCP, 4 = IGMP)
+        //D = Payload type (i.e. is DHCP?)
         //E = Component
         //10xxx Ether/Other packets/winsock base
         ETHFrame    = 10001,
@@ -34,12 +34,14 @@ namespace CLRDEV9
         TCPPacket   = 11201,
         TCPOption   = 11202,
 
-        UDPSession  = 11301,
+        UDPSession  = 11300,
+        UDPPacket   = 11301,
         //1131x DHCP (subset of UDP)
         DHCPSession = 11310,
         DHCPPacket  = 11311,
         DHCPOption  = 11312,
         //1132x DNS (subset of UDP)
-        DNSPacket = 11321,
+        DNSSession  = 11320,
+        DNSPacket   = 11321,
     }
 }

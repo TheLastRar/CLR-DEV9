@@ -125,6 +125,7 @@
     <Compile Include="DEV9\SMAP\Winsock\PacketReader\IP\DNS\DNSEnums.cs" />
     <Compile Include="DEV9\SMAP\Winsock\PacketReader\IP\IGMP.cs" />
     <Compile Include="DEV9\SMAP\Winsock\PacketReader\IP\IPOptions.cs" />
+    <Compile Include="DEV9\SMAP\Winsock\Sessions\DNSsession.cs" />
     <Compile Include="DEV9\SMAP\Winsock\Sessions\IGMPSession.cs" />
     <Compile Include="DEV9\SMAP\Winsock\Sessions\UDPSession\UDPFixedPort.cs" />
     <Compile Include="DEV9\SMAP\Winsock\Sessions\UDPSession\UDPServerSession.cs" />

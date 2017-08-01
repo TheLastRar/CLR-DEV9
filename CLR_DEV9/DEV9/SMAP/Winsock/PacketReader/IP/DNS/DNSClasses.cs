@@ -2,18 +2,28 @@
 
 namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DNS
 {
-
     class DNSQuestionEntry
     {
         int nameDNSLength;
-        public string Name;
-        public UInt16 Type;
-        public UInt16 Class;
+        byte[] nameBytes;
+        string nameStr;
+        public string Name
+        {
+            get
+            {
+                return nameStr;
+            }
+        }
+        UInt16 _type;
+        public UInt16 Type { get { return _type; } }
+        UInt16 _class;
+        public UInt16 Class { get { return _class; } }
 
         public virtual byte Length { get { return (byte)(nameDNSLength + 4); } }
 
         private void ReadDNSString(byte[] buffer, ref int offset, out string value)
         {
+            int startOffset = offset;
             value = "";
             while (buffer[offset] != 0)
             {
@@ -65,20 +75,32 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DNS
             offset += 1;
         }
 
+        public DNSQuestionEntry(string name, UInt16 Qtype, UInt16 Qclass)
+        {
+            nameStr = name;
+            nameDNSLength = nameStr.Length + 2;
+            nameBytes = new byte[nameDNSLength];
+            int counter = 0;
+            WriteDNSString(nameBytes, ref counter, nameStr);
+            _type = Qtype;
+            _class = Qclass;
+        }
+
         public DNSQuestionEntry(byte[] buffer, int offset)
         {
             int s = offset;
-            ReadDNSString(buffer, ref offset, out Name);
+            ReadDNSString(buffer, ref offset, out nameStr);
             nameDNSLength = offset - s;
-            NetLib.ReadUInt16(buffer, ref offset, out Type);
-            NetLib.ReadUInt16(buffer, ref offset, out Class);
+            NetLib.ReadByteArray(buffer, ref s, nameDNSLength, out nameBytes);
+            NetLib.ReadUInt16(buffer, ref offset, out _type);
+            NetLib.ReadUInt16(buffer, ref offset, out _class);
         }
         public virtual byte[] GetBytes()
         {
-            nameDNSLength = Name.Length + 2;
             byte[] ret = new byte[Length];
             int counter = 0;
             WriteDNSString(ret, ref counter, Name);
+            NetLib.WriteByteArray(ret, ref counter, nameBytes);
             NetLib.WriteUInt16(ret, ref counter, Type);
             NetLib.WriteUInt16(ret, ref counter, Class);
             return ret;
