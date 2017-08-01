@@ -13,7 +13,7 @@ namespace CLRDEV9.DEV9.SMAP
 
         DEV9_State dev9 = null;
 
-        AdapterLoader adapter = null;
+        protected AdapterLoader adapter = null;
 
         public SMAP_State(DEV9_State parDev9)
         {
@@ -44,7 +44,7 @@ namespace CLRDEV9.DEV9.SMAP
         }
 
         //this can return a false positive, but its not problem since it may say it cant recv while it can (no harm done, just delay on packets)
-        public bool RxFifoCanRx()
+        public virtual bool RxFifoCanRx()
         {
             //check if RX is on & stuff like that here
 
@@ -74,7 +74,7 @@ namespace CLRDEV9.DEV9.SMAP
             //we can recv a packet !
             return true;
         }
-        public void RxProcess(ref NetPacket pk)
+        public virtual void RxProcess(ref NetPacket pk)
         {
             if (!RxFifoCanRx())
             {

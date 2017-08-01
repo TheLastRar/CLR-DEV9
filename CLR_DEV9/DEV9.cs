@@ -20,7 +20,7 @@ namespace CLRDEV9
         private static string logFolderPath = "logs";
         private static string iniFolderPath = "inis";
         private static DEV9.DEV9_State dev9 = null;
-        const bool doLog = true;
+        private static bool doLog = true;
 
         public static string Name { get { return libraryName; } }
 
@@ -39,6 +39,7 @@ namespace CLRDEV9
 
                 CLR_PSE_PluginLog.Open(logFolderPath, "DEV9_CLR.log", "CLR_DEV9", logSources);
 
+                CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.Test);
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.Dev9);
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.SMAP);
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.ATA);
@@ -55,6 +56,7 @@ namespace CLRDEV9
                 CLR_PSE_PluginLog.SetSourceLogLevel(SourceLevels.All, (int)DEV9LogSources.Dev9);
                 CLR_PSE_PluginLog.SetSourceLogLevel(SourceLevels.All, (int)DEV9LogSources.SMAP);
 #endif
+                doLog = false;
             }
         }
 
@@ -341,6 +343,7 @@ namespace CLRDEV9
         {
             try
             {
+                LogInit();
                 ConfigFile.LoadConf(iniFolderPath, "CLR_DEV9.ini");
                 ConfigFile.DoConfig(iniFolderPath, "CLR_DEV9.ini");
                 ConfigFile.SaveConf(iniFolderPath, "CLR_DEV9.ini");

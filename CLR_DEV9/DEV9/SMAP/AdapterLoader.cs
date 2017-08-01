@@ -19,7 +19,6 @@ namespace CLRDEV9.DEV9.SMAP
         NetAdapter GetNetAdapter()
         {
             NetAdapter na = null;
-            //TODO Make this use EthType
             switch (DEV9Header.config.EthType)
             {
                 case ConfigFile.EthAPI.Null:

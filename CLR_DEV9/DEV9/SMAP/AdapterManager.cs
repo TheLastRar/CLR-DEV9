@@ -42,6 +42,13 @@ namespace CLRDEV9.DEV9.SMAP
             //return 0;
         }
 
+        public byte[] GetPS2HWAddress()
+        {
+            if (nif != null)
+                return nif.PS2HWAddress;
+            return null;
+        }
+
         public void TxPut(ref NetPacket pkt)
         {
             if (nif != null)

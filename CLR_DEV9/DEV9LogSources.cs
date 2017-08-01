@@ -12,6 +12,7 @@ namespace CLRDEV9
         Tap = 6,
         WinPcap = 7,
         Winsock = 8,
+        Test = 10,
 
         //ABCDE
         //A = 1 (winsock)

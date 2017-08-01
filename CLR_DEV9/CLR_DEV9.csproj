@@ -117,6 +117,12 @@
       <DependentUpon>ConfigFormIncomingPorts.cs</DependentUpon>
     </Compile>
     <Compile Include="Config\ConfigIncomingPort.cs" />
+    <Compile Include="Config\Test\Eth\ARPTest.cs" />
+    <Compile Include="Config\Test\Eth\DEV9_Test.cs" />
+    <Compile Include="Config\Test\EthTester.cs" />
+    <Compile Include="Config\Test\Eth\DHCPTest.cs" />
+    <Compile Include="Config\Test\Eth\DNSTest.cs" />
+    <Compile Include="Config\Test\Eth\SMAP_Test.cs" />
     <Compile Include="DEV9\SMAP\SMAP_State_Read.cs" />
     <Compile Include="DEV9\SMAP\SMAP_State_Write.cs" />
     <Compile Include="DEV9\SMAP\Winsock\ConnectionKey.cs" />
