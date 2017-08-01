@@ -174,27 +174,27 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
             //byte[] ret = new byte[240]; //Fixed size section
             byte[] ret = new byte[MaxLen];
             int counter = 0;
-            NetLib.WriteByte08(ref ret, ref counter, OP);
-            NetLib.WriteByte08(ref ret, ref counter, HardwareType);
-            NetLib.WriteByte08(ref ret, ref counter, HardwareAddressLength);
-            NetLib.WriteByte08(ref ret, ref counter, Hops);
+            NetLib.WriteByte08(ret, ref counter, OP);
+            NetLib.WriteByte08(ret, ref counter, HardwareType);
+            NetLib.WriteByte08(ret, ref counter, HardwareAddressLength);
+            NetLib.WriteByte08(ret, ref counter, Hops);
 
-            NetLib.WriteUInt32(ref ret, ref counter, TransactionID);
+            NetLib.WriteUInt32(ret, ref counter, TransactionID);
 
-            NetLib.WriteUInt16(ref ret, ref counter, Seconds);
-            NetLib.WriteUInt16(ref ret, ref counter, Flags);
+            NetLib.WriteUInt16(ret, ref counter, Seconds);
+            NetLib.WriteUInt16(ret, ref counter, Flags);
 
-            NetLib.WriteByteArray(ref ret, ref counter, ClientIP);
-            NetLib.WriteByteArray(ref ret, ref counter, YourIP);
-            NetLib.WriteByteArray(ref ret, ref counter, ServerIP);
-            NetLib.WriteByteArray(ref ret, ref counter, GatewayIP);
+            NetLib.WriteByteArray(ret, ref counter, ClientIP);
+            NetLib.WriteByteArray(ret, ref counter, YourIP);
+            NetLib.WriteByteArray(ret, ref counter, ServerIP);
+            NetLib.WriteByteArray(ret, ref counter, GatewayIP);
 
-            NetLib.WriteByteArray(ref ret, ref counter, ClientHardwareAddress);
+            NetLib.WriteByteArray(ret, ref counter, ClientHardwareAddress);
             //empty bytes
-            NetLib.WriteByteArray(ref ret, ref counter, new byte[64]);
-            NetLib.WriteByteArray(ref ret, ref counter, new byte[128]);
+            NetLib.WriteByteArray(ret, ref counter, new byte[64]);
+            NetLib.WriteByteArray(ret, ref counter, new byte[128]);
 
-            NetLib.WriteUInt32(ref ret, ref counter, MagicCookie);
+            NetLib.WriteUInt32(ret, ref counter, MagicCookie);
 
             //const UInt16 minOpLength = 64;
             //UInt16 OpLength = minOpLength;
@@ -202,7 +202,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
             //int opOffset = 0;
             for (int i = 0; i < Options.Count; i++)
             {
-                NetLib.WriteByteArray(ref ret, ref counter, Options[i].GetBytes());
+                NetLib.WriteByteArray(ret, ref counter, Options[i].GetBytes());
             }
 
             ////byte[] RetFinal = new byte[OpLength+240];

@@ -74,17 +74,17 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             byte[] headerSegment = new byte[pHeaderLen];
             int counter = 0;
 
-            NetLib.WriteByteArray(ref headerSegment, ref counter, srcIP);
-            NetLib.WriteByteArray(ref headerSegment, ref counter, dstIP);
+            NetLib.WriteByteArray(headerSegment, ref counter, srcIP);
+            NetLib.WriteByteArray(headerSegment, ref counter, dstIP);
             counter += 1;//[8] = 0
-            NetLib.WriteByte08(ref headerSegment, ref counter, Protocol);
-            NetLib.WriteUInt16(ref headerSegment, ref counter, Length);
+            NetLib.WriteByte08(headerSegment, ref counter, Protocol);
+            NetLib.WriteUInt16(headerSegment, ref counter, Length);
 
             //Pseudo Header added
             //Rest of data is normal Header+data (with zerored checksum feild)
             //Null Checksum
             checksum = 0;
-            NetLib.WriteByteArray(ref headerSegment, ref counter, GetBytes());
+            NetLib.WriteByteArray(headerSegment, ref counter, GetBytes());
 
             checksum = IPPacket.InternetChecksum(headerSegment); //For performance, we can set this to = zero
         }
@@ -100,15 +100,15 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             byte[] headerSegment = new byte[pHeaderLen];
             int counter = 0;
 
-            NetLib.WriteByteArray(ref headerSegment, ref counter, srcIP);
-            NetLib.WriteByteArray(ref headerSegment, ref counter, dstIP);
+            NetLib.WriteByteArray(headerSegment, ref counter, srcIP);
+            NetLib.WriteByteArray(headerSegment, ref counter, dstIP);
             counter += 1;//[8] = 0
-            NetLib.WriteByte08(ref headerSegment, ref counter, Protocol);
-            NetLib.WriteUInt16(ref headerSegment, ref counter, Length);
+            NetLib.WriteByte08(headerSegment, ref counter, Protocol);
+            NetLib.WriteUInt16(headerSegment, ref counter, Length);
 
             //Pseudo Header added
             //Rest of data is normal Header+data (with zerored checksum feild)
-            NetLib.WriteByteArray(ref headerSegment, ref counter, GetBytes());
+            NetLib.WriteByteArray(headerSegment, ref counter, GetBytes());
 
             UInt16 CsumCal = IPPacket.InternetChecksum(headerSegment);
             //Error.WriteLine("UDP Checksum Good = " + (CsumCal == 0));
@@ -118,12 +118,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
         {
             byte[] ret = new byte[Length];
             int counter = 0;
-            NetLib.WriteUInt16(ref ret, ref counter, SourcePort);
-            NetLib.WriteUInt16(ref ret, ref counter, DestinationPort);
-            NetLib.WriteUInt16(ref ret, ref counter, Length);
-            NetLib.WriteUInt16(ref ret, ref counter, checksum);
+            NetLib.WriteUInt16(ret, ref counter, SourcePort);
+            NetLib.WriteUInt16(ret, ref counter, DestinationPort);
+            NetLib.WriteUInt16(ret, ref counter, Length);
+            NetLib.WriteUInt16(ret, ref counter, checksum);
 
-            NetLib.WriteByteArray(ref ret, ref counter, data);
+            NetLib.WriteByteArray(ret, ref counter, data);
             return ret;
         }
     }

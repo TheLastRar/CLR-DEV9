@@ -38,7 +38,7 @@ namespace CLRDEV9.DEV9.ATA
                 status |= (byte)DEV9Header.ATA_STAT_DRQ;
             }
 
-            Utils.memcpy(ref pioBuffer, 0, buf, buffIndex, Math.Min(size, buf.Length - buffIndex));
+            Utils.memcpy(pioBuffer, 0, buf, buffIndex, Math.Min(size, buf.Length - buffIndex));
         }
 
         //TODO multi-Sector read support

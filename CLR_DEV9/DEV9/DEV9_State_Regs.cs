@@ -58,12 +58,12 @@ namespace CLRDEV9.DEV9
         public void Dev9Wu16(int mem, UInt16 value)
         {
             byte[] tmp = BitConverter.GetBytes(value);
-            Utils.memcpy(ref dev9R, (mem & 0xffff), tmp, 0, tmp.Length);
+            Utils.memcpy(dev9R, (mem & 0xffff), tmp, 0, tmp.Length);
         }
         public void Dev9Wu32(int mem, UInt32 value)
         {
             byte[] tmp = BitConverter.GetBytes(value);
-            Utils.memcpy(ref dev9R, (mem & 0xffff), tmp, 0, tmp.Length);
+            Utils.memcpy(dev9R, (mem & 0xffff), tmp, 0, tmp.Length);
         }
     }
 }

@@ -10,26 +10,26 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader
         //TODO make shit use this
 
         //Perform convert to Net order and write to buffer
-        public static void WriteUInt32(ref byte[] buffer, ref int offset, UInt32 value)
+        public static void WriteUInt32(byte[] buffer, ref int offset, UInt32 value)
         {
-            DataLib.WriteUInt32(ref buffer, ref offset, (UInt32)IPAddress.HostToNetworkOrder((Int32)value));
+            DataLib.WriteUInt32(buffer, ref offset, (UInt32)IPAddress.HostToNetworkOrder((Int32)value));
         }
-        public static void WriteUInt16(ref byte[] buffer, ref int offset, UInt16 value)
+        public static void WriteUInt16(byte[] buffer, ref int offset, UInt16 value)
         {
-            DataLib.WriteUInt16(ref buffer, ref offset, (UInt16)IPAddress.HostToNetworkOrder((Int16)value));
+            DataLib.WriteUInt16(buffer, ref offset, (UInt16)IPAddress.HostToNetworkOrder((Int16)value));
         }
-        public static void WriteByte08(ref byte[] buffer, ref int offset, byte value)
+        public static void WriteByte08(byte[] buffer, ref int offset, byte value)
         {
-            DataLib.WriteByte08(ref buffer, ref offset, value);
+            DataLib.WriteByte08(buffer, ref offset, value);
         }
         //Special
-        public static void WriteCString(ref byte[] buffer, ref int offset, String value)
+        public static void WriteCString(byte[] buffer, ref int offset, String value)
         {
-            DataLib.WriteCString(ref buffer, ref offset, value);
+            DataLib.WriteCString(buffer, ref offset, value);
         }
-        public static void WriteByteArray(ref byte[] buffer, ref int offset, byte[] value)
+        public static void WriteByteArray(byte[] buffer, ref int offset, byte[] value)
         {
-            DataLib.WriteByteArray(ref buffer, ref offset, value);
+            DataLib.WriteByteArray(buffer, ref offset, value);
         }
         //read
         public static void ReadUInt32(byte[] buffer, ref int offset, out UInt32 value)
@@ -60,7 +60,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader
     class DataLib
     {
         //write to buffer without NO convert
-        public static void WriteUInt64(ref byte[] buffer, ref int offset, UInt64 value)
+        public static void WriteUInt64(byte[] buffer, ref int offset, UInt64 value)
         {
             Array.Copy(BitConverter.GetBytes(
                 value),
@@ -70,7 +70,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader
                 sizeof(UInt64));
             offset += sizeof(UInt64);
         }
-        public static void WriteUInt32(ref byte[] buffer, ref int offset, UInt32 value)
+        public static void WriteUInt32(byte[] buffer, ref int offset, UInt32 value)
         {
             Array.Copy(BitConverter.GetBytes(
                 value),
@@ -80,7 +80,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader
                 sizeof(UInt32));
             offset += sizeof(UInt32);
         }
-        public static void WriteUInt16(ref byte[] buffer, ref int offset, UInt16 value)
+        public static void WriteUInt16(byte[] buffer, ref int offset, UInt16 value)
         {
             Array.Copy(BitConverter.GetBytes(
                 value),
@@ -90,13 +90,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader
                 sizeof(UInt16));
             offset += sizeof(UInt16);
         }
-        public static void WriteByte08(ref byte[] buffer, ref int offset, byte value)
+        public static void WriteByte08(byte[] buffer, ref int offset, byte value)
         {
             buffer[offset] = value;
             offset += sizeof(byte);
         }
         //Special
-        public static void WriteCString(ref byte[] buffer, ref int offset, String value)
+        public static void WriteCString(byte[] buffer, ref int offset, String value)
         {
             byte[] strbytes = Encoding.ASCII.GetBytes(value);
             Array.Copy(strbytes, 0, buffer, offset, strbytes.Length);
@@ -104,7 +104,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader
             //null char, just skip the byte
             offset += strbytes.Length + 1;
         }
-        public static void WriteByteArray(ref byte[] buffer, ref int offset, byte[] value)
+        public static void WriteByteArray(byte[] buffer, ref int offset, byte[] value)
         {
             Array.Copy(value, 0, buffer, offset, value.Length);
             offset += value.Length;

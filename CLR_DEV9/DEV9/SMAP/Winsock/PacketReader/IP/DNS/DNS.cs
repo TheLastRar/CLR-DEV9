@@ -227,29 +227,29 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DNS
 
             byte[] ret = new byte[length];
             int counter = 0;
-            NetLib.WriteUInt16(ref ret, ref counter, ID);
-            NetLib.WriteByte08(ref ret, ref counter, flags1);
-            NetLib.WriteByte08(ref ret, ref counter, flags2);
-            NetLib.WriteUInt16(ref ret, ref counter, (ushort)Questions.Count);
-            NetLib.WriteUInt16(ref ret, ref counter, (ushort)Answers.Count);
-            NetLib.WriteUInt16(ref ret, ref counter, (ushort)Authorities.Count);
-            NetLib.WriteUInt16(ref ret, ref counter, (ushort)Additional.Count);
+            NetLib.WriteUInt16(ret, ref counter, ID);
+            NetLib.WriteByte08(ret, ref counter, flags1);
+            NetLib.WriteByte08(ret, ref counter, flags2);
+            NetLib.WriteUInt16(ret, ref counter, (ushort)Questions.Count);
+            NetLib.WriteUInt16(ret, ref counter, (ushort)Answers.Count);
+            NetLib.WriteUInt16(ret, ref counter, (ushort)Authorities.Count);
+            NetLib.WriteUInt16(ret, ref counter, (ushort)Additional.Count);
 
             for (int i = 0; i < Questions.Count; i++)
             {
-                NetLib.WriteByteArray(ref ret, ref counter, Questions[i].GetBytes());
+                NetLib.WriteByteArray(ret, ref counter, Questions[i].GetBytes());
             }
             for (int i = 0; i < Answers.Count; i++)
             {
-                NetLib.WriteByteArray(ref ret, ref counter, Answers[i].GetBytes());
+                NetLib.WriteByteArray(ret, ref counter, Answers[i].GetBytes());
             }
             for (int i = 0; i < Authorities.Count; i++)
             {
-                NetLib.WriteByteArray(ref ret, ref counter, Authorities[i].GetBytes());
+                NetLib.WriteByteArray(ret, ref counter, Authorities[i].GetBytes());
             }
             for (int i = 0; i < Additional.Count; i++)
             {
-                NetLib.WriteByteArray(ref ret, ref counter, Additional[i].GetBytes());
+                NetLib.WriteByteArray(ret, ref counter, Additional[i].GetBytes());
             }
             return ret;
         }

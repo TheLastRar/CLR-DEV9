@@ -20,7 +20,7 @@ namespace CLRDEV9.DEV9.SMAP.Data
             set
             {
                 byte[] var = BitConverter.GetBytes(value);
-                Utils.memcpy(ref baseData, startOff, var, 0, var.Length);
+                Utils.memcpy(baseData, startOff, var, 0, var.Length);
             }
         }
         public UInt16 Reserved
@@ -32,7 +32,7 @@ namespace CLRDEV9.DEV9.SMAP.Data
             set
             {
                 byte[] var = BitConverter.GetBytes(value);
-                Utils.memcpy(ref baseData, startOff + 2, var, 0, var.Length);
+                Utils.memcpy(baseData, startOff + 2, var, 0, var.Length);
             }
         }
         public UInt16 Length
@@ -44,7 +44,7 @@ namespace CLRDEV9.DEV9.SMAP.Data
             set
             {
                 byte[] var = BitConverter.GetBytes(value);
-                Utils.memcpy(ref baseData, startOff + 4, var, 0, var.Length);
+                Utils.memcpy(baseData, startOff + 4, var, 0, var.Length);
             }
         }
         public UInt16 Pointer
@@ -56,7 +56,7 @@ namespace CLRDEV9.DEV9.SMAP.Data
             set
             {
                 byte[] var = BitConverter.GetBytes(value);
-                Utils.memcpy(ref baseData, startOff + 6, var, 0, var.Length);
+                Utils.memcpy(baseData, startOff + 6, var, 0, var.Length);
             }
         }
 

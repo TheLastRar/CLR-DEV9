@@ -21,19 +21,19 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.ARP
             {
                 byte[] ret = new byte[Length];
                 int counter = 0;
-                NetLib.WriteUInt16(ref ret, ref counter, HardWareType);
+                NetLib.WriteUInt16(ret, ref counter, HardWareType);
                 //
-                DataLib.WriteUInt16(ref ret, ref counter, Protocol);
+                DataLib.WriteUInt16(ret, ref counter, Protocol);
                 //
-                NetLib.WriteByte08(ref ret, ref counter, HardwareAddressLength);
-                NetLib.WriteByte08(ref ret, ref counter, ProtocolAddressLength);
-                NetLib.WriteUInt16(ref ret, ref counter, OP);
+                NetLib.WriteByte08(ret, ref counter, HardwareAddressLength);
+                NetLib.WriteByte08(ret, ref counter, ProtocolAddressLength);
+                NetLib.WriteUInt16(ret, ref counter, OP);
 
-                NetLib.WriteByteArray(ref ret, ref counter, SenderHardwareAddress);
-                NetLib.WriteByteArray(ref ret, ref counter, SenderProtocolAddress);
+                NetLib.WriteByteArray(ret, ref counter, SenderHardwareAddress);
+                NetLib.WriteByteArray(ret, ref counter, SenderProtocolAddress);
 
-                NetLib.WriteByteArray(ref ret, ref counter, TargetHardwareAddress);
-                NetLib.WriteByteArray(ref ret, ref counter, TargetProtocolAddress);
+                NetLib.WriteByteArray(ret, ref counter, TargetHardwareAddress);
+                NetLib.WriteByteArray(ret, ref counter, TargetProtocolAddress);
                 return ret;
             }
         }

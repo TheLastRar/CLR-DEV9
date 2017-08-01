@@ -57,42 +57,42 @@ namespace CLRDEV9.DEV9.ATA
             //bit 16: reserved
             #endregion
             int index = 0;
-            DataLib.WriteUInt16(ref identifyData, ref index, 0x0040);    //word 0
+            DataLib.WriteUInt16(identifyData, ref index, 0x0040);    //word 0
             //Default Num of cylinders
-            DataLib.WriteUInt16(ref identifyData, ref index, defCylinders); //word 1
+            DataLib.WriteUInt16(identifyData, ref index, defCylinders); //word 1
             //Specific configuration
             index += 1 * 2;                                              //word 2
             //Default Num of heads (Retired)
-            DataLib.WriteUInt16(ref identifyData, ref index, defHeads);     //word 3
+            DataLib.WriteUInt16(identifyData, ref index, defHeads);     //word 3
             //Number of unformatted bytes per track (Retired)
-            DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)(sectorSize * defSectors));//word 4
+            DataLib.WriteUInt16(identifyData, ref index, (UInt16)(sectorSize * defSectors));//word 4
             //Number of unformatted bytes per sector (Retired)
-            DataLib.WriteUInt16(ref identifyData, ref index, sectorSize);//word 5
+            DataLib.WriteUInt16(identifyData, ref index, sectorSize);//word 5
             //Default Number of sectors per track (Retired)
-            DataLib.WriteUInt16(ref identifyData, ref index, defSectors);   //word 6
+            DataLib.WriteUInt16(identifyData, ref index, defSectors);   //word 6
             //Reserved for assignment by the CompactFlash™ Association
             index += 2 * 2;                                              //word 7-8
             //Retired
             index += 1 * 2;                                              //word 9
             //M-Serial number (20 ASCII characters)
-            DataLib.WriteCString(ref identifyData, ref index, "CLR-DEV9-AIR".PadRight(20));//word 10-19
+            DataLib.WriteCString(identifyData, ref index, "CLR-DEV9-AIR".PadRight(20));//word 10-19
             index = 20 * 2;
             //Buffer(cache) type (Retired)
-            DataLib.WriteUInt16(ref identifyData, ref index, /*3*/0);    //word 20
+            DataLib.WriteUInt16(identifyData, ref index, /*3*/0);    //word 20
             //Buffer(cache) size in sectors (Retired)
-            DataLib.WriteUInt16(ref identifyData, ref index, /*512*/0);  //word 21
+            DataLib.WriteUInt16(identifyData, ref index, /*512*/0);  //word 21
             //Number of ECC bytes available on read / write long commands (Obsolete)
-            DataLib.WriteUInt16(ref identifyData, ref index, /*4*/0);    //word 22
+            DataLib.WriteUInt16(identifyData, ref index, /*4*/0);    //word 22
             //M-Firmware revision (8 ASCII characters)
-            DataLib.WriteCString(ref identifyData, ref index, "FIRM100".PadRight(8));//word 23-26
+            DataLib.WriteCString(identifyData, ref index, "FIRM100".PadRight(8));//word 23-26
             index = 27 * 2;
             //M-Model number (40 ASCII characters)
-            DataLib.WriteCString(ref identifyData, ref index, "CLR-DEV9 HDD AIR".PadRight(40));//word 27-46
+            DataLib.WriteCString(identifyData, ref index, "CLR-DEV9 HDD AIR".PadRight(40));//word 27-46
             index = 47 * 2;
             //M-READ/WRITE MULI max sectors (TODO)
             index += 1 * 2;                                              //word 47
             //Dword IO supported
-            DataLib.WriteUInt16(ref identifyData, ref index, 1);         //word 48
+            DataLib.WriteUInt16(identifyData, ref index, 1);         //word 48
             //M-Capabilities
             #region
             //bits 7-0: Retired
@@ -103,28 +103,28 @@ namespace CLRDEV9.DEV9.ATA
             //bit 12:Reserved
             //bit 13:Standby timer values as specified in this standard are supported
             #endregion
-            DataLib.WriteUInt16(ref identifyData, ref index, ((1 << 11) | (1 << 9) | (1 << 8)));//word 49
+            DataLib.WriteUInt16(identifyData, ref index, ((1 << 11) | (1 << 9) | (1 << 8)));//word 49
             //M-Capabilities (0-Shall be set to one to indicate a device specific Standby timer value minimum)
             index += 1 * 2;                                              //word 50
             //PIO data transfer cycle timing mode (Obsolete)
-            DataLib.WriteUInt16(ref identifyData, ref index, 0);         //word 51
+            DataLib.WriteUInt16(identifyData, ref index, 0);         //word 51
             //DMA data transfer cycle timing mode (Obsolete)
-            DataLib.WriteUInt16(ref identifyData, ref index, 0);         //word 52
+            DataLib.WriteUInt16(identifyData, ref index, 0);         //word 52
             //M
             #region
             //bit 0: Fields in 54:58 are valid (Obsolete)
             //bit 1: Fields in 70:64 are valid
             //bit 2: Fields in 88 are valid
             #endregion
-            DataLib.WriteUInt16(ref identifyData, ref index, (1 | (1 << 1) | (1 << 2)));//word 53
+            DataLib.WriteUInt16(identifyData, ref index, (1 | (1 << 1) | (1 << 2)));//word 53
             //Number of current cylinders
-            DataLib.WriteUInt16(ref identifyData, ref index, curCylinders); //word 54
+            DataLib.WriteUInt16(identifyData, ref index, curCylinders); //word 54
             //Number of current heads
-            DataLib.WriteUInt16(ref identifyData, ref index, curHeads);     //word 55
+            DataLib.WriteUInt16(identifyData, ref index, curHeads);     //word 55
             //Number of current sectors per track
-            DataLib.WriteUInt16(ref identifyData, ref index, curSectors);   //word 56
+            DataLib.WriteUInt16(identifyData, ref index, curSectors);   //word 56
             //Current capacity in sectors
-            DataLib.WriteUInt32(ref identifyData, ref index, (UInt32)oldsize);//word 57-58
+            DataLib.WriteUInt32(identifyData, ref index, (UInt32)oldsize);//word 57-58
             //M
             #region
             //bit 7-0: Current setting for number of logical sectors that shall be transferred per DRQ
@@ -133,7 +133,7 @@ namespace CLRDEV9.DEV9.ATA
             #endregion
             index += 1 * 2;                                              //word 59
             //Total number of user addressable logical sectors
-            DataLib.WriteUInt32(ref identifyData, ref index, (UInt32)Math.Min(nbSectors, 268435456));//word 60-61
+            DataLib.WriteUInt32(identifyData, ref index, (UInt32)Math.Min(nbSectors, 268435456));//word 60-61
             //DMA modes
             #region
             //bits 0-7: Singleword modes supported (0,1,2)
@@ -141,11 +141,11 @@ namespace CLRDEV9.DEV9.ATA
             #endregion
             if (sdmaMode > 0)
             {
-                DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)(0x07 | (1 << (sdmaMode + 8))));//word 62
+                DataLib.WriteUInt16(identifyData, ref index, (UInt16)(0x07 | (1 << (sdmaMode + 8))));//word 62
             }
             else
             {
-                DataLib.WriteUInt16(ref identifyData, ref index, 0x07);  //word 62
+                DataLib.WriteUInt16(identifyData, ref index, 0x07);  //word 62
             }
             //DMA Modes
             #region
@@ -154,23 +154,23 @@ namespace CLRDEV9.DEV9.ATA
             #endregion
             if (mdmaMode > 0)
             {
-                DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)(0x07 | (1 << (mdmaMode + 8))));//word 63
+                DataLib.WriteUInt16(identifyData, ref index, (UInt16)(0x07 | (1 << (mdmaMode + 8))));//word 63
             }
             else
             {
-                DataLib.WriteUInt16(ref identifyData, ref index, 0x07);  //word 63
+                DataLib.WriteUInt16(identifyData, ref index, 0x07);  //word 63
             }
             //M-Bit 0-7-PIO modes supported (0,1,2,3,4)
             //DataLib.WriteUInt16(ref identifyData, ref index, 0x03);      //word 64 (pio3,4 supported) selection not reported here
-            DataLib.WriteUInt16(ref identifyData, ref index, 0x1F);      //word 64 (pio3,4 supported) selection not reported here
+            DataLib.WriteUInt16(identifyData, ref index, 0x1F);      //word 64 (pio3,4 supported) selection not reported here
             //M-Minimum Multiword DMA transfer cycle time per word
-            DataLib.WriteUInt16(ref identifyData, ref index, 120);       //word 65
+            DataLib.WriteUInt16(identifyData, ref index, 120);       //word 65
             //M-Manufacturer’s recommended Multiword DMA transfer cycle time
-            DataLib.WriteUInt16(ref identifyData, ref index, 120);       //word 66
+            DataLib.WriteUInt16(identifyData, ref index, 120);       //word 66
             //M-Minimum PIO transfer cycle time without flow control
-            DataLib.WriteUInt16(ref identifyData, ref index, 120);       //word 67
+            DataLib.WriteUInt16(identifyData, ref index, 120);       //word 67
             //M-Minimum PIO transfer cycle time with IORDY flow control
-            DataLib.WriteUInt16(ref identifyData, ref index, 120);       //word 68
+            DataLib.WriteUInt16(identifyData, ref index, 120);       //word 68
             //Reserved
             //69-70
             //Reserved
@@ -181,9 +181,9 @@ namespace CLRDEV9.DEV9.ATA
             //76-79
             index = 80 * 2;
             //M-Major revision number (1-3-Obsolete, 4-7-ATA4-7 supported)
-            DataLib.WriteUInt16(ref identifyData, ref index, 0x70);      //word 80
+            DataLib.WriteUInt16(identifyData, ref index, 0x70);      //word 80
             //M-Minor revision number
-            DataLib.WriteUInt16(ref identifyData, ref index, 0);         //word 81
+            DataLib.WriteUInt16(identifyData, ref index, 0);         //word 81
             //M-Supported Feature Sets (82)
             #region
             //bit 0: Smart
@@ -203,7 +203,7 @@ namespace CLRDEV9.DEV9.ATA
             //bit 14: NOP
             //bit 15: (Obsolete)
             #endregion
-            DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)((1 << 14) | (1 << 5) | /*(1 << 1) | (1 << 10) |*/ 1));//word 82
+            DataLib.WriteUInt16(identifyData, ref index, (UInt16)((1 << 14) | (1 << 5) | /*(1 << 1) | (1 << 10) |*/ 1));//word 82
             //M-Supported Feature Sets (83)
             #region
             //bit 0: DOWNLOAD MICROCODE
@@ -222,7 +222,7 @@ namespace CLRDEV9.DEV9.ATA
             //bit 13: FLUSH CACHE EXT
             //bit 14: 1
             #endregion
-            DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)((1 << 14) | (1 << 13) | (1 << 12) /*| (1 << 8)*/ |
+            DataLib.WriteUInt16(identifyData, ref index, (UInt16)((1 << 14) | (1 << 13) | (1 << 12) /*| (1 << 8)*/ |
                 (Convert.ToUInt16(lba48Supported) << 10)));              //word 83
             //M-Supported Feature Sets (84)
             #region
@@ -240,23 +240,23 @@ namespace CLRDEV9.DEV9.ATA
             //bit 13: IDLE IMMEDIATE with UNLOAD FEATURE
             //bit 14: 1
             #endregion
-            DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)((1 << 14) | (1 << 1) | 1));//word 84
+            DataLib.WriteUInt16(identifyData, ref index, (UInt16)((1 << 14) | (1 << 1) | 1));//word 84
             //M-Command set/feature enabled/supported (See word 82)
-            DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)(
+            DataLib.WriteUInt16(identifyData, ref index, (UInt16)(
                 (Convert.ToUInt16(fetSmartEnabled)) |
                 (Convert.ToUInt16(fetSecurityEnabled) << 1) |
                 (Convert.ToUInt16(fetWriteCacheEnabled) << 5) |
                 (Convert.ToUInt16(fetHostProtectedAreaEnabled) << 10) |
                 (Convert.ToUInt16(true) << 14)));           //Fixed      //word 85
             //M-Command set/feature enabled/supported (See word 83)
-            DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)(
+            DataLib.WriteUInt16(identifyData, ref index, (UInt16)(
                 /*(Convert.ToUInt16(true) << 8) | //SET MAX */
                 (Convert.ToUInt16(lba48Supported) << 10) |  //Fixed
                 (Convert.ToUInt16(true) << 12) |            //Fixed
                 (Convert.ToUInt16(true) << 13)));           //Fixed      //word 86             
             //M-Command set/feature enabled/supported (See word 84)
-            DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)((1 << 14) | (1 << 1) | 1));
-            DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)(
+            DataLib.WriteUInt16(identifyData, ref index, (UInt16)((1 << 14) | (1 << 1) | 1));
+            DataLib.WriteUInt16(identifyData, ref index, (UInt16)(
                 (Convert.ToUInt16(true)) |                  //Fixed
                 (Convert.ToUInt16(true) << 1)));            //Fixed      //word 87
             //UDMA modes
@@ -266,11 +266,11 @@ namespace CLRDEV9.DEV9.ATA
             #endregion
             if (udmaMode > 0)
             {
-                DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)(0x7f | (1 << (udmaMode + 8))));//word 88
+                DataLib.WriteUInt16(identifyData, ref index, (UInt16)(0x7f | (1 << (udmaMode + 8))));//word 88
             }
             else
             {
-                DataLib.WriteUInt16(ref identifyData, ref index, 0x7f);  //word 88
+                DataLib.WriteUInt16(identifyData, ref index, 0x7f);  //word 88
             }
             //Time required for security erase unit completion
             //89
@@ -297,7 +297,7 @@ namespace CLRDEV9.DEV9.ATA
             //bit 14: 1
             #endregion
             index = 93 * 2;
-            DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)(1 | (1 << 14) | 0x2000));//word 93
+            DataLib.WriteUInt16(identifyData, ref index, (UInt16)(1 | (1 << 14) | 0x2000));//word 93
             //Vendor’s recommended acoustic management value.
             //94
             //Stream Minimum Request Size
@@ -310,9 +310,9 @@ namespace CLRDEV9.DEV9.ATA
             //98-99
             //Total Number of User Addressable Sectors for the 48-bit Address feature set.
             index = 100 * 2;
-            DataLib.WriteUInt64(ref identifyData, ref index, (UInt64)nbSectors);
+            DataLib.WriteUInt64(identifyData, ref index, (UInt64)nbSectors);
             index -= 2;
-            DataLib.WriteUInt16(ref identifyData, ref index, 0); //truncate to 48bits
+            DataLib.WriteUInt16(identifyData, ref index, 0); //truncate to 48bits
             //Streaming Transfer Time - PIO
             //104
             //Reserved
@@ -325,7 +325,7 @@ namespace CLRDEV9.DEV9.ATA
             //bit 14: 1
             #endregion
             index = 106 * 2;
-            DataLib.WriteUInt16(ref identifyData, ref index, (UInt16)((1 << 14) | 0));
+            DataLib.WriteUInt16(identifyData, ref index, (UInt16)((1 << 14) | 0));
             //Inter-seek delay for ISO-7779acoustic testing in microseconds
             //107
             //WNN

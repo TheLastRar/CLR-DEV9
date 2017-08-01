@@ -242,16 +242,16 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             byte[] headerSegment = new byte[pHeaderLen];
             int counter = 0;
 
-            NetLib.WriteByteArray(ref headerSegment, ref counter, srcIP);
-            NetLib.WriteByteArray(ref headerSegment, ref counter, dstIP);
+            NetLib.WriteByteArray(headerSegment, ref counter, srcIP);
+            NetLib.WriteByteArray(headerSegment, ref counter, dstIP);
             counter += 1;//[8] = 0
-            NetLib.WriteByte08(ref headerSegment, ref counter, Protocol);
-            NetLib.WriteUInt16(ref headerSegment, ref counter, (UInt16)TCPLength);
+            NetLib.WriteByte08(headerSegment, ref counter, Protocol);
+            NetLib.WriteUInt16(headerSegment, ref counter, (UInt16)TCPLength);
             //Pseudo Header added
             //Rest of data is normal Header+data (with zerored checksum feild)
             //Null Checksum
             checksum = 0;
-            NetLib.WriteByteArray(ref headerSegment, ref counter, GetBytes());
+            NetLib.WriteByteArray(headerSegment, ref counter, GetBytes());
 
             checksum = IPPacket.InternetChecksum(headerSegment);
         }
@@ -269,14 +269,14 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             byte[] headerSegment = new byte[pHeaderLen];
             int counter = 0;
 
-            NetLib.WriteByteArray(ref headerSegment, ref counter, srcIP);
-            NetLib.WriteByteArray(ref headerSegment, ref counter, dstIP);
+            NetLib.WriteByteArray(headerSegment, ref counter, srcIP);
+            NetLib.WriteByteArray(headerSegment, ref counter, dstIP);
             counter += 1;//[8] = 0
-            NetLib.WriteByte08(ref headerSegment, ref counter, Protocol);
-            NetLib.WriteUInt16(ref headerSegment, ref counter, (UInt16)TCPLength);
+            NetLib.WriteByte08(headerSegment, ref counter, Protocol);
+            NetLib.WriteUInt16(headerSegment, ref counter, (UInt16)TCPLength);
             //Pseudo Header added
             //Rest of data is normal neader+data
-            NetLib.WriteByteArray(ref headerSegment, ref counter, GetBytes());
+            NetLib.WriteByteArray(headerSegment, ref counter, GetBytes());
 
             UInt16 CsumCal = IPPacket.InternetChecksum(headerSegment);
             //Error.WriteLine("Checksum Good = " + (CsumCal == 0));
@@ -288,23 +288,23 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             int len = Length;
             byte[] ret = new byte[len];
             int counter = 0;
-            NetLib.WriteUInt16(ref ret, ref counter, SourcePort);
-            NetLib.WriteUInt16(ref ret, ref counter, DestinationPort);
-            NetLib.WriteUInt32(ref ret, ref counter, SequenceNumber);
-            NetLib.WriteUInt32(ref ret, ref counter, AcknowledgementNumber);
-            NetLib.WriteByte08(ref ret, ref counter, dataOffsetAndNS_Flag);
-            NetLib.WriteByte08(ref ret, ref counter, flags);
-            NetLib.WriteUInt16(ref ret, ref counter, WindowSize);
-            NetLib.WriteUInt16(ref ret, ref counter, checksum);
-            NetLib.WriteUInt16(ref ret, ref counter, urgentPointer);
+            NetLib.WriteUInt16(ret, ref counter, SourcePort);
+            NetLib.WriteUInt16(ret, ref counter, DestinationPort);
+            NetLib.WriteUInt32(ret, ref counter, SequenceNumber);
+            NetLib.WriteUInt32(ret, ref counter, AcknowledgementNumber);
+            NetLib.WriteByte08(ret, ref counter, dataOffsetAndNS_Flag);
+            NetLib.WriteByte08(ret, ref counter, flags);
+            NetLib.WriteUInt16(ret, ref counter, WindowSize);
+            NetLib.WriteUInt16(ret, ref counter, checksum);
+            NetLib.WriteUInt16(ret, ref counter, urgentPointer);
 
             //options
             for (int i = 0; i < Options.Count; i++)
             {
-                NetLib.WriteByteArray(ref ret, ref counter, Options[i].GetBytes());
+                NetLib.WriteByteArray(ret, ref counter, Options[i].GetBytes());
             }
             counter = headerLength;
-            NetLib.WriteByteArray(ref ret, ref counter, data);
+            NetLib.WriteByteArray(ret, ref counter, data);
             return ret;
         }
 

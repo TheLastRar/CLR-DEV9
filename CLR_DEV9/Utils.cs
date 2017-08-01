@@ -4,7 +4,7 @@ namespace CLRDEV9
 {
     static class Utils
     {
-        public static void memcpy(ref byte[] target, int targetstartindex, byte[] source, int sourcestartindex, int num)
+        public static void memcpy(byte[] target, int targetstartindex, byte[] source, int sourcestartindex, int num)
         {
             Array.Copy(source, sourcestartindex, target, targetstartindex, num);
         }

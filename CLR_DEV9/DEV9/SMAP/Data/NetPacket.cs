@@ -10,7 +10,7 @@ namespace CLRDEV9.DEV9.SMAP.Data
         public NetPacket(byte[] bytes, int offset, int sz)
         {
             size = sz;
-            Utils.memcpy(ref buffer, 0, bytes, offset, sz);
+            Utils.memcpy(buffer, 0, bytes, offset, sz);
         }
 
         public int size;

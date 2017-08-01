@@ -18,15 +18,7 @@ namespace CLRDEV9.DEV9.SMAP.Data
         public NetAdapter(DEV9_State parDev9)
         {
             dev9 = parDev9;
-            //Read MAC from eeprom to get ps2_mac
-            ps2MAC = new byte[6];
-            byte[] eepromBytes = new byte[6];
-            for (int i = 0; i < 3; i++)
-            {
-                byte[] tmp = BitConverter.GetBytes(dev9.eeprom[i]);
-                Utils.memcpy(ref eepromBytes, i * 2, tmp, 0, 2);
-            }
-            Utils.memcpy(ref ps2MAC, 0, eepromBytes, 0, 6);
+            SetMAC(null);
         }
 
         //public abstract List<string[]> getadapters(); //TODO
@@ -48,6 +40,30 @@ namespace CLRDEV9.DEV9.SMAP.Data
         }
         public virtual void Dispose(bool disposing) { }
         //Shared functions
+
+        //TODO figure out full logic for this
+        protected void SetMAC(byte[] parMAC)
+        {
+            if (parMAC == null)
+            {
+                //Read MAC from eeprom to get ps2_mac
+                ps2MAC = new byte[6];
+                for (int i = 0; i < 3; i++)
+                {
+                    byte[] tmp = BitConverter.GetBytes(dev9.eeprom[i]);
+                    Utils.memcpy(ps2MAC, i * 2, tmp, 0, 2);
+                }
+            }
+            else
+            {
+                ps2MAC = parMAC;
+                for (int i = 0; i < 3; i++)
+                {
+                    dev9.eeprom[i] = (UInt16)BitConverter.ToInt16(parMAC, i * 2);
+                }
+                dev9.eeprom[3] = (UInt16)((dev9.eeprom[0] + dev9.eeprom[1] + dev9.eeprom[2]) & 0xffff);
+            }
+        }
 
         protected bool Verify(NetPacket pkt, int read_size)
         {

@@ -59,7 +59,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             int counter = 0;
 
             checksum = 0;
-            NetLib.WriteByteArray(ref headerSegment, ref counter, GetBytes());
+            NetLib.WriteByteArray(headerSegment, ref counter, GetBytes());
 
             checksum = IPPacket.InternetChecksum(headerSegment);
         }
@@ -74,7 +74,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             
             byte[] headerSegment = new byte[pHeaderLen];
             int counter = 0;
-            NetLib.WriteByteArray(ref headerSegment, ref counter, GetBytes());
+            NetLib.WriteByteArray(headerSegment, ref counter, GetBytes());
 
             UInt16 CsumCal = IPPacket.InternetChecksum(headerSegment);
             //Error.WriteLine("ICMP Checksum Good = " + (CsumCal == 0));
@@ -84,11 +84,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
         {
             byte[] ret = new byte[Length];
             int counter = 0;
-            NetLib.WriteByte08(ref ret, ref counter, Type);
-            NetLib.WriteByte08(ref ret, ref counter, Code);
-            NetLib.WriteUInt16(ref ret, ref counter, checksum);
-            NetLib.WriteByteArray(ref ret, ref counter, HeaderData);
-            NetLib.WriteByteArray(ref ret, ref counter, Data);
+            NetLib.WriteByte08(ret, ref counter, Type);
+            NetLib.WriteByte08(ret, ref counter, Code);
+            NetLib.WriteUInt16(ret, ref counter, checksum);
+            NetLib.WriteByteArray(ret, ref counter, HeaderData);
+            NetLib.WriteByteArray(ret, ref counter, Data);
             return ret;
         }
     }

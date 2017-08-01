@@ -182,13 +182,13 @@ namespace CLRDEV9.DEV9.SMAP
                     if (_base + pbd.Length > 16384)
                     {
                         UInt32 was = 16384 - _base;
-                        Utils.memcpy(ref pk.buffer, 0, dev9.txFifo, (int)_base, (int)was);
-                        Utils.memcpy(ref pk.buffer, (int)was, dev9.txFifo, 0, (int)(pbd.Length - was));
+                        Utils.memcpy(pk.buffer, 0, dev9.txFifo, (int)_base, (int)was);
+                        Utils.memcpy(pk.buffer, (int)was, dev9.txFifo, 0, (int)(pbd.Length - was));
                         Log_Verb("Warped read, was=" + was + ", sz=" + pbd.Length + ", sz-was=" + (pbd.Length - was));
                     }
                     else
                     {
-                        Utils.memcpy(ref pk.buffer, 0, dev9.txFifo, (int)_base, (int)pbd.Length);
+                        Utils.memcpy(pk.buffer, 0, dev9.txFifo, (int)_base, (int)pbd.Length);
                     }
                     adapter.net.TxPut(ref pk);
                 }

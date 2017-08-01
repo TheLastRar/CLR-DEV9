@@ -4,7 +4,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -435,7 +434,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                                 break;
                             case 3:
                                 Log_Verb("Sending Router");
-                                retPay.Options.Add(new DHCPopRouter(Gateway));
+                                retPay.Options.Add(new DHCPopRouter(new List<byte[]>() { Gateway }));
                                 break;
                             case 6:
                                 Log_Verb("Sending DNS");
@@ -443,11 +442,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                                 {
                                     if (DNS2 != null)
                                     {
-                                        retPay.Options.Add(new DHCPopDNS(DNS1, DNS2));
+                                        retPay.Options.Add(new DHCPopDNS(new List<byte[]>() { DNS1, DNS2 }));
                                     }
                                     else
                                     {
-                                        retPay.Options.Add(new DHCPopDNS(DNS1));
+                                        retPay.Options.Add(new DHCPopDNS(new List<byte[]>() { DNS1 }));
                                     }
                                 }
                                 break;

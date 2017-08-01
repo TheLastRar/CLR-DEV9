@@ -455,7 +455,7 @@ namespace CLRDEV9.DEV9.SMAP
                     //*((u32*)(DEV9Header.dev9.txfifo + dev9Ru32(DEV9Header.SMAP_R_TXFIFO_WR_PTR))) = value; //I'm sorry but what??
                     // I think this is how its supposed to work
                     byte[] valuebytes = BitConverter.GetBytes(value);
-                    Utils.memcpy(ref dev9.txFifo, (int)dev9.Dev9Ru32((int)DEV9Header.SMAP_R_TXFIFO_WR_PTR), valuebytes, 0, 4);
+                    Utils.memcpy(dev9.txFifo, (int)dev9.Dev9Ru32((int)DEV9Header.SMAP_R_TXFIFO_WR_PTR), valuebytes, 0, 4);
                     //end of that one line
                     dev9.Dev9Wu32((int)DEV9Header.SMAP_R_TXFIFO_WR_PTR, (dev9.Dev9Ru32((int)DEV9Header.SMAP_R_TXFIFO_WR_PTR) + 4) & 16383);
                     return;
@@ -491,7 +491,7 @@ namespace CLRDEV9.DEV9.SMAP
 
                     //*((u32*)(dev9.txfifo + dev9Ru32(SMAP_R_TXFIFO_WR_PTR))) = value;
                     byte[] valueBytes2 = BitConverter.GetBytes(value);
-                    Utils.memcpy(ref dev9.txFifo, (int)dev9.Dev9Ru32((int)DEV9Header.SMAP_R_TXFIFO_WR_PTR), valueBytes2, 0, 4);
+                    Utils.memcpy(dev9.txFifo, (int)dev9.Dev9Ru32((int)DEV9Header.SMAP_R_TXFIFO_WR_PTR), valueBytes2, 0, 4);
                     //End 
                     dev9.Dev9Wu32((int)DEV9Header.SMAP_R_TXFIFO_WR_PTR, (dev9.Dev9Ru32((int)DEV9Header.SMAP_R_TXFIFO_WR_PTR) + 4) & 16383);
                     size -= valueSize;

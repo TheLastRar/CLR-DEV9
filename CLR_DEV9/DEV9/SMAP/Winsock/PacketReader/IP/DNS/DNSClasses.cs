@@ -47,7 +47,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DNS
             value = value.Substring(0, value.Length - 1);
             offset += 1;
         }
-        private void WriteDNSString(ref byte[] buffer, ref int offset, string value)
+        private void WriteDNSString(byte[] buffer, ref int offset, string value)
         {
             //if (buffer[offset] == 11)
             //{
@@ -58,8 +58,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DNS
             foreach (string s in spl)
             {
                 if (s.Length == 0) { continue; }
-                NetLib.WriteByte08(ref buffer, ref offset, (byte)s.Length);
-                NetLib.WriteCString(ref buffer, ref offset, s);
+                NetLib.WriteByte08(buffer, ref offset, (byte)s.Length);
+                NetLib.WriteCString(buffer, ref offset, s);
                 offset -= 1;
             }
             offset += 1;
@@ -78,35 +78,37 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DNS
             nameDNSLength = Name.Length + 2;
             byte[] ret = new byte[Length];
             int counter = 0;
-            WriteDNSString(ref ret, ref counter, Name);
-            NetLib.WriteUInt16(ref ret, ref counter, Type);
-            NetLib.WriteUInt16(ref ret, ref counter, Class);
+            WriteDNSString(ret, ref counter, Name);
+            NetLib.WriteUInt16(ret, ref counter, Type);
+            NetLib.WriteUInt16(ret, ref counter, Class);
             return ret;
         }
     }
     class DNSResponseEntry : DNSQuestionEntry
     {
-        public UInt32 TTL;
+        UInt32 ttl;
+        public uint TTL { get { return ttl; } }
         //UInt16 DataLength;
-        public byte[] Data;
+        byte[] data;
+        public byte[] Data { get { return data; } }
 
-        public override byte Length { get { return (byte)(base.Length + 4 + 2 + Data.Length); } }
+        public override byte Length { get { return (byte)(base.Length + 4 + 2 + data.Length); } }
 
         public DNSResponseEntry(byte[] buffer, int offset) : base(buffer, offset)
         {
             offset += base.Length;
             UInt16 dataLen;
-            NetLib.ReadUInt32(buffer, ref offset, out TTL);
+            NetLib.ReadUInt32(buffer, ref offset, out ttl);
             NetLib.ReadUInt16(buffer, ref offset, out dataLen);
-            NetLib.ReadByteArray(buffer, ref offset, dataLen, out Data);
+            NetLib.ReadByteArray(buffer, ref offset, dataLen, out data);
         }
         public override byte[] GetBytes()
         {
             byte[] ret = base.GetBytes();
             int counter = base.Length;
-            NetLib.WriteUInt32(ref ret, ref counter, TTL);
-            NetLib.WriteUInt16(ref ret, ref counter, (UInt16)Data.Length);
-            NetLib.WriteByteArray(ref ret, ref counter, Data);
+            NetLib.WriteUInt32(ret, ref counter, ttl);
+            NetLib.WriteUInt16(ret, ref counter, (UInt16)data.Length);
+            NetLib.WriteByteArray(ret, ref counter, data);
             return ret;
         }
     }

@@ -82,9 +82,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
         {
             byte[] ret = new byte[Length];
             int counter = 0;
-            NetLib.WriteByte08(ref ret, ref counter, Code);
-            NetLib.WriteByte08(ref ret, ref counter, Length);
-            NetLib.WriteUInt16(ref ret, ref counter, MaxSegmentSize);
+            NetLib.WriteByte08(ret, ref counter, Code);
+            NetLib.WriteByte08(ret, ref counter, Length);
+            NetLib.WriteUInt16(ret, ref counter, MaxSegmentSize);
             return ret;
         }
     }
@@ -110,9 +110,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
         {
             byte[] ret = new byte[Length];
             int counter = 0;
-            NetLib.WriteByte08(ref ret, ref counter, Code);
-            NetLib.WriteByte08(ref ret, ref counter, Length);
-            NetLib.WriteByte08(ref ret, ref counter, WindowScale);
+            NetLib.WriteByte08(ret, ref counter, Code);
+            NetLib.WriteByte08(ret, ref counter, Length);
+            NetLib.WriteByte08(ret, ref counter, WindowScale);
             return ret;
         }
     }
@@ -139,10 +139,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
         {
             byte[] ret = new byte[Length];
             int counter = 0;
-            NetLib.WriteByte08(ref ret, ref counter, Code);
-            NetLib.WriteByte08(ref ret, ref counter, Length);
-            NetLib.WriteUInt32(ref ret, ref counter, SenderTimeStamp);
-            NetLib.WriteUInt32(ref ret, ref counter, EchoTimeStamp);
+            NetLib.WriteByte08(ret, ref counter, Code);
+            NetLib.WriteByte08(ret, ref counter, Length);
+            NetLib.WriteUInt32(ret, ref counter, SenderTimeStamp);
+            NetLib.WriteUInt32(ret, ref counter, EchoTimeStamp);
             return ret;
         }
     }

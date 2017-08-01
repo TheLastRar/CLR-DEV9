@@ -75,7 +75,7 @@ namespace CLRDEV9.DEV9.FLASH
             switch (addr)
             {
                 case DEV9Header.FLASH_R_DATA:
-                    Utils.memcpy(ref valueByte, 0, data, (int)counter, size);
+                    Utils.memcpy(valueByte, 0, data, (int)counter, size);
                     counter += (uint)size;
 
                     Log_Verb("*FLASH DATA " + (size * 8).ToString() + "bit read 0x" + BitConverter.ToUInt32(valueByte, 0).ToString("X8") + " " + (((ctrl & DEV9Header.FLASH_PP_READ) != 0) ? "READ_ENABLE" : "READ_DISABLE").ToString());
@@ -111,7 +111,7 @@ namespace CLRDEV9.DEV9.FLASH
                         }
                         address += FLASH_Constants.PAGE_SIZE;
                         address %= FLASH_Constants.CARD_SIZE;
-                        Utils.memcpy(ref data, 0, file, (int)((address >> FLASH_Constants.PAGE_SIZE_BITS) * FLASH_Constants.PAGE_SIZE_ECC), FLASH_Constants.PAGE_SIZE);
+                        Utils.memcpy(data, 0, file, (int)((address >> FLASH_Constants.PAGE_SIZE_BITS) * FLASH_Constants.PAGE_SIZE_ECC), FLASH_Constants.PAGE_SIZE);
                         CalculateECC(data);	//calculate ECC; should be in the file already
                         ctrl |= DEV9Header.FLASH_PP_READY;
                     }
@@ -160,7 +160,7 @@ namespace CLRDEV9.DEV9.FLASH
 
                     Log_Verb("*FLASH DATA " + (size * 8).ToString("X8") + "bit write 0x" + value.ToString("X8") + " " + (((ctrl & DEV9Header.FLASH_PP_WRITE) != 0) ? "WRITE_ENABLE" : "WRITE_DISABLE"));
                     byte[] valueBytes = BitConverter.GetBytes(value);
-                    Utils.memcpy(ref data, (int)counter, valueBytes, 0, size);
+                    Utils.memcpy(data, (int)counter, valueBytes, 0, size);
                     counter += (uint)size;
                     counter %= FLASH_Constants.PAGE_SIZE_ECC; //should not get past the last byte, but at the end
                     break;
@@ -234,7 +234,7 @@ namespace CLRDEV9.DEV9.FLASH
                                 ctrl &= ~DEV9Header.FLASH_PP_READY;
                             }
                             CalculateECC(data);
-                            Utils.memcpy(ref file, (int)((address / FLASH_Constants.PAGE_SIZE) * FLASH_Constants.PAGE_SIZE_ECC), data, 0, FLASH_Constants.PAGE_SIZE_ECC);
+                            Utils.memcpy(file, (int)((address / FLASH_Constants.PAGE_SIZE) * FLASH_Constants.PAGE_SIZE_ECC), data, 0, FLASH_Constants.PAGE_SIZE_ECC);
                             /*write2file*/
                             ctrl |= DEV9Header.FLASH_PP_READY;
                             break;
@@ -263,7 +263,7 @@ namespace CLRDEV9.DEV9.FLASH
                             {
                                 ctrl &= ~DEV9Header.FLASH_PP_READY;
                             }
-                            Utils.memcpy(ref data, 0, file,
+                            Utils.memcpy(data, 0, file,
                                 (int)((address >> FLASH_Constants.PAGE_SIZE_BITS) * FLASH_Constants.PAGE_SIZE_ECC),
                                 FLASH_Constants.PAGE_SIZE);
                             CalculateECC(data);	//calculate ECC; should be in the file already

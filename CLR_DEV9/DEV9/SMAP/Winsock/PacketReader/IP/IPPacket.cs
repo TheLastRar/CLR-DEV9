@@ -114,45 +114,49 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
         }
         //TOSMustBeZero (Now CE)
         #endregion
-        UInt16 _Length;
+        UInt16 length;
         public override UInt16 Length
         {
             get
             {
-                return _Length;
+                return length;
             }
             protected set
             {
-                _Length = value;
+                length = value;
             }
         }
         private UInt16 id; //used during reassembly fragmented packets
         #region "Fragment"
-        private UInt16 FragmentFlags;
+        private byte fragmentFlags1;
+        private byte fragmentFlags2;
+        //1st bit reserved
+        public bool DoNotFragment
+        {
+            get { return ((fragmentFlags1 & (1 << 6)) != 0); }
+            set
+            {
+                if (value) { fragmentFlags1 |= (1 << 6); }
+                else { fragmentFlags1 &= unchecked((byte)(~(1 << 6))); }
+            }
+        }
+        public bool MoreFragments
+        {
+            get { return ((fragmentFlags1 & (1 << 5)) != 0); }
+            set
+            {
+                if (value) { fragmentFlags1 |= (1 << 5); }
+                else { fragmentFlags1 &= unchecked((byte)(~(1 << 5))); }
+            }
+        }
         public UInt16 FragmentOffset
         {
             get
             {
-                return (UInt16)(FragmentFlags & ~(0x7 << 13));
-            }
-        }
-        //1st bit is reserved
-        public bool MoreFragments
-        {
-            get { return ((FragmentFlags & (1 << 15)) != 0); }
-            set
-            {
-                if (value) { FragmentFlags |= unchecked((UInt16)(1 << 15)); }
-                else { FragmentFlags &= unchecked((UInt16)(~(1 << 15))); }
-            }
-        }
-        public bool DoNotFragment
-        {
-            get { return ((FragmentFlags & (1 << 14)) != 0); }
-            set
-            {
-                if (value) { FragmentFlags |= (1 << 14); }
-                else { FragmentFlags &= unchecked((byte)(~(1 << 14))); }
+                int x = 0;
+                byte fF1masked = (byte)(fragmentFlags1 & 0x1F);
+                NetLib.ReadUInt16(new byte[] { fragmentFlags1, fragmentFlags2 }, ref x, out UInt16 offset);
+                return (UInt16)offset;
             }
         }
         #endregion
@@ -180,22 +184,23 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
 
                 byte[] ret = new byte[Length];
                 int counter = 0;
-                NetLib.WriteByte08(ref ret, ref counter, (byte)(_verHi + (hLen >> 2)));
-                NetLib.WriteByte08(ref ret, ref counter, typeOfService);//DSCP/ECN
-                NetLib.WriteUInt16(ref ret, ref counter, _Length);
+                NetLib.WriteByte08(ret, ref counter, (byte)(_verHi + (hLen >> 2)));
+                NetLib.WriteByte08(ret, ref counter, typeOfService);//DSCP/ECN
+                NetLib.WriteUInt16(ret, ref counter, length);
 
-                NetLib.WriteUInt16(ref ret, ref counter, id);
-                NetLib.WriteUInt16(ref ret, ref counter, FragmentFlags);
+                NetLib.WriteUInt16(ret, ref counter, id);
+                NetLib.WriteByte08(ret, ref counter, fragmentFlags1);
+                NetLib.WriteByte08(ret, ref counter, fragmentFlags2);
 
-                NetLib.WriteByte08(ref ret, ref counter, ttl);
-                NetLib.WriteByte08(ref ret, ref counter, Protocol);
-                NetLib.WriteUInt16(ref ret, ref counter, checksum); //header csum
+                NetLib.WriteByte08(ret, ref counter, ttl);
+                NetLib.WriteByte08(ret, ref counter, Protocol);
+                NetLib.WriteUInt16(ret, ref counter, checksum); //header csum
 
-                NetLib.WriteByteArray(ref ret, ref counter, SourceIP);
-                NetLib.WriteByteArray(ref ret, ref counter, DestinationIP); ;
+                NetLib.WriteByteArray(ret, ref counter, SourceIP);
+                NetLib.WriteByteArray(ret, ref counter, DestinationIP); ;
 
                 byte[] plBytes = _pl.GetBytes();
-                NetLib.WriteByteArray(ref ret, ref counter, plBytes);
+                NetLib.WriteByteArray(ret, ref counter, plBytes);
                 return ret;
             }
         }
@@ -261,11 +266,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             //Log_Error("HighThroughput :" + TOSThroughout.ToString());
             //Log_Error("LowCost :" + TOSCost.ToString());
 
-            NetLib.ReadUInt16(buffer, ref pktOffset, out _Length);
-            if (_Length > bufferSize - offset)
+            NetLib.ReadUInt16(buffer, ref pktOffset, out length);
+            if (length > bufferSize - offset)
             {
                 if (!fromICMP) { Log_Error("Unexpected Length"); }
-                _Length = (UInt16)(bufferSize - offset);
             }
 
             //Bits 32-63
@@ -350,19 +354,27 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             //if (!(i == 5)) //checksum feild is 10-11th byte (5th short), which is skipped
             byte[] headerSegment = new byte[hLen];
             int counter = 0;
-            NetLib.WriteByte08(ref headerSegment, ref counter, (byte)(_verHi + (hLen >> 2)));
-            NetLib.WriteByte08(ref headerSegment, ref counter, typeOfService);//DSCP/ECN
-            NetLib.WriteUInt16(ref headerSegment, ref counter, _Length);
+            NetLib.WriteByte08(headerSegment, ref counter, (byte)(_verHi + (hLen >> 2)));
+            NetLib.WriteByte08(headerSegment, ref counter, typeOfService);//DSCP/ECN
+            NetLib.WriteUInt16(headerSegment, ref counter, length);
 
-            NetLib.WriteUInt16(ref headerSegment, ref counter, id);
-            NetLib.WriteUInt16(ref headerSegment, ref counter, FragmentFlags);
+            NetLib.WriteUInt16(headerSegment, ref counter, id);
+            NetLib.WriteByte08(headerSegment, ref counter, fragmentFlags1);
+            NetLib.WriteByte08(headerSegment, ref counter, fragmentFlags2);
 
-            NetLib.WriteByte08(ref headerSegment, ref counter, ttl);
-            NetLib.WriteByte08(ref headerSegment, ref counter, Protocol);
-            NetLib.WriteUInt16(ref headerSegment, ref counter, 0); //header csum
+            NetLib.WriteByte08(headerSegment, ref counter, ttl);
+            NetLib.WriteByte08(headerSegment, ref counter, Protocol);
+            NetLib.WriteUInt16(headerSegment, ref counter, 0); //header csum
 
-            NetLib.WriteByteArray(ref headerSegment, ref counter, SourceIP);
-            NetLib.WriteByteArray(ref headerSegment, ref counter, DestinationIP);
+            NetLib.WriteByteArray(headerSegment, ref counter, SourceIP);
+            NetLib.WriteByteArray(headerSegment, ref counter, DestinationIP);
+
+            //options
+            for (int i = 0; i < Options.Count; i++)
+            {
+                NetLib.WriteByteArray(headerSegment, ref counter, Options[i].GetBytes());
+            }
+            counter = hLen;
 
             checksum = InternetChecksum(headerSegment);
         }
@@ -370,19 +382,20 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
         {
             byte[] headerSegment = new byte[hLen];
             int counter = 0;
-            NetLib.WriteByte08(ref headerSegment, ref counter, (byte)(_verHi + (hLen >> 2)));
-            NetLib.WriteByte08(ref headerSegment, ref counter, typeOfService);//DSCP/ECN
-            NetLib.WriteUInt16(ref headerSegment, ref counter, _Length);
+            NetLib.WriteByte08(headerSegment, ref counter, (byte)(_verHi + (hLen >> 2)));
+            NetLib.WriteByte08(headerSegment, ref counter, typeOfService);//DSCP/ECN
+            NetLib.WriteUInt16(headerSegment, ref counter, length);
 
-            NetLib.WriteUInt16(ref headerSegment, ref counter, id);
-            NetLib.WriteUInt16(ref headerSegment, ref counter, FragmentFlags);
+            NetLib.WriteUInt16(headerSegment, ref counter, id);
+            NetLib.WriteByte08(headerSegment, ref counter, fragmentFlags1);
+            NetLib.WriteByte08(headerSegment, ref counter, fragmentFlags2);
 
-            NetLib.WriteByte08(ref headerSegment, ref counter, ttl);
-            NetLib.WriteByte08(ref headerSegment, ref counter, Protocol);
-            NetLib.WriteUInt16(ref headerSegment, ref counter, checksum); //header csum
+            NetLib.WriteByte08(headerSegment, ref counter, ttl);
+            NetLib.WriteByte08(headerSegment, ref counter, Protocol);
+            NetLib.WriteUInt16(headerSegment, ref counter, checksum); //header csum
 
-            NetLib.WriteByteArray(ref headerSegment, ref counter, SourceIP);
-            NetLib.WriteByteArray(ref headerSegment, ref counter, DestinationIP);
+            NetLib.WriteByteArray(headerSegment, ref counter, SourceIP);
+            NetLib.WriteByteArray(headerSegment, ref counter, DestinationIP);
 
             UInt16 CsumCal = InternetChecksum(headerSegment);
             return (CsumCal == 0);

@@ -27,8 +27,8 @@ namespace CLRDEV9.DEV9
                 byte[] byte1 = BitConverter.GetBytes(initalEEPROM[i]);
                 byte[] byte2 = BitConverter.GetBytes(initalEEPROM[i + 1]);
                 byte[] shortBytes = new byte[2];
-                Utils.memcpy(ref shortBytes, 0, byte1, 0, 1);
-                Utils.memcpy(ref shortBytes, 1, byte2, 0, 1);
+                Utils.memcpy(shortBytes, 0, byte1, 0, 1);
+                Utils.memcpy(shortBytes, 1, byte2, 0, 1);
                 eeprom[i / 2] = BitConverter.ToUInt16(shortBytes, 0);
             }
 

@@ -63,12 +63,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader
 
             //byte[] rawbytes = new byte[PLbytes.Length + hlen];
             nPK.size = PLbytes.Length + hlen;
-            NetLib.WriteByteArray(ref nPK.buffer, ref counter, DestinationMAC);
-            NetLib.WriteByteArray(ref nPK.buffer, ref counter, SourceMAC);
+            NetLib.WriteByteArray(nPK.buffer, ref counter, DestinationMAC);
+            NetLib.WriteByteArray(nPK.buffer, ref counter, SourceMAC);
             //
-            DataLib.WriteUInt16(ref nPK.buffer, ref counter, proto);
+            DataLib.WriteUInt16(nPK.buffer, ref counter, proto);
             //
-            NetLib.WriteByteArray(ref nPK.buffer, ref counter, PLbytes);
+            NetLib.WriteByteArray(nPK.buffer, ref counter, PLbytes);
             return nPK;
         }
 
