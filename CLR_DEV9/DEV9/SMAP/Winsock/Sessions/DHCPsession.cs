@@ -363,7 +363,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                         break;
                     case 54:
                         Log_Info("Got Server IP");
-                        if (Utils.memcmp(DefaultDHCPConfig.DHCP_IP, 0, ((DHCPopSERVIP)dhcp.Options[i]).IPaddress, 0, 4) == false)
+                        if (Utils.memcmp(DefaultDHCPConfig.DHCP_IP, 0, ((DHCPopSERVIP)dhcp.Options[i]).ServerIP, 0, 4) == false)
                             throw new Exception("ServIP missmatch");
                         break;
                     case 55:
@@ -465,6 +465,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                                 break;
                             case 53:
                                 Log_Verb("Sending MSG (Already Added)");
+                                break;
+                            case 54:
+                                Log_Verb("Sending Server Identifier (Already Added)");
                                 break;
                             case 77:
                                 //Isn't this surpossed to be sent by the client?

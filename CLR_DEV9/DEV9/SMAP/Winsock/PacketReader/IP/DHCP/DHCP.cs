@@ -25,7 +25,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
         public List<TCPOption> Options = new List<TCPOption>();
         public DHCP()
         {
-
+            int x = 0;
+            NetLib.ReadUInt32(new byte[] { 99, 130, 83, 99 }, ref x, out MagicCookie);
         }
         public DHCP(byte[] data)
         {
@@ -87,6 +88,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
             do
             {
                 byte opKind = data[offset];
+                if (opKind == 255)
+                {
+                    Options.Add(new DHCPopEND());
+                    opReadFin = true;
+                    offset += 1;
+                    continue;
+                }
                 if ((offset + 1) >= data.Length)
                 {
                     Log_Error("Unexpected end of packet");
@@ -110,6 +118,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
                         //Error.WriteLine("Got Router");
                         Options.Add(new DHCPopRouter(data, offset));
                         break;
+                    case 6:
+                        //Error.WriteLine("Got DNS Servers");
+                        Options.Add(new DHCPopDNS(data, offset));
+                        break;
                     case 15:
                         //Error.WriteLine("Got Domain Name (Not supported)");
                         Options.Add(new DHCPopDNSNAME(data, offset));
@@ -118,9 +130,17 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
                         //Error.WriteLine("Got broadcast");
                         Options.Add(new DHCPopBCIP(data, offset));
                         break;
+                    case 46:
+                        //Error.WriteLine("Got Request IP");
+                        Options.Add(new DHCPopNBOIPType(data, offset));
+                        break;
                     case 50:
                         //Error.WriteLine("Got Request IP");
                         Options.Add(new DHCPopREQIP(data, offset));
+                        break;
+                    case 51:
+                        //Error.WriteLine("Got IP Address Lease Time");
+                        Options.Add(new DHCPopIPLT(data, offset));
                         break;
                     case 53:
                         //Error.WriteLine("Got MSG");
@@ -141,6 +161,14 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
                         //Error.WriteLine("Got Max Message Size");
                         Options.Add(new DHCPopMMSGS(data, offset));
                         break;
+                    case 58:
+                        //Error.WriteLine("Got Renewal (T1) Time");
+                        Options.Add(new DHCPopT1(data, offset));
+                        break;
+                    case 59:
+                        //Error.WriteLine("Got Rebinding (T2) Time");
+                        Options.Add(new DHCPopT2(data, offset));
+                        break;
                     case 60:
                         //Error.WriteLine("Got Max Message Size");
                         Options.Add(new DHCPopClassID(data, offset));
@@ -149,13 +177,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
                         //Error.WriteLine("Got Client ID");
                         Options.Add(new DHCPopClientID(data, offset));
                         break;
-                    case 255:
-                        //Error.WriteLine("Got END");
-                        Options.Add(new DHCPopEND());
-                        opReadFin = true;
-                        break;
                     default:
-                        Log_Error("Got Unknown Option " + opKind + "with len" + opLen);
+                        Log_Error("Got Unknown Option " + opKind + " with len " + opLen);
                         break;
                 }
                 offset += opLen + 2;
