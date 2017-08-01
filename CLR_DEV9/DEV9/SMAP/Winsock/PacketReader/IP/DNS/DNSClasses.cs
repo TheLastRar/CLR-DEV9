@@ -99,7 +99,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DNS
         {
             byte[] ret = new byte[Length];
             int counter = 0;
-            WriteDNSString(ret, ref counter, Name);
             NetLib.WriteByteArray(ret, ref counter, nameBytes);
             NetLib.WriteUInt16(ret, ref counter, Type);
             NetLib.WriteUInt16(ret, ref counter, Class);
