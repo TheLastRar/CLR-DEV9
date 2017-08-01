@@ -320,9 +320,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 case (byte)IPType.UDP:
                     return SendUDP(Key, ipPkt);
                 default:
-                    Log_Error("Unkown Protocol");
-                    //throw new NotImplementedException();
-                    return false;
+                    //Log_Error("Unkown Protocol");
+                    throw new NotImplementedException("Unkown IPv4 Protocol " + ipPkt.Protocol.ToString("X2"));
+                    //return false;
             }
         }
 

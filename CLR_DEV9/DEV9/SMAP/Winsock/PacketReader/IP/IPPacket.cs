@@ -175,11 +175,23 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
                 return _pl;
             }
         }
+
+        private void ReComputeHeaderLen()
+        {
+            int opOffset = 20;
+            for (int i = 0; i < Options.Count; i++)
+            {
+                opOffset += Options[i].Length;
+            }
+            opOffset += opOffset % 4; //needs to be a whole number of 32bits
+            hLen = opOffset;
+        }
+
         public override byte[] GetBytes
         {
             get
             {
-                CalculateCheckSum();
+                CalculateCheckSum(); //ReComputeHeaderLen called in CalculateCheckSum
                 _pl.CalculateCheckSum(SourceIP, DestinationIP);
 
                 byte[] ret = new byte[Length];
@@ -198,6 +210,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
 
                 NetLib.WriteByteArray(ret, ref counter, SourceIP);
                 NetLib.WriteByteArray(ret, ref counter, DestinationIP); ;
+
+                //options
+                for (int i = 0; i < Options.Count; i++)
+                {
+                    NetLib.WriteByteArray(ret, ref counter, Options[i].GetBytes());
+                }
+                counter = hLen;
 
                 byte[] plBytes = _pl.GetBytes();
                 NetLib.WriteByteArray(ret, ref counter, plBytes);
@@ -270,13 +289,14 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             if (length > bufferSize - offset)
             {
                 if (!fromICMP) { Log_Error("Unexpected Length"); }
+                length = (UInt16)(bufferSize - offset);
             }
 
             //Bits 32-63
             NetLib.ReadUInt16(buffer, ref pktOffset, out id); //Send packets with unique IDs
-            NetLib.ReadUInt16(buffer, ref pktOffset, out FragmentFlags);
-
-            if (MoreFragments)
+            NetLib.ReadByte08(buffer, ref pktOffset, out fragmentFlags1);
+            NetLib.ReadByte08(buffer, ref pktOffset, out fragmentFlags2);
+            if (MoreFragments | FragmentOffset != 0)
             {
                 Log_Error("FragmentedPacket");
                 throw new NotImplementedException("Fragmented Packets are not supported");
@@ -296,8 +316,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             //Bits 160+
             if (hLen > 20) //IP options (if any)
             {
-                Log_Error("hlen=" + hLen + " > 20");
-
                 bool opReadFin = false;
                 do
                 {
@@ -312,9 +330,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
                             Options.Add(new IPopNOP());
                             pktOffset += 1;
                             continue;
+                        case 148:
+                            Options.Add(new IPopRouterAlert(buffer, offset));
+                            break;
                         default:
-                            Log_Error("Got IP Unknown Option " + opKind + "with len" + opLen);
-                            throw new Exception("Got IP Unknown Option " + opKind + "with len" + opLen);
+                            Log_Error("Got IP Unknown Option " + opKind + " with len " + opLen);
+                            throw new Exception("Got IP Unknown Option " + opKind + " with len " + opLen);
                             //break;
                     }
                     pktOffset += opLen;
@@ -345,13 +366,15 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
                     //((UDP)_pl).VerifyCheckSum(SourceIP, DestinationIP);
                     break;
                 default:
-                    throw new NotImplementedException("Unkown IPv4 Protocol " + Protocol.ToString("X2"));
-                    //break;
+                    _pl = new IPUnkown(buffer, pktOffset, Length - hLen);
+                    Log_Error("Unkown IPv4 Protocol " + Protocol.ToString("X2"));
+                    break;
             }
         }
         private void CalculateCheckSum()
         {
             //if (!(i == 5)) //checksum feild is 10-11th byte (5th short), which is skipped
+            ReComputeHeaderLen();
             byte[] headerSegment = new byte[hLen];
             int counter = 0;
             NetLib.WriteByte08(headerSegment, ref counter, (byte)(_verHi + (hLen >> 2)));
@@ -380,6 +403,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
         }
         public bool VerifyCheckSum()
         {
+            ReComputeHeaderLen();
             byte[] headerSegment = new byte[hLen];
             int counter = 0;
             NetLib.WriteByte08(headerSegment, ref counter, (byte)(_verHi + (hLen >> 2)));
@@ -396,6 +420,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
 
             NetLib.WriteByteArray(headerSegment, ref counter, SourceIP);
             NetLib.WriteByteArray(headerSegment, ref counter, DestinationIP);
+
+            //options
+            for (int i = 0; i < Options.Count; i++)
+            {
+                NetLib.WriteByteArray(headerSegment, ref counter, Options[i].GetBytes());
+            }
+            counter = hLen;
 
             UInt16 CsumCal = InternetChecksum(headerSegment);
             return (CsumCal == 0);

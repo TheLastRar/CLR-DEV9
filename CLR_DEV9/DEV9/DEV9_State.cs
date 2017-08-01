@@ -19,7 +19,10 @@ namespace CLRDEV9.DEV9
             ata = new ATA_State(this);
 
             dev9R = new byte[0x10000];
-
+            InitEEPROM();
+        }
+        protected void InitEEPROM()
+        {
             eeprom = new ushort[initalEEPROM.Length / 2];
             for (int i = 0; i < initalEEPROM.Length; i += 2)
             {
@@ -31,8 +34,8 @@ namespace CLRDEV9.DEV9
                 Utils.memcpy(shortBytes, 1, byte2, 0, 1);
                 eeprom[i / 2] = BitConverter.ToUInt16(shortBytes, 0);
             }
-
         }
+
         //Open
         public int Open(string hddPath)
         {

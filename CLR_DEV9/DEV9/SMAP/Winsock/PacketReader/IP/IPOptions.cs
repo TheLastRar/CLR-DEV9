@@ -1,4 +1,6 @@
-﻿namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
+﻿using System;
+
+namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
 {
     abstract class IPOptions : TCPOption
     {
@@ -36,6 +38,32 @@
         public override byte[] GetBytes()
         {
             return new byte[] { Code };
+        }
+    }
+    class IPopRouterAlert : IPOptions
+    {
+        //Should the router intercept packet?
+        public UInt16 Value;
+        public IPopRouterAlert(UInt16 value)
+        {
+            Value = value;
+        }
+        public IPopRouterAlert(byte[] data, int offset)
+        {
+            offset += 2;
+            NetLib.ReadUInt16(data, ref offset, out Value);
+        }
+        public override byte Length { get { return 4; } }
+        public override byte Code { get { return 148; } }
+
+        public override byte[] GetBytes()
+        {
+            byte[] ret = new byte[Length];
+            int counter = 0;
+            NetLib.WriteByte08(ret, ref counter, Code);
+            NetLib.WriteByte08(ret, ref counter, Length);
+            NetLib.WriteUInt16(ret, ref counter, Value);
+            return ret;
         }
     }
 }
