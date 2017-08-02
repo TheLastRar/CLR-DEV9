@@ -42,7 +42,7 @@ namespace CLRDEV9.DEV9.SMAP.Tap
                 {
                     //System.Windows.Forms.MessageBox.Show("Failed to GetAdapter");
                     throw new NullReferenceException("Failed to GetAdapter");
-                }
+                } 
                 InitDHCP(hostAdapter);
             }
 

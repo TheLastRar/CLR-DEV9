@@ -22,7 +22,8 @@ namespace CLRDEV9.DEV9.SMAP
         //rx thread
         void NetRxThread()
         {
-            try {
+            try
+            {
                 NetPacket tmp = new NetPacket();
                 while (RxRunning)
                 {
