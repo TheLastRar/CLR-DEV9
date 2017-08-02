@@ -158,7 +158,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 }
             }
 
-            SetMAC(adapter.GetPhysicalAddress().GetAddressBytes());
+            SetMAC(null/*adapter.GetPhysicalAddress().GetAddressBytes()*/);
         }
 
         public override bool Blocks()
