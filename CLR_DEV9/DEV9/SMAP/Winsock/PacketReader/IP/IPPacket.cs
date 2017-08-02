@@ -155,7 +155,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             {
                 int x = 0;
                 byte fF1masked = (byte)(fragmentFlags1 & 0x1F);
-                NetLib.ReadUInt16(new byte[] { fragmentFlags1, fragmentFlags2 }, ref x, out UInt16 offset);
+                NetLib.ReadUInt16(new byte[] { fF1masked, fragmentFlags2 }, ref x, out UInt16 offset);
                 return (UInt16)offset;
             }
         }
