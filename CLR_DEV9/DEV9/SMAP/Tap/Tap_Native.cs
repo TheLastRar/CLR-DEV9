@@ -31,7 +31,7 @@ namespace CLRDEV9.DEV9.SMAP.Tap
             [DllImport("kernel32.dll", SetLastError = true)]
             public static extern bool DeviceIoControl(SafeFileHandle hDevice, UInt32 dwIoControlCode, ref bool lpInBuffer, UInt32 nInBufferSize, out bool lpOutBuffer, UInt32 nOutBufferSize, out UInt32 lpbytesReturned, IntPtr lpOverlapped);
             [DllImport("kernel32.dll", SetLastError = true)]
-            public static extern bool DeviceIoControl(SafeFileHandle hDevice, UInt32 dwIoControlCode, ref byte[] lpInBuffer, UInt32 nInBufferSize, ref byte[] lpOutBuffer, UInt32 nOutBufferSize, ref UInt32 lpbytesReturned, IntPtr lpOverlapped);
+            public static extern bool DeviceIoControl(SafeFileHandle hDevice, UInt32 dwIoControlCode, byte[] lpInBuffer, UInt32 nInBufferSize, byte[] lpOutBuffer, UInt32 nOutBufferSize, ref UInt32 lpbytesReturned, IntPtr lpOverlapped);
         }
         //CreateFile
         const UInt32 GENERIC_READ = (0x80000000);
@@ -118,8 +118,8 @@ namespace CLRDEV9.DEV9.SMAP.Tap
 
             IntPtr nullptr = IntPtr.Zero;
             bool bret = NativeMethods.DeviceIoControl(handle, TAP_IOCTL_GET_MAC,
-                                   ref ret, 6,
-                                   ref ret, 6, ref retLen, nullptr);
+                                   ret, 6,
+                                   ret, 6, ref retLen, nullptr);
             if (bret == false)
             {
                 Log_Error("Error @ DIOC " + Marshal.GetLastWin32Error());
