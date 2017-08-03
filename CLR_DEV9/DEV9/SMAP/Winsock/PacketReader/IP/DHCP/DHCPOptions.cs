@@ -140,38 +140,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
             return ret;
         }
     }
-    class DHCPopBCIP : TCPOption //The IP to send broadcasts to
-    {
-        byte[] ip = new byte[4];
-        public byte[] BroadcastIP
-        {
-            get
-            {
-                return ip;
-            }
-        }
-        public DHCPopBCIP(byte[] data) //ip provided as byte array
-        {
-            ip = data;
-        }
-        public DHCPopBCIP(byte[] data, int offset) //Offset will include Kind and Len
-        {
-            offset += 2;
-            NetLib.ReadByteArray(data, ref offset, 4, out ip);
-        }
-        public override byte Length { get { return 6; } }
-        public override byte Code { get { return 28; } }
-
-        public override byte[] GetBytes()
-        {
-            byte[] ret = new byte[Length];
-            int counter = 0;
-            NetLib.WriteByte08(ret, ref counter, Code);
-            NetLib.WriteByte08(ret, ref counter, (byte)(Length - 2));
-            NetLib.WriteByteArray(ret, ref counter, ip);
-            return ret;
-        }
-    }
     class DHCPopDNSNAME : TCPOption
     {
         byte len;
@@ -209,6 +177,38 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
             ret[0] = Code;
             ret[1] = (byte)(Length - 2);
             Utils.memcpy(ret, 2, domainNameBytes, 0, len);
+            return ret;
+        }
+    }
+    class DHCPopBCIP : TCPOption //The IP to send broadcasts to
+    {
+        byte[] ip = new byte[4];
+        public byte[] BroadcastIP
+        {
+            get
+            {
+                return ip;
+            }
+        }
+        public DHCPopBCIP(byte[] data) //ip provided as byte array
+        {
+            ip = data;
+        }
+        public DHCPopBCIP(byte[] data, int offset) //Offset will include Kind and Len
+        {
+            offset += 2;
+            NetLib.ReadByteArray(data, ref offset, 4, out ip);
+        }
+        public override byte Length { get { return 6; } }
+        public override byte Code { get { return 28; } }
+
+        public override byte[] GetBytes()
+        {
+            byte[] ret = new byte[Length];
+            int counter = 0;
+            NetLib.WriteByte08(ret, ref counter, Code);
+            NetLib.WriteByte08(ret, ref counter, (byte)(Length - 2));
+            NetLib.WriteByteArray(ret, ref counter, ip);
             return ret;
         }
     }
