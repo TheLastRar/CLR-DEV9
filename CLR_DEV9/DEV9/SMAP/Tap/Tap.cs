@@ -46,9 +46,15 @@ namespace CLRDEV9.DEV9.SMAP.Tap
                 InitDHCP(hostAdapter);
             }
 
-            byte[] hostMAC = TAPGetMac(htap);
-
             SetMAC(null);
+
+            byte[] hostMAC = TAPGetMac(htap);
+            if (hostMAC == null)
+            {
+                Log_Error("Unable to get host MAC address, using default MAC");
+                return;
+            }
+
             byte[] wMAC = (byte[])ps2MAC.Clone();
             //wMAC[3] = hostMAC[3];
             wMAC[5] = hostMAC[4];

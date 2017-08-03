@@ -44,6 +44,7 @@ namespace DNS_Test_Thing
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("BAD Response");
             }
+            udp.Close();
             Console.ReadKey();
         }
     }
