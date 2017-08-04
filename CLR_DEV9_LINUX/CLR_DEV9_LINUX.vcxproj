@@ -25,6 +25,18 @@
       <Configuration>Release</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="TestApps|ARM">
+      <Configuration>TestApps</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="TestApps|x64">
+      <Configuration>TestApps</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="TestApps|x86">
+      <Configuration>TestApps</Configuration>
+      <Platform>x86</Platform>
+    </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{bbe69859-b36e-4d2b-b7f1-0a32900286a0}</ProjectGuid>
@@ -41,6 +53,10 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <ConfigurationType>DynamicLibrary</ConfigurationType>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|ARM'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -49,11 +65,19 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <ConfigurationType>DynamicLibrary</ConfigurationType>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x86'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
     <ConfigurationType>DynamicLibrary</ConfigurationType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x64'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
     <ConfigurationType>DynamicLibrary</ConfigurationType>
   </PropertyGroup>
@@ -74,6 +98,10 @@
     <TargetExt>.so</TargetExt>
     <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|ARM'">
+    <TargetExt>.so</TargetExt>
+    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <TargetExt>.so</TargetExt>
     <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
@@ -82,11 +110,19 @@
     <TargetExt>.so</TargetExt>
     <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x64'">
+    <TargetExt>.so</TargetExt>
+    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetExt>.so</TargetExt>
     <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <TargetExt>.so</TargetExt>
+    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x86'">
     <TargetExt>.so</TargetExt>
     <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
   </PropertyGroup>
@@ -99,6 +135,20 @@
     <ClInclude Include="PSE.h" />
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <Link>
+      <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
+      <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <ClCompile>
+      <PositionIndependentCode>true</PositionIndependentCode>
+      <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <RemotePostBuildEvent>
+      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/games/PCSX2/$(TargetFileName)</Command>
+      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership or directory</Message>
+    </RemotePostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|ARM'">
     <Link>
       <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
       <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -140,6 +190,20 @@
       <Message>Copy plugin to PCSX2 dir, Make sure to take ownership or directory</Message>
     </RemotePostBuildEvent>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x64'">
+    <Link>
+      <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
+      <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <ClCompile>
+      <PositionIndependentCode>true</PositionIndependentCode>
+      <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <RemotePostBuildEvent>
+      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/games/PCSX2/$(TargetFileName)</Command>
+      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership or directory</Message>
+    </RemotePostBuildEvent>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
       <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
@@ -155,6 +219,24 @@
     </RemotePostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <Link>
+      <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
+      <AdditionalOptions>
+      </AdditionalOptions>
+      <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <ClCompile>
+      <PositionIndependentCode>true</PositionIndependentCode>
+      <AdditionalOptions>
+      </AdditionalOptions>
+      <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <RemotePostBuildEvent>
+      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/games/PCSX2/$(TargetFileName)</Command>
+      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership or directory</Message>
+    </RemotePostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x86'">
     <Link>
       <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
       <AdditionalOptions>

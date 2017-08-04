@@ -25,6 +25,18 @@
       <Configuration>Release</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="TestApps|ARM">
+      <Configuration>TestApps</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="TestApps|x64">
+      <Configuration>TestApps</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="TestApps|x86">
+      <Configuration>TestApps</Configuration>
+      <Platform>x86</Platform>
+    </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2ddc2238-e5c6-4297-b607-9ea7975dbf36}</ProjectGuid>
@@ -40,16 +52,25 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|ARM'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x86'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x64'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -63,16 +84,25 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|ARM'">
+    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x64'">
+    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x86'">
     <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
@@ -88,6 +118,15 @@
     </ProjectReference>
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <Link>
+      <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
+    </Link>
+    <ClCompile>
+      <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|ARM'">
     <Link>
       <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
@@ -114,6 +153,15 @@
       <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x64'">
+    <Link>
+      <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
+    </Link>
+    <ClCompile>
+      <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
       <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -124,6 +172,17 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <Link>
+      <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LibraryDependencies>m;rt;dl;pthread</LibraryDependencies>
+      <NoExecStackRequired>true</NoExecStackRequired>
+    </Link>
+    <ClCompile>
+      <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PositionIndependentCode>false</PositionIndependentCode>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x86'">
     <Link>
       <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LibraryDependencies>m;rt;dl;pthread</LibraryDependencies>
