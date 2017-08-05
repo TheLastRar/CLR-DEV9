@@ -5,7 +5,7 @@ A Dev9 Plugin for PCSX2 Written in C#
 
 Downloads are provided on the PCSX2 fourms
 
-[PCSX2 Fourms](http://forums.pcsx2.net/Thread-Experimental-Winsock-based-DEV9-plugin-Now-with-HDD-Support?page=9)
+[PCSX2 Fourms](http://forums.pcsx2.net/Thread-Experimental-Winsock-based-DEV9-plugin-Now-with-HDD-Support)
 
 # Donate
 
