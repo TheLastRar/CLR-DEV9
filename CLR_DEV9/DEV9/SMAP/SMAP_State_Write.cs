@@ -328,7 +328,7 @@ namespace CLRDEV9.DEV9.SMAP
                     break;
                 case DEV9Header.SMAP_R_INTR_CLR:
                     Log_Verb("SMAP_R_INTR_CLR 16bit write " + value.ToString("X"));
-                    dev9.irqCause &= ~value;
+                    dev9.spd.regIntStat &= unchecked((UInt16)~value);
                     return;
 
                 case DEV9Header.SMAP_R_TXFIFO_WR_PTR:
@@ -499,7 +499,6 @@ namespace CLRDEV9.DEV9.SMAP
                 Log_Verb("DMA WRITE END: wr_ptr=" + dev9.Dev9Ru32((int)DEV9Header.SMAP_R_TXFIFO_WR_PTR).ToString() + ", rd_ptr=" + dev9.txFifoRdPtr.ToString());
 
                 dev9.Dev9Wu16((int)DEV9Header.SMAP_R_TXFIFO_CTRL, (UInt16)(dev9.Dev9Ru16((int)DEV9Header.SMAP_R_TXFIFO_CTRL) & ~DEV9Header.SMAP_TXFIFO_DMAEN));
-
             }
         }
     }

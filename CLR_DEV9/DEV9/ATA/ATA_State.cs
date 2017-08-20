@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 
 namespace CLRDEV9.DEV9.ATA
 {
@@ -14,6 +15,10 @@ namespace CLRDEV9.DEV9.ATA
         {
             dev9 = parDev9;
 
+            //Power on
+            ResetBegin();
+            //Would do self-Diag + Hardware Init
+
             //Fillout Command table (inspired from MegaDev9)
             //This is actully a pretty neat way of doing this
             for (int i = 0; i < 256; i++)
@@ -23,14 +28,25 @@ namespace CLRDEV9.DEV9.ATA
 
             hddCmds[0x00] = HDD_Nop;
 
-            hddCmds[0x20] = () => HDD_ReadPIO(false);
+            hddCmds[0x20] = () => HDD_ReadSectors(false);
+            //0x21
 
+            hddCmds[0x40] = () => HDD_ReadVerifySectors(false);
+            //0x41
+
+            hddCmds[0x70] = HDD_SeekCmd;
+
+            hddCmds[0x90] = HDD_ExecuteDeviceDiag;
             hddCmds[0x91] = HDD_InitDevParameters;
 
-            hddCmds[0xB0] = HDD_Smart; hddCmdDoesSeek[0xB0] = true;
+            hddCmds[0xB0] = HDD_Smart;
+
+            hddCmds[0xC4] = () => HDD_ReadMultiple(false);
 
             hddCmds[0xC8] = () => HDD_ReadDMA(false);
+            //0xC9
             hddCmds[0xCA] = () => HDD_WriteDMA(false);
+            //0xCB
             //HDDcmds[0x25] = HDDreadDMA48;
             /*	HDDcmds[0x35] = HDDwriteDMA_ext;*/
             //HDDcmdNames[0x35] = "DMA write (48-bit)";		// 48-bit
@@ -45,7 +61,7 @@ namespace CLRDEV9.DEV9.ATA
             /*	HDDcmds[0xA1] = HDDidentifyPktDevice;*/
             //HDDcmdNames[0xA1] = "identify ATAPI device";	// For ATAPI devices
 
-            hddCmds[0xEF] = HDD_SetFeatures; hddCmdDoesSeek[0xEF] = true;
+            hddCmds[0xEF] = HDD_SetFeatures;
 
             ///*	HDDcmds[0xF1] = HDDsecSetPassword;*/
             //HDDcmdNames[0xF1] = "security set password";
@@ -62,15 +78,15 @@ namespace CLRDEV9.DEV9.ATA
             /* We roughly emulate it to make programs think the HDD is a Sony one */
             /* However, we only send null, if anyting checks the returned data */
             /* it will fail */
-            hddCmds[0x8E] = HDD_sceSecCtrl; //HDDcmdNames[0x8E] = "SCE security control";
+            hddCmds[0x8E] = HDD_SCE; //HDDcmdNames[0x8E] = "SCE security control";
+
+            //
+
+            ResetEnd(true);
         }
 
         public int Open(string hddPath)
         {
-            nsector = 1;
-            sector = 1;
-            status = 0x40;
-
             CreateHDDinfo(DEV9Header.config.HddSize);
 
             //Open File
@@ -91,11 +107,27 @@ namespace CLRDEV9.DEV9.ATA
                 hddImage = new FileStream(hddPath, FileMode.Open, FileAccess.ReadWrite);
             }
 
+            ioThread = new Thread(IO_Thread);
+            ioRead = new ManualResetEvent(false);
+            ioWrite = new ManualResetEvent(false);
+            ioClose = new AutoResetEvent(false);
+
+            ioThread.Start();
+
             return 0;
         }
 
         public void Close()
         {
+            //Wait for async code to finish
+            ioClose.Set();
+            ioWrite.Set();
+
+            ioThread.Join();
+
+            ioClose.Dispose();
+            ioWrite.Dispose();
+            //Close File Handle
             if (hddImage != null)
             {
                 hddImage.Close();
@@ -104,96 +136,114 @@ namespace CLRDEV9.DEV9.ATA
             }
         }
 
-        public UInt16 ATAread16(UInt32 addr)
+        void ResetBegin()
         {
-            //TODO figure out hob
-            bool hob = false;
+            PreCmdExecuteDeviceDiag();
+        }
+        void ResetEnd(bool hard)
+        {
+            curHeads = 16;
+            curSectors = 63;
+            curCylinders = 0;
+            curMultipleSectorsSetting = 128;
 
+            //UDMA Mode setting is preserved
+            //across SRST
+            if (hard)
+            {
+                pioMode = 4;
+                sdmaMode = -1;
+                mdmaMode = 2;
+                udmaMode = -1;
+            }
+            else
+            {
+                pioMode = 4;
+                if (udmaMode == -1)
+                {
+                    sdmaMode = -1;
+                    mdmaMode = 2;
+                }
+            }
+
+            regControlEnableIRQ = false;
+            HDD_ExecuteDeviceDiag();
+            regControlEnableIRQ = true;
+        }
+
+        public void ATA_HardReset()
+        {
+            Log_Verb("*ATA_HARD RESET");
+            ResetBegin();
+            ResetEnd(false);
+        }
+
+        public UInt16 ATA_Read16(UInt32 addr)
+        {
             switch (addr)
             {
                 case DEV9Header.ATA_R_DATA:
-                    Log_Verb("*ATA_R_DATA 16bit read at address " + addr.ToString("x") + " pio_count " + dataPtr + " pio_size " + dataEnd);
-                    if (dataPtr < dataEnd)
-                    {
-                        UInt16 ret = BitConverter.ToUInt16(pioBuffer, dataPtr * 2);
-                        //ret = (UInt16)System.Net.IPAddress.HostToNetworkOrder((Int16)ret);
-                        Log_Verb("*ATA_R_DATA returned value is  " + ret.ToString("x"));
-                        dataPtr++;
-                        if (dataPtr == dataEnd) //Fnished transfer (Changed from MegaDev9)
-                        {
-                            endTransferFunc();
-                        }
-                        return ret;
-                    }
-                    return 0xFF;
+                    return ATAreadPIO();
                 case DEV9Header.ATA_R_ERROR:
-                    Log_Verb("*ATA_R_ERROR 16bit read at address " + addr.ToString("x") + " value " + error.ToString("x") + " Active " + ((select & 0x10) == 0));
-                    if ((select & 0x10) != 0)
+                    Log_Verb("*ATA_R_ERROR 16bit read at address " + addr.ToString("x") + " value " + regError.ToString("x") + " Active " + (regSelectDev == 0));
+                    if (regSelectDev != 0)
                         return 0;
-                    if (!hob)
-                        return (UInt16)(error);
-                    else
-                        return hobFeature;
+                    return regError;
                 case DEV9Header.ATA_R_NSECTOR:
-                    Log_Verb("*ATA_R_NSECTOR 16bit read at address " + addr.ToString("x") + " value " + nsector.ToString("x") + " Active " + ((select & 0x10) == 0));
-                    if ((select & 0x10) != 0)
+                    Log_Verb("*ATA_R_NSECTOR 16bit read at address " + addr.ToString("x") + " value " + nsector.ToString("x") + " Active " + (regSelectDev == 0));
+                    if (regSelectDev != 0)
                         return 0;
-                    if (!hob)
-                        return (UInt16)(nsector & 0xff);
+                    if (!regControlHOBRead)
+                        return regNsector;
                     else
-                        return hobNsector;
+                        return regNsectorHOB;
                 case DEV9Header.ATA_R_SECTOR:
-                    Log_Verb("*ATA_R_NSECTOR 16bit read at address " + addr.ToString("x") + " value " + sector.ToString("x") + " Active " + ((select & 0x10) == 0));
-                    if ((select & 0x10) != 0)
+                    Log_Verb("*ATA_R_NSECTOR 16bit read at address " + addr.ToString("x") + " value " + regSector.ToString("x") + " Active " + (regSelectDev == 0));
+                    if (regSelectDev != 0)
                         return 0;
-                    if (!hob)
-                        return (UInt16)(sector);
+                    if (!regControlHOBRead)
+                        return regSector;
                     else
-                        return hobSector;
+                        return regSectorHOB;
                 case DEV9Header.ATA_R_LCYL:
-                    Log_Verb("*ATA_R_LCYL 16bit read at address " + addr.ToString("x") + " value " + lcyl.ToString("x") + " Active " + ((select & 0x10) == 0));
-                    if ((select & 0x10) != 0)
+                    Log_Verb("*ATA_R_LCYL 16bit read at address " + addr.ToString("x") + " value " + regLcyl.ToString("x") + " Active " + (regSelectDev == 0));
+                    if (regSelectDev != 0)
                         return 0;
-                    if (!hob)
-                        return (UInt16)(lcyl);
+                    if (!regControlHOBRead)
+                        return regLcyl;
                     else
-                        return hobLcyl;
+                        return regLcylHOB;
                 case DEV9Header.ATA_R_HCYL:
-                    Log_Verb("*ATA_R_HCYL 16bit read at address " + addr.ToString("x") + " value " + hcyl.ToString("x") + " Active " + ((select & 0x10) == 0));
-                    if ((select & 0x10) != 0)
+                    Log_Verb("*ATA_R_HCYL 16bit read at address " + addr.ToString("x") + " value " + regHcyl.ToString("x") + " Active " + (regSelectDev == 0));
+                    if (regSelectDev != 0)
                         return 0;
-                    if (!hob)
-                        return (UInt16)(hcyl);
+                    if (!regControlHOBRead)
+                        return regHcyl;
                     else
-                        return hobHcyl;
+                        return regHcylHOB;
                 case DEV9Header.ATA_R_SELECT:
-                    Log_Verb("*ATA_R_SELECT 16bit read at address " + addr.ToString("x") + " value " + select.ToString("x") + " Active " + ((select & 0x10) == 0));
-                    //if ((select & 0x10) != 0)
-                    //    return 0;
-                    return select;
+                    Log_Verb("*ATA_R_SELECT 16bit read at address " + addr.ToString("x") + " value " + regSelect.ToString("x") + " Active " + (regSelectDev == 0));
+                    return regSelect;
                 case DEV9Header.ATA_R_STATUS:
                     Log_Verb("*ATA_R_STATUS (redirecting to ATA_R_ALT_STATUS)");
                     //Clear irqcause
-                    dev9.irqCause &= ~(1 | 3);
-                    return ATAread16(DEV9Header.ATA_R_ALT_STATUS);
+                    dev9.spd.regIntStat &= unchecked((UInt16)~DEV9Header.ATA_INTR_INTRQ);
+                    return ATA_Read16(DEV9Header.ATA_R_ALT_STATUS);
                 case DEV9Header.ATA_R_ALT_STATUS:
-                    Log_Verb("*ATA_R_ALT_STATUS 16bit read at address " + addr.ToString("x") + " value " + status.ToString("x") + " Active " + ((select & 0x10) == 0));
+                    Log_Verb("*ATA_R_ALT_STATUS 16bit read at address " + addr.ToString("x") + " value " + regStatus.ToString("x") + " Active " + (regSelectDev == 0));
                     //raise IRQ?
-                    if ((select & 0x10) != 0)
+                    if (regSelectDev != 0)
                         return 0;
-                    if (!hob)
-                        return (UInt16)(status);
-                    else
-                        return status;
+                    return regStatus;
                 default:
                     Log_Error("*Unknown 16bit read at address " + addr.ToString("x"));
                     return 0xff;
             }
         }
 
-        public void ATAwrite16(UInt32 addr, UInt16 value)
+        public void ATA_Write16(UInt32 addr, UInt16 value)
         {
-            if (addr != DEV9Header.ATA_R_CMD & (status & (DEV9Header.ATA_STAT_BUSY | DEV9Header.ATA_STAT_DRQ)) != 0)
+            if (addr != DEV9Header.ATA_R_CMD & (regStatus & (DEV9Header.ATA_STAT_BUSY | DEV9Header.ATA_STAT_DRQ)) != 0)
             {
                 Log_Error("*DEVICE BUSY, DROPPING WRITE");
                 return;
@@ -203,42 +253,38 @@ namespace CLRDEV9.DEV9.ATA
                 case DEV9Header.ATA_R_FEATURE:
                     Log_Verb("*ATA_R_FEATURE 16bit write at address " + addr.ToString("x") + " value " + value.ToString("x"));
                     IDE_ClearHOB();
-                    hobFeature = feature;
-                    feature = (byte)value;
+                    regFeatureHOB = regFeature;
+                    regFeature = (byte)value;
                     break;
                 case DEV9Header.ATA_R_NSECTOR:
                     Log_Verb("*ATA_R_NSECTOR 16bit write at address " + addr.ToString("x") + " value " + value.ToString("x"));
                     IDE_ClearHOB();
-                    hobNsector = (byte)nsector;
-                    nsector = value;
+                    regNsectorHOB = regNsector;
+                    regNsector = (byte)value;
                     break;
                 case DEV9Header.ATA_R_SECTOR:
                     Log_Verb("*ATA_R_SECTOR 16bit write at address " + addr.ToString("x") + " value " + value.ToString("x"));
                     IDE_ClearHOB();
-                    hobSector = sector;
-                    sector = (byte)value;
+                    regSectorHOB = regSector;
+                    regSector = (byte)value;
                     break;
                 case DEV9Header.ATA_R_LCYL:
                     Log_Verb("*ATA_R_LCYL 16bit write at address " + addr.ToString("x") + " value " + value.ToString("x"));
                     IDE_ClearHOB();
-                    hobLcyl = lcyl;
-                    lcyl = (byte)value;
+                    regLcylHOB = regLcyl;
+                    regLcyl = (byte)value;
                     break;
                 case DEV9Header.ATA_R_HCYL:
                     Log_Verb("*ATA_R_HCYL 16bit write at address " + addr.ToString("x") + " value " + value.ToString("x"));
                     IDE_ClearHOB();
-                    hobHcyl = hcyl;
-                    hcyl = (byte)value;
+                    regHcylHOB = regHcyl;
+                    regHcyl = (byte)value;
                     break;
                 case DEV9Header.ATA_R_SELECT:
                     Log_Verb("*ATA_R_SELECT 16bit write at address " + addr.ToString("x") + " value " + value.ToString("x"));
-                    /* FIXME: HOB readback uses bit 7 */
-                    select = (byte)value;
+                    regSelect = (byte)value;
                     //bus->ifs[0].select = (val & ~0x10) | 0xa0;
                     //bus->ifs[1].select = (val | 0x10) | 0xa0;
-                    /* select drive */
-                    //Also have LBA bit
-                    unit = (uint)((value >> 4) & 1);
                     break;
                 case DEV9Header.ATA_R_CONTROL:
                     Log_Verb("*ATA_R_CONTROL 16bit write at address " + addr.ToString("x") + " value " + value.ToString("x"));
@@ -246,192 +292,189 @@ namespace CLRDEV9.DEV9.ATA
                     if ((value & 0x2) != 0)
                     {
                         //Supress all IRQ
-                        sendIRQ = false;
+                        dev9.spd.regIntStat &= unchecked((UInt16)~DEV9Header.ATA_INTR_INTRQ);
+                        regControlEnableIRQ = false;
                     }
                     else
                     {
-                        sendIRQ = true;
+                        regControlEnableIRQ = true;
                     }
                     if ((value & 0x4) != 0)
                     {
                         Log_Verb("*ATA_R_CONTROL RESET");
-                        error = 0;
-                        nsector = 1;
-                        sector = 1;
-                        status = 0x40;
-                        lcyl = 0;
-                        hcyl = 0;
-                        feature = 0;
-                        xferMode = 0;
-                        dataEnd = 0;
-                        //command = 0;
+                        ResetBegin();
+                        ResetEnd(false);
+                    }
+                    if ((value & 0x80) != 0)
+                    {
+                        regControlHOBRead = true;
                     }
                     break;
                 case DEV9Header.ATA_R_CMD:
                     Log_Verb("*ATA_R_CMD 16bit write at address " + addr.ToString("x") + " value " + value.ToString("x"));
-                    command = value;
+                    regCommand = value;
+                    regControlHOBRead = false;
+                    dev9.spd.regIntStat &= unchecked((UInt16)~DEV9Header.ATA_INTR_INTRQ);
                     IDE_ExecCmd(value);
                     break;
                 default:
                     Log_Error("*UNKOWN 16bit write at address " + addr.ToString("x") + " value " + value.ToString("x"));
                     break;
-
             }
         }
 
-        static int rdTransferred;
-        static int wrTransferred;
-        public void ATAreadDMA8Mem(UnmanagedMemoryStream pMem, int size)
+        public void ATA_Async(uint cycles)
         {
-            if (((xferMode & 0xF0) == 0x40) &&
-                (dev9.Dev9Ru16((int)DEV9Header.SPD_R_IF_CTRL) & DEV9Header.SPD_IF_DMA_ENABLE) != 0)
+            ManageAsync();
+        }
+
+        void ManageAsync()
+        {
+            if ((regStatus & (DEV9Header.ATA_STAT_BUSY | DEV9Header.ATA_STAT_DRQ)) == 0 |
+                awaitFlush | (waitingCmd != null))
             {
-                //size >>= 1;
-                Log_Verb("DMA read, size " + size + ", transferred " + rdTransferred + ", total size " + nsector * 512);
-                Log_Info("rATA");
-
-                //read
-                byte[] temp = new byte[size];
-                hddImage.Read(temp, 0, size);
-                pMem.Write(temp, 0, size);
-
-                rdTransferred += size;
-                if (rdTransferred >= nsector * 512)
+                WaitHandle[] ioWaits = new WaitHandle[] { ioRead, ioWrite };
+                if (WaitHandle.WaitAny(ioWaits, 0) != WaitHandle.WaitTimeout)
                 {
-                    //Set Sector
-                    long currSect = HDD_GetLBA();
-                    currSect += nsector;
-                    HDD_SetLBA(currSect);
-
-                    nsector = 0;
-                    status = DEV9Header.ATA_STAT_READY | DEV9Header.ATA_STAT_SEEK;
-                    if (sendIRQ) dev9.DEV9irq(3, 1); //0x6c
-                    rdTransferred = 0;
-                    //dev9.Dev9Wu16((int)DEV9Header.SPD_R_IF_CTRL, (UInt16)(dev9.Dev9Ru16((int)DEV9Header.SPD_R_IF_CTRL) & ~DEV9Header.SPD_IF_DMA_ENABLE));
+                    //IO Running
+                    return;
                 }
-            }
-        }
-        public void ATAwriteDMA8Mem(UnmanagedMemoryStream pMem, int size)
-        {
-            if (((xferMode & 0xF0) == 0x40) &&
-                (dev9.Dev9Ru16((int)DEV9Header.SPD_R_IF_CTRL) & DEV9Header.SPD_IF_DMA_ENABLE) != 0)
-            {
-                //size >>= 1;
-                Log_Verb("DEV9 : DMA write, size " + size + ", transferred " + wrTransferred + ", total size " + nsector * 512);
-                Log_Info("wATA");
 
-                //write
-                byte[] temp = new byte[size];
-                pMem.Read(temp, 0, size);
-                hddImage.Write(temp, 0, size);
-
-                wrTransferred += size;
-                if (wrTransferred >= nsector * 512)
+                //Note, ioThread may still be working.
+                if (waitingCmd != null) //Are we waiting to continue a command?
                 {
-                    hddImage.Flush();
-
-                    //Set Sector
-                    long currSect = HDD_GetLBA();
-                    currSect += nsector;
-                    HDD_SetLBA(currSect);
-
-                    nsector = 0;
-                    status = DEV9Header.ATA_STAT_READY | DEV9Header.ATA_STAT_SEEK;
-                    if (sendIRQ) dev9.DEV9irq(3, 1); //0x6C
-                    wrTransferred = 0;
-                    //dev9.Dev9Wu16((int)DEV9Header.SPD_R_IF_CTRL, (UInt16)(dev9.Dev9Ru16((int)DEV9Header.SPD_R_IF_CTRL) & ~DEV9Header.SPD_IF_DMA_ENABLE));
+                    //Log_Info("Running waiting command");
+                    Cmd cmd = waitingCmd;
+                    waitingCmd = null;
+                    cmd();
+                }
+                else if (!WriteCacheSectors.IsEmpty) //Flush cache
+                {
+                    //Log_Info("Starting async write");
+                    ioWrite.Set();
+                }
+                else if (awaitFlush) //Fire IRQ on flush completion?
+                {
+                    //Log_Info("Flush done, raise IRQ");
+                    awaitFlush = false;
+                    PostCmdNoData();
                 }
             }
         }
 
         long HDD_GetLBA()
         {
-            if ((select & 0x40) != 0)
+            if ((regSelect & 0x40) != 0)
             {
                 if (!lba48)
                 {
-                    return (sector |
-                            (lcyl << 8) |
-                            (hcyl << 16) |
-                            ((select & 0x0f) << 24));
+                    return (regSector |
+                            (regLcyl << 8) |
+                            (regHcyl << 16) |
+                            ((regSelect & 0x0f) << 24));
                 }
                 else
                 {
-                    return ((long)hobHcyl << 40) |
-                            ((long)hobLcyl << 32) |
-                            ((long)hobSector << 24) |
-                            ((long)hcyl << 16) |
-                            ((long)lcyl << 8) | sector;
+                    return ((long)regHcylHOB << 40) |
+                            ((long)regLcylHOB << 32) |
+                            ((long)regSectorHOB << 24) |
+                            ((long)regHcyl << 16) |
+                            ((long)regLcyl << 8) |
+                            regSector;
                 }
             }
             else
             {
-                status |= (byte)DEV9Header.ATA_STAT_ERR;
-                error |= (byte)DEV9Header.ATA_ERR_ABORT;
+                regStatus |= (byte)DEV9Header.ATA_STAT_ERR;
+                regError |= (byte)DEV9Header.ATA_ERR_ABORT;
 
                 Log_Error("DEV9 ERROR : tried to get LBA address while LBA mode disabled\n");
-
+                //(c.Nh + h).Ns+(s-1)
+                long CHSasLBA = ((regLcyl & regHcyl << 8) * curHeads + (regSelect & 0x0f)) * curSectors + (regSector - 1);
                 return -1;
             }
-            //return -1;
         }
 
         void HDD_SetLBA(long sectorNum)
         {
-            if ((select & 0x40) != 0)
+            if ((regSelect & 0x40) != 0)
             {
                 if (!lba48)
                 {
-                    select = (byte)((select & 0xf0) | ((int)sectorNum >> 24));
-                    hcyl = (byte)(sectorNum >> 16);
-                    lcyl = (byte)(sectorNum >> 8);
-                    sector = (byte)(sectorNum);
+                    regSelect = (byte)((regSelect & 0xf0) | (int)((sectorNum >> 24) & 0x0f));
+                    regHcyl = (byte)(sectorNum >> 16);
+                    regLcyl = (byte)(sectorNum >> 8);
+                    regSector = (byte)(sectorNum);
                 }
                 else
                 {
-                    sector = (byte)sectorNum;
-                    lcyl = (byte)(sectorNum >> 8);
-                    hcyl = (byte)(sectorNum >> 16);
-                    hobSector = (byte)(sectorNum >> 24);
-                    hobLcyl = (byte)(sectorNum >> 32);
-                    hobHcyl = (byte)(sectorNum >> 40);
+                    regSector = (byte)sectorNum;
+                    regLcyl = (byte)(sectorNum >> 8);
+                    regHcyl = (byte)(sectorNum >> 16);
+                    regSectorHOB = (byte)(sectorNum >> 24);
+                    regLcylHOB = (byte)(sectorNum >> 32);
+                    regHcylHOB = (byte)(sectorNum >> 40);
                 }
             }
             else
             {
-                status |= (byte)DEV9Header.ATA_STAT_ERR;
-                error |= (byte)DEV9Header.ATA_ERR_ABORT;
+                regStatus |= (byte)DEV9Header.ATA_STAT_ERR;
+                regError |= (byte)DEV9Header.ATA_ERR_ABORT;
 
                 Log_Error("DEV9 ERROR : tried to get LBA address while LBA mode disabled\n");
             }
         }
 
-        int HDD_Seek()
+        bool HDD_CanSeek()
+        {
+            int sectors = 0;
+            return HDD_CanAccess(ref sectors);
+        }
+
+        bool HDD_CanAccess(ref int sectors)
         {
             long lba;
-            long pos;
+            long posStart;
+            long posEnd;
+            long maxLBA;
+
+            maxLBA = Math.Max(DEV9Header.config.HddSize * 1024L * 1024L, hddImage.Length) / 512;
+            if ((regSelect & 0x40) == 0) //CHS mode
+            {
+                Math.Max(maxLBA, curCylinders * curHeads * curSectors);
+            }
 
             lba = HDD_GetLBA();
             if (lba == -1)
-                return -1;
+                return false;
+
             Log_Verb("LBA :" + lba);
-            pos = ((long)lba * 512);
-            hddImage.Seek(pos, SeekOrigin.Begin);
+            posStart = lba;
 
-            return 0;
-        }
+            if (posStart > maxLBA)
+            {
+                sectors = -1;
+                return false;
+            }
 
-        public void _ATAirqHandler()
-        {
-            //	dev9.intr_stat |= dev9.irq_cause;
-            //dev9.dev9Wu16((int)DEV9Header.SPD_R_INTR_STAT, (UInt16)dev9.irqcause);//dev9.intr_stat = dev9.irqcause;
+            posEnd = posStart + sectors;
+
+            if (posEnd > maxLBA)
+            {
+                long overshoot = posEnd - maxLBA;
+                long space = sectors - overshoot;
+                sectors = (int)space;
+                return false;
+            }
+
+            return true;
         }
 
         //QEMU stuff
         void IDE_ClearHOB()
         {
             /* any write clears HOB high bit of device control register */
-            select &= unchecked((byte)(~(1 << 7)));
+            regControlHOBRead = false;
         }
 
         private void Log_Error(string str)

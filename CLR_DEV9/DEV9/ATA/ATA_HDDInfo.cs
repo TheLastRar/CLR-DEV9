@@ -16,6 +16,8 @@ namespace CLRDEV9.DEV9.ATA
         UInt16 curSectors = 63;
         UInt16 curCylinders = 0;
 
+        byte curMultipleSectorsSetting = 128;
+
         void CreateHDDinfo(int sizeMb)
         {
             UInt16 sectorSize = 512;
@@ -29,32 +31,34 @@ namespace CLRDEV9.DEV9.ATA
             UInt16 defSectors = 63;
             long cylinderslong = (Math.Min(nbSectors, 16514064L) / defHeads / defSectors);
             UInt16 defCylinders = (UInt16)Math.Min(cylinderslong, ushort.MaxValue);
-            
+
 
             //Curent CHS translation
             cylinderslong = (Math.Min(nbSectors, 16514064L) / curHeads / curSectors);
             curCylinders = (UInt16)Math.Min(cylinderslong, ushort.MaxValue);
 
-            int oldsize = ((UInt16)curCylinders) * curHeads * curSectors;
+            int curOldsize = ((UInt16)curCylinders) * curHeads * curSectors;
             //SET MAX ADDRESS will set the nbSectors reported
 
             //M-General configuration bit-significant information:
             #region
-            //bit 0: 0 = ATA dev
-            //bit 1: Hard Sectored (Retired)
-            //bit 2: Soft Sectored (Retired) / Response incomplete
-            //bit 3: Not MFM encoded (Retired)
-            //bit 4: Head switch time > 15 usec (Retired)
-            //bit 5: Spindle motor control option implemented (Retired)
-            //bit 6: Non-Removable (Obsolete)
-            //bit 7: Removable
-            //bit 8-10: transfer speeds (<5, 5-10, >10MB/s) (Retired) 
-            //bit 11: rotational speed tolerance is > 0.5%
-            //bit 12: data strobe offset option available (Retired)
-            //bit 13: track offset option available
-            //bit 14: format speed tolerance gap required
-            //bit 15: 0 = ATA dev
-            //bit 16: reserved
+            //0x848A is for CFA devices
+            //bit 0: Resv                                          (all?)
+            //bit 1: Hard Sectored                                 (ATA-1)
+            //bit 2: Soft Sectored                                 (ATA-1) / Response incomplete (ATA-5,6,7,8)
+            //bit 3: Not MFM encoded                               (ATA-1)
+            //bit 4: Head switch time > 15 usec                    (ATA-1)
+            //bit 5: Spindle motor control option implemented      (ATA-1)
+            //bit 6: Non-Removable (Obsolete)                      (ATA-1,2,3,4,5)
+            //bit 7: Removable                                     (ATA-1,2,3,4,5,6,7,8)
+            //bit 8: disk transfer rate > 10Mbs                    (ATA-1)
+            //bit 9: disk transfer rate > 5Mbs but <= 10Mbs        (ATA-1)
+            //bit 10: disk transfer rate <= 5Mbs                   (ATA-1)
+            //bit 11: rotational speed tolerance is > 0.5%         (ATA-1)
+            //bit 12: data strobe offset option available          (ATA-1)
+            //bit 13: track offset option available                (ATA-1)
+            //bit 14: format speed tolerance gap required          (ATA-1)
+            //bit 15: 0 = ATA dev                                  (All?)
             #endregion
             int index = 0;
             DataLib.WriteUInt16(identifyData, ref index, 0x0040);    //word 0
@@ -89,8 +93,8 @@ namespace CLRDEV9.DEV9.ATA
             //M-Model number (40 ASCII characters)
             DataLib.WriteCString(identifyData, ref index, "CLR-DEV9 HDD AIR".PadRight(40));//word 27-46
             index = 47 * 2;
-            //M-READ/WRITE MULI max sectors (TODO)
-            index += 1 * 2;                                              //word 47
+            //M-READ/WRITE MULI max sectors
+            DataLib.WriteUInt16(identifyData, ref index, 128 & (0x80 << 8));//word 47
             //Dword IO supported
             DataLib.WriteUInt16(identifyData, ref index, 1);         //word 48
             //M-Capabilities
@@ -107,7 +111,7 @@ namespace CLRDEV9.DEV9.ATA
             //M-Capabilities (0-Shall be set to one to indicate a device specific Standby timer value minimum)
             index += 1 * 2;                                              //word 50
             //PIO data transfer cycle timing mode (Obsolete)
-            DataLib.WriteUInt16(identifyData, ref index, 0);         //word 51
+            DataLib.WriteUInt16(identifyData, ref index, (byte)(Math.Max(pioMode, 2) << 8));//word 51
             //DMA data transfer cycle timing mode (Obsolete)
             DataLib.WriteUInt16(identifyData, ref index, 0);         //word 52
             //M
@@ -124,14 +128,14 @@ namespace CLRDEV9.DEV9.ATA
             //Number of current sectors per track
             DataLib.WriteUInt16(identifyData, ref index, curSectors);   //word 56
             //Current capacity in sectors
-            DataLib.WriteUInt32(identifyData, ref index, (UInt32)oldsize);//word 57-58
+            DataLib.WriteUInt32(identifyData, ref index, (UInt32)curOldsize);//word 57-58
             //M
             #region
             //bit 7-0: Current setting for number of logical sectors that shall be transferred per DRQ
             //         data block on READ/WRITE Multiple commands
             //bit 8: Multiple sector setting is valid
             #endregion
-            index += 1 * 2;                                              //word 59
+            DataLib.WriteUInt16(identifyData, ref index, (UInt16)(curMultipleSectorsSetting & (1 << 8)));   //word 59
             //Total number of user addressable logical sectors
             DataLib.WriteUInt32(identifyData, ref index, (UInt32)Math.Min(nbSectors, 268435456));//word 60-61
             //DMA modes
@@ -161,12 +165,11 @@ namespace CLRDEV9.DEV9.ATA
                 DataLib.WriteUInt16(identifyData, ref index, 0x07);  //word 63
             }
             //M-Bit 0-7-PIO modes supported (0,1,2,3,4)
-            //DataLib.WriteUInt16(ref identifyData, ref index, 0x03);      //word 64 (pio3,4 supported) selection not reported here
             DataLib.WriteUInt16(identifyData, ref index, 0x1F);      //word 64 (pio3,4 supported) selection not reported here
             //M-Minimum Multiword DMA transfer cycle time per word
-            DataLib.WriteUInt16(identifyData, ref index, 120);       //word 65
+            DataLib.WriteUInt16(identifyData, ref index, 80);       //word 65
             //M-Manufacturer’s recommended Multiword DMA transfer cycle time
-            DataLib.WriteUInt16(identifyData, ref index, 120);       //word 66
+            DataLib.WriteUInt16(identifyData, ref index, 80);       //word 66
             //M-Minimum PIO transfer cycle time without flow control
             DataLib.WriteUInt16(identifyData, ref index, 120);       //word 67
             //M-Minimum PIO transfer cycle time with IORDY flow control

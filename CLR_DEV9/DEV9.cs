@@ -41,6 +41,7 @@ namespace CLRDEV9
 
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.Test);
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.Dev9);
+                CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.SPEED);
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.SMAP);
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.ATA);
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.Winsock);

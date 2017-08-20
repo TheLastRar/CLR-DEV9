@@ -7,12 +7,13 @@ namespace CLRDEV9
         PluginInterface = 2,
         Dev9 = 3,
         ATA = 5,
-        SMAP = 4,
         FLASH = 9,
+        SMAP = 4,
+        SPEED = 10,
         Tap = 6,
         WinPcap = 7,
         Winsock = 8,
-        Test = 10,
+        Test = 100,
 
         //ABCDE
         //A = 1 (winsock)

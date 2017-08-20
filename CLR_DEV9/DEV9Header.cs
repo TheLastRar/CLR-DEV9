@@ -28,20 +28,15 @@ namespace CLRDEV9
         /*
          * SPEED (ASIC on SMAP) register definitions.
          */
-
         public const uint SPD_REGBASE = 0x10000000;
 
-        public const uint SPD_R_REV = (SPD_REGBASE + 0x00);
-        public const uint SPD_R_REV_1 = (SPD_REGBASE + 0x02);
-        // bit 0: smap
-        // bit 1: hdd
-        // bit 5: flash
-        public const uint SPD_R_REV_3 = (SPD_REGBASE + 0x04);
-        public const uint SPD_R_0e = (SPD_REGBASE + 0x0e);
+        public const UInt16 ATA_INTR_INTRQ = (1 << 0);
+        public const UInt16 ATA_INTR_1 = (1 << 1);
+        public const UInt16 ATA_INTR_ALL = (ATA_INTR_INTRQ | ATA_INTR_1);
+        //SMAP INTRs
+        public const uint SPD_INTR_DVR = (1 << 9);
+        public const uint SPD_INTR_UART = (1 << 12);
 
-        public const uint SPD_R_DMA_CTRL = (SPD_REGBASE + 0x24);
-        public const uint SPD_R_INTR_STAT = (SPD_REGBASE + 0x28);
-        public const uint SPD_R_INTR_MASK = (SPD_REGBASE + 0x2a);
         public const uint SPD_R_PIO_DIR = (SPD_REGBASE + 0x2c);
         public const uint SPD_R_PIO_DATA = (SPD_REGBASE + 0x2e);
         public const uint SPD_PP_DOUT = (1 << 4);	/* Data output, read port */
@@ -53,15 +48,6 @@ namespace CLRDEV9
         public const uint SPD_PP_OP_WRITE = 1;
         public const uint SPD_PP_OP_EWEN = 0;
         public const uint SPD_PP_OP_EWDS = 0;
-
-        public const uint SPD_R_XFR_CTRL = (SPD_REGBASE + 0x32);
-        public const uint SPD_R_38 = (SPD_REGBASE + 0x38);
-        public const uint SPD_R_IF_CTRL = (SPD_REGBASE + 0x64);
-        public const uint SPD_IF_ATA_RESET = 0x80;
-        public const uint SPD_IF_DMA_ENABLE = 0x04;
-        public const uint SPD_R_PIO_MODE = (SPD_REGBASE + 0x70);
-        public const uint SPD_R_MWDMA_MODE = (SPD_REGBASE + 0x72);
-        public const uint SPD_R_UDMA_MODE = (SPD_REGBASE + 0x74);
 
         /*
          * SMAP (PS2 Network Adapter) register definitions.

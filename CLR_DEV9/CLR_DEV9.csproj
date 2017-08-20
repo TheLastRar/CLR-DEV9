@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CLRDEV9</RootNamespace>
     <AssemblyName>CLR_DEV9</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
@@ -101,6 +101,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'TestApps|x64'">
     <DebugSymbols>true</DebugSymbols>
@@ -111,6 +112,7 @@
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'TestApps|x86'">
     <DebugSymbols>true</DebugSymbols>
@@ -122,6 +124,7 @@
     <RunCodeAnalysis>true</RunCodeAnalysis>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>ManagedMinimumRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DllExport, Version=1.5.2.30304, Culture=neutral, PublicKeyToken=8337224c9ad9e356, processorArchitecture=MSIL">
@@ -154,6 +157,12 @@
     <Compile Include="Config\Test\Eth\DHCPTest.cs" />
     <Compile Include="Config\Test\Eth\DNSTest.cs" />
     <Compile Include="Config\Test\Eth\SMAP_Test.cs" />
+    <Compile Include="DEV9\ATA\Commands\ATA_CmdDMA.cs" />
+    <Compile Include="DEV9\ATA\Commands\ATA_CmdExecuteDeviceDiag.cs" />
+    <Compile Include="DEV9\ATA\Commands\ATA_CmdNoData.cs" />
+    <Compile Include="DEV9\ATA\Commands\ATA_CmdPIODataToHost.cs" />
+    <Compile Include="DEV9\ATA\Commands\ATA_CmdSMART.cs" />
+    <Compile Include="DEV9\ATA\Commands\ATA_SCE.cs" />
     <Compile Include="DEV9\SMAP\SMAP_State_Read.cs" />
     <Compile Include="DEV9\SMAP\SMAP_State_Write.cs" />
     <Compile Include="DEV9\SMAP\Winsock\ConnectionKey.cs" />
@@ -167,6 +176,9 @@
     <Compile Include="DEV9\SMAP\Winsock\Sessions\IGMPSession.cs" />
     <Compile Include="DEV9\SMAP\Winsock\Sessions\UDPSession\UDPFixedPort.cs" />
     <Compile Include="DEV9\SMAP\Winsock\Sessions\UDPSession\UDPServerSession.cs" />
+    <Compile Include="DEV9\SPEED\SPEED_Header.cs" />
+    <Compile Include="DEV9\SPEED\SPEED_State.cs" />
+    <Compile Include="DEV9\SPEED\SPEED_State_Regs.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="PSE\CLR_PSE_NativeLogger.cs" />
     <Compile Include="Config\ConfigFile.cs" />
@@ -193,7 +205,7 @@
     <Compile Include="DEV9.cs" />
     <Compile Include="DEV9Header.cs" />
     <Compile Include="DEV9LogSources.cs" />
-    <Compile Include="DEV9\ATA\ATA_Commands.cs" />
+    <Compile Include="DEV9\ATA\Commands\ATA_Commands.cs" />
     <Compile Include="DEV9\ATA\ATA_HDDInfo.cs" />
     <Compile Include="DEV9\ATA\ATA_State.cs" />
     <Compile Include="DEV9\ATA\ATA_State_regs.cs" />
