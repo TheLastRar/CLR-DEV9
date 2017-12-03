@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stdlib.h>
+//#include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h> 
 #include <stdint.h>
@@ -8,17 +8,14 @@
 
 #include <string>
 
-#include <mono/jit/jit.h>
-#include <mono/metadata/appdomain.h>
-#include <mono/metadata/assembly.h>
-#include <mono/metadata/debug-helpers.h>
-#include <mono/metadata/mono-config.h>
-#include <mono/metadata/mono-debug.h>
-#include <mono/metadata/threads.h>
-#include <mono/metadata/reflection.h>
+#include "coreclrhost.h"
 
 #define EXPORT_C_(type) extern "C" __attribute__((stdcall, externally_visible, visibility("default"))) type
 #define CALLBACK __attribute__((stdcall))
+
+//Runtime
+extern void* runtimeCLR;
+extern unsigned int pseDomainID;
 
 //set by specific plugin
 extern const std::string pluginName;
@@ -28,12 +25,7 @@ extern const uint8_t pluginVerMinor;
 extern const uint8_t pluginVerPatch;
 
 //helper methods
-
-typedef MonoObject*(*ThunkGetDelegate)(void* func, MonoException** ex);
-extern ThunkGetDelegate CyclesCallbackFromFunctionPointer;
-
-typedef void*(*ThunkGetFuncPtr)(MonoObject* func, MonoException** ex);
-extern ThunkGetFuncPtr FunctionPointerFromIRQHandler;
+extern coreclr_create_delegate_ptr createDelegate;
 
 //temp logging code
 struct PluginLog
@@ -60,6 +52,5 @@ struct PluginLog
 };
 extern PluginLog PSELog;
 
-MonoDomain *LoadMonoSafer(std::string monousrlibPath, std::string monoetcPath);
-
-MonoImage* LoadPluginPSE(MonoAssembly *pluginAssembly, std::string pluginPath);
+void LoadCoreCLR(std::string pluginPath, std::string coreClrFolder);
+void CloseCoreCLR();

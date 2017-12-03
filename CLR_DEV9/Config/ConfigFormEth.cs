@@ -1,4 +1,6 @@
-﻿using CLRDEV9.DEV9.SMAP.Tap;
+﻿#if NETCOREAPP2_0
+#else
+using CLRDEV9.DEV9.SMAP.Tap;
 using CLRDEV9.DEV9.SMAP.WinPcap;
 using CLRDEV9.DEV9.SMAP.Winsock;
 using System;
@@ -394,3 +396,4 @@ namespace CLRDEV9.Config
         }
     }
 }
+#endif

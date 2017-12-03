@@ -8,6 +8,7 @@ namespace CLRDEV9.DEV9.SMAP.Tap
 {
     partial class TAPAdapter
     {
+        //TODO, Port to linux tap devices
         const string USERMODEDEVICEDIR = "\\\\.\\Global\\";
         const string TAPSUFFIX = ".tap";
 
@@ -19,7 +20,7 @@ namespace CLRDEV9.DEV9.SMAP.Tap
             UInt32 debug;
         }
 
-        #region 'PInvoke mess'
+#region 'PInvoke mess'
 
         private class NativeMethods
         {
@@ -47,7 +48,7 @@ namespace CLRDEV9.DEV9.SMAP.Tap
         const UInt32 TAP_IOCTL_GET_MAC = ((FILE_DEVICE_UNKNOWN) << 16) | ((FILE_ANY_ACCESS) << 14) | ((1) << 2) | (METHOD_BUFFERED);//TAP_CONTROL_CODE(1, METHOD_BUFFERED);
         const UInt32 TAP_IOCTL_GET_VERSION = ((FILE_DEVICE_UNKNOWN) << 16) | ((FILE_ANY_ACCESS) << 14) | ((2) << 2) | (METHOD_BUFFERED);//TAP_CONTROL_CODE(2, METHOD_BUFFERED);
         const UInt32 TAP_IOCTL_SET_MEDIA_STATUS = ((FILE_DEVICE_UNKNOWN) << 16) | ((FILE_ANY_ACCESS) << 14) | ((6) << 2) | (METHOD_BUFFERED);//TAP_CONTROL_CODE(6, METHOD_BUFFERED);
-        #endregion
+#endregion
         //Set the connection status
         bool TAPSetStatus(SafeFileHandle handle, bool status)
         {
@@ -131,7 +132,6 @@ namespace CLRDEV9.DEV9.SMAP.Tap
         private static List<string[]> TAPGetAdaptersWMI()
         {
             List<string[]> names = new List<string[]>();
-
             ManagementScope scope = new ManagementScope("\\\\.\\ROOT\\cimv2");
 
             ObjectQuery query = new ObjectQuery("SELECT NetConnectionID,Description,ServiceName,PNPDeviceID,GUID FROM Win32_NetworkAdapter WHERE ServiceName LIKE 'tap%'");

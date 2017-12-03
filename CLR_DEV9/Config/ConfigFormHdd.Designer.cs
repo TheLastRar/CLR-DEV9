@@ -1,4 +1,7 @@
-﻿namespace CLRDEV9.Config
+﻿#if NETCOREAPP2_0
+#else
+
+namespace CLRDEV9.Config
 {
     partial class ConfigFormHdd
     {
@@ -20,7 +23,7 @@
             base.Dispose(disposing);
         }
 
-        #region Windows Form Designer generated code
+#region Windows Form Designer generated code
 
         /// <summary>
         /// Required method for Designer support - do not modify
@@ -143,7 +146,7 @@
 
         }
 
-        #endregion
+#endregion
 
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox tbPath;
@@ -155,3 +158,4 @@
         private System.Windows.Forms.OpenFileDialog ofHdd;
     }
 }
+#endif

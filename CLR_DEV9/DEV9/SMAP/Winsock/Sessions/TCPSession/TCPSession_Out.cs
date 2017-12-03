@@ -303,7 +303,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                         }
                         else
                         {
+                            Log_Error("Got IO Error: " + e.ToString());
+#if NETCOREAPP2_0
+#else
                             System.Windows.Forms.MessageBox.Show("Got IO Error: " + e.ToString());
+#endif
                         }
                         //Connection Lost
                         //Send Shutdown by RST (Untested)

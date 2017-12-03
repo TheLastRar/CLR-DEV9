@@ -7,9 +7,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader
     //Performes NetOrder changes
     class NetLib
     {
-        //TODO make shit use this
-
         //Perform convert to Net order and write to buffer
+        public static void WriteUInt64(byte[] buffer, ref int offset, UInt64 value)
+        {
+            DataLib.WriteUInt64(buffer, ref offset, (UInt64)IPAddress.HostToNetworkOrder((Int64)value));
+        }
         public static void WriteUInt32(byte[] buffer, ref int offset, UInt32 value)
         {
             DataLib.WriteUInt32(buffer, ref offset, (UInt32)IPAddress.HostToNetworkOrder((Int32)value));
@@ -32,6 +34,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader
             DataLib.WriteByteArray(buffer, ref offset, value);
         }
         //read
+        public static void ReadUInt64(byte[] buffer, ref int offset, out UInt64 value)
+        {
+            DataLib.ReadUInt64(buffer, ref offset, out value);
+            value = (UInt64)IPAddress.NetworkToHostOrder((Int64)value);
+        }
         public static void ReadUInt32(byte[] buffer, ref int offset, out UInt32 value)
         {
             DataLib.ReadUInt32(buffer, ref offset, out value);
@@ -110,6 +117,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader
             offset += value.Length;
         }
         //read
+        public static void ReadUInt64(byte[] buffer, ref int offset, out UInt64 value)
+        {
+            value = BitConverter.ToUInt64(buffer, offset);
+            offset += sizeof(UInt64);
+        }
         public static void ReadUInt32(byte[] buffer, ref int offset, out UInt32 value)
         {
             value = BitConverter.ToUInt32(buffer, offset);

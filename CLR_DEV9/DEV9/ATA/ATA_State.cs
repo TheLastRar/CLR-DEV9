@@ -120,13 +120,18 @@ namespace CLRDEV9.DEV9.ATA
         public void Close()
         {
             //Wait for async code to finish
-            ioClose.Set();
-            ioWrite.Set();
+            if (ioThread != null)
+            {
+                ioClose.Set();
+                ioWrite.Set();
 
-            ioThread.Join();
+                ioThread.Join();
 
-            ioClose.Dispose();
-            ioWrite.Dispose();
+                ioClose.Dispose();
+                ioWrite.Dispose();
+
+                ioThread = null;
+            }
             //Close File Handle
             if (hddImage != null)
             {
@@ -325,6 +330,8 @@ namespace CLRDEV9.DEV9.ATA
 
         public void ATA_Async(uint cycles)
         {
+            if (hddImage == null)
+                return;
             ManageAsync();
         }
 

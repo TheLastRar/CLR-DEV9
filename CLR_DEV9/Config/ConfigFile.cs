@@ -60,10 +60,14 @@ namespace CLRDEV9.Config
 
         public static void DoConfig(string iniFolderPath, string iniFileName)
         {
+            //TODO Figure out Core Config
+#if NETCOREAPP2_0
+#else
             ConfigForm cfgF = new ConfigForm();
             cfgF.iniFolder = iniFolderPath;
             cfgF.ShowDialog();
             cfgF.Dispose();
+#endif
         }
 
         public static void SaveConf(string iniFolderPath, string iniFileName)

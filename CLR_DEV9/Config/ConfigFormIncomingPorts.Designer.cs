@@ -1,4 +1,7 @@
-﻿namespace CLRDEV9.Config
+﻿#if NETCOREAPP2_0
+#else
+
+namespace CLRDEV9.Config
 {
     partial class ConfigFormIncomingPorts
     {
@@ -20,7 +23,7 @@
             base.Dispose(disposing);
         }
 
-        #region Windows Form Designer generated code
+#region Windows Form Designer generated code
 
         /// <summary>
         /// Required method for Designer support - do not modify
@@ -157,7 +160,7 @@
 
         }
 
-        #endregion
+#endregion
 
         private System.Windows.Forms.DataGridView dgPorts;
         private System.Windows.Forms.Button btnAdd;
@@ -170,3 +173,4 @@
         private System.Windows.Forms.DataGridViewCheckBoxColumn cEnable;
     }
 }
+#endif

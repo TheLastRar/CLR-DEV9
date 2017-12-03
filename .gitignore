@@ -20,6 +20,8 @@ x86/
 bld/
 [Bb]in/
 [Oo]bj/
+[Oo]bj_netfx/
+[Oo]bj_core/
 [Ll]og/
 
 # Visual Studio 2015 cache/options directory

@@ -1,4 +1,7 @@
-﻿namespace CLRDEV9
+﻿#if NETCOREAPP2_0
+#else
+
+namespace CLRDEV9
 {
     partial class HddCreate
     {
@@ -7,7 +10,7 @@
         /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        #region Windows Form Designer generated code
+#region Windows Form Designer generated code
 
         /// <summary>
         /// Required method for Designer support - do not modify
@@ -56,9 +59,10 @@
 
         }
 
-        #endregion
+#endregion
 
         private System.Windows.Forms.Label lbProgress;
         private System.Windows.Forms.ProgressBar pbFile;
     }
 }
+#endif

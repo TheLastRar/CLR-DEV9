@@ -84,7 +84,10 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             if (!PcapInitIO(parDevice.StartsWith("{") ? @"\Device\NPF_" + parDevice : parDevice))
             {
                 Log_Error("Can't Open Device " + parDevice);
+#if NETCOREAPP2_0
+#else
                 System.Windows.Forms.MessageBox.Show("Can't Open Device " + parDevice);
+#endif
                 return;
             }
 
@@ -224,7 +227,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             }
         }
 
-        #region Basic packet reader/Writer
+#region Basic packet reader/Writer
         //Eth Protocol
         private byte GetEthProtocolHI(byte[] buf)
         {
@@ -302,7 +305,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             //Log_Verb("ARP DestIP: " + ret[0] + ":" + ret[1] + ":" + ret[2] + ":" + ret[3]);
             return ret;
         }
-        #endregion
+#endregion
 
         public override void Close()
         {

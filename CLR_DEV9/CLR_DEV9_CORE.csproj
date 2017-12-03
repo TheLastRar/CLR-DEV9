@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <Platforms>AnyCPU;x86;x64</Platforms>
+  </PropertyGroup>
+  <PropertyGroup>
+    <!-- Needed due to old project and new project in same directory: https://github.com/NuGet/Home/issues/5126 -->
+    <BaseIntermediateOutputPath>obj_core\</BaseIntermediateOutputPath>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="obj_netfx\**" />
+    <EmbeddedResource Remove="obj_netfx\**" />
+    <None Remove="obj_netfx\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Win32.Registry" Version="4.5.0-preview2-25707-02" />
+    <PackageReference Include="System.Management" Version="4.5.0-preview1-25913-02" />
+  </ItemGroup>
+
+</Project>

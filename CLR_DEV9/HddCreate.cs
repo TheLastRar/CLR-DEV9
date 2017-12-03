@@ -1,11 +1,20 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
+#if NETCOREAPP2_0
+#else
 using System.Windows.Forms;
+#endif
 
 namespace CLRDEV9
 {
-    partial class HddCreate : Form
+    partial class HddCreate
+#if NETCOREAPP2_0
+        : IDisposable
+#else
+        : Form
+#endif
     {
         public string filePath;
         public int neededSize;
@@ -16,7 +25,10 @@ namespace CLRDEV9
 
         public HddCreate()
         {
+#if NETCOREAPP2_0
+#else
             InitializeComponent();
+#endif
         }
 
         private void HddCreate_Load(object sender, EventArgs e)
@@ -24,13 +36,27 @@ namespace CLRDEV9
 
         }
 
+#if NETCOREAPP2_0
+        public void ShowDialog()
+        {
+            HddCreate_Shown(this, null);
+        }
+#else
+#endif
+
         private void HddCreate_Shown(object sender, EventArgs e)
         {
+#if NETCOREAPP2_0
+#else
             pbFile.Maximum = neededSize;
+#endif
             SetFileProgress(0);
 
             fileThread = new Thread(() => WriteImage(filePath, neededSize));
             fileThread.Start();
+#if NETCOREAPP2_0
+            fileThread.Join();
+#endif
         }
 
         private void WriteImage(string hddPath, int reqSizeMiB)
@@ -82,6 +108,9 @@ namespace CLRDEV9
 
         private void SetFileProgress(int currentSize)
         {
+#if NETCOREAPP2_0
+            Log_Info(currentSize + "//" + neededSize + "MiB");
+#else
             if (InvokeRequired)
             {
                 Invoke((Action)delegate ()
@@ -94,10 +123,17 @@ namespace CLRDEV9
                 pbFile.Value = currentSize;
                 lbProgress.Text = currentSize + "//" + neededSize + "MiB";
             }
+#endif
         }
 
         private void SetError()
         {
+#if NETCOREAPP2_0
+            Log_Error("Unable to create file");
+            DEV9Header.config.HddEnable = false;
+            compleated.Set();
+            SetClose();
+#else
             if (InvokeRequired)
             {
                 Invoke((Action)delegate ()
@@ -112,10 +148,13 @@ namespace CLRDEV9
                 compleated.Set();
                 SetClose();
             }
+#endif
         }
 
         private void SetClose()
         {
+#if NETCOREAPP2_0
+#else
             if (InvokeRequired)
             {
                 Invoke((Action)delegate ()
@@ -127,8 +166,11 @@ namespace CLRDEV9
             {
                 Close();
             }
+#endif
         }
 
+#if NETCOREAPP2_0
+#else
         private void HddCreate_FormClosing(object sender, FormClosingEventArgs e)
         {
             if (!compleated.WaitOne(0))
@@ -136,11 +178,31 @@ namespace CLRDEV9
                 e.Cancel = true;
             }
         }
+#endif
+
+        private void Log_Error(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.ATA, str);
+        }
+        private void Log_Info(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.ATA, str);
+        }
+        private void Log_Verb(string str)
+        {
+            PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.ATA, str);
+        }
 
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+#if NETCOREAPP2_0
+        public void Dispose()
+        {
+            compleated.Dispose();
+        }
+#else
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -152,5 +214,6 @@ namespace CLRDEV9
 
             base.Dispose(disposing);
         }
+#endif
     }
 }

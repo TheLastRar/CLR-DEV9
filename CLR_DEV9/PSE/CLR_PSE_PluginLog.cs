@@ -178,7 +178,10 @@ namespace PSE
         public static void MsgBoxErrorTrapper(Exception e)
         {
             Console.Error.WriteLine(e.Message + Environment.NewLine + e.StackTrace);
+#if NETCOREAPP2_0
+#else
             System.Windows.Forms.MessageBox.Show("Encounted Exception! : "  + e.Message + Environment.NewLine + e.StackTrace);
+#endif
             try
             {
                 if (sources != null)

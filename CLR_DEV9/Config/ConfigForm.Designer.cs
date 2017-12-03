@@ -1,4 +1,7 @@
-﻿namespace CLRDEV9.Config
+﻿#if NETCOREAPP2_0
+#else
+
+namespace CLRDEV9.Config
 {
     partial class ConfigForm
     {
@@ -20,7 +23,7 @@
             base.Dispose(disposing);
         }
 
-        #region Windows Form Designer generated code
+#region Windows Form Designer generated code
 
         /// <summary>
         /// Required method for Designer support - do not modify
@@ -119,7 +122,7 @@
 
         }
 
-        #endregion
+#endregion
 
         private System.Windows.Forms.CheckBox cbEth;
         private System.Windows.Forms.Button btnEthOp;
@@ -129,3 +132,4 @@
         private System.Windows.Forms.Button btnCancel;
     }
 }
+#endif

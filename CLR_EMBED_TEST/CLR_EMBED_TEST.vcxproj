@@ -174,34 +174,34 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <Link>
       <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <LibraryDependencies>m;rt;dl;pthread</LibraryDependencies>
-      <NoExecStackRequired>true</NoExecStackRequired>
+      <LibraryDependencies>dl;pthread</LibraryDependencies>
+      <AdditionalOptions>-m32 %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PositionIndependentCode>false</PositionIndependentCode>
+      <PositionIndependentCode>true</PositionIndependentCode>
+      <AdditionalOptions>-m32</AdditionalOptions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x86'">
     <Link>
       <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <LibraryDependencies>m;rt;dl;pthread</LibraryDependencies>
-      <NoExecStackRequired>true</NoExecStackRequired>
+      <LibraryDependencies>dl;pthread</LibraryDependencies>
+      <AdditionalOptions>-m32 %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PositionIndependentCode>false</PositionIndependentCode>
+      <PositionIndependentCode>true</PositionIndependentCode>
+      <AdditionalOptions>-m32</AdditionalOptions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
     <Link>
       <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <LibraryDependencies>m;rt;dl;pthread</LibraryDependencies>
-      <NoExecStackRequired>true</NoExecStackRequired>
+      <LibraryDependencies>dl;pthread</LibraryDependencies>
+      <AdditionalOptions>-m32 %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PositionIndependentCode>false</PositionIndependentCode>
+      <PositionIndependentCode>true</PositionIndependentCode>
+      <AdditionalOptions>-m32</AdditionalOptions>
     </ClCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

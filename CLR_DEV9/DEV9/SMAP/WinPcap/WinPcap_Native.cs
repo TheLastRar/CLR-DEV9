@@ -12,6 +12,8 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
         const int PCAP_ERRBUF_SIZE = 256;
 
         #region 'PInvoke mess'
+        //TODO, support libPcap
+        //API changes?
         const string PCAP_LIB_NAME = "wpcap.dll";
         private class NativeMethods
         {
@@ -151,6 +153,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
 
         static bool PcapAvailable()
         {
+            //TODO, detect on Linux
             IntPtr hmod = NativeMethods.LoadLibrary(PCAP_LIB_NAME);
             if (hmod == IntPtr.Zero)
             {

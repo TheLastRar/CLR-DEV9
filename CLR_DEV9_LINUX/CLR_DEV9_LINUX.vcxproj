@@ -92,184 +92,173 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
     <TargetExt>.so</TargetExt>
-    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
+    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include;$(ProjectDir)external\usr\include\mono-2.0;$(ProjectDir)external\usr\include\x86_64-linux-gnu</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <TargetExt>.so</TargetExt>
-    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
+    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include;$(ProjectDir)external\usr\include\mono-2.0;$(ProjectDir)external\usr\include\x86_64-linux-gnu</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|ARM'">
     <TargetExt>.so</TargetExt>
-    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
+    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include;$(ProjectDir)external\usr\include\mono-2.0;$(ProjectDir)external\usr\include\x86_64-linux-gnu</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <TargetExt>.so</TargetExt>
-    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
+    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include;$(ProjectDir)external\usr\include\mono-2.0;$(ProjectDir)external\usr\include\x86_64-linux-gnu</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetExt>.so</TargetExt>
-    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
+    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include;$(ProjectDir)external\usr\include\mono-2.0;$(ProjectDir)external\usr\include\x86_64-linux-gnu</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x64'">
     <TargetExt>.so</TargetExt>
-    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
+    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include;$(ProjectDir)external\usr\include\mono-2.0;$(ProjectDir)external\usr\include\x86_64-linux-gnu</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetExt>.so</TargetExt>
-    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
+    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include;$(ProjectDir)external\usr\include\mono-2.0;$(ProjectDir)external\usr\include\x86_64-linux-gnu</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <TargetExt>.so</TargetExt>
-    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
+    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include;$(ProjectDir)external\usr\include\mono-2.0;$(ProjectDir)external\usr\include\x86_64-linux-gnu</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x86'">
     <TargetExt>.so</TargetExt>
-    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
+    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include;$(ProjectDir)external\usr\include\mono-2.0;$(ProjectDir)external\usr\include\x86_64-linux-gnu</IncludePath>
   </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="DEV9.cpp" />
-    <ClCompile Include="PS2E.cpp" />
+    <ClCompile Include="PSE.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="coreclrhost.h" />
     <ClInclude Include="DEV9.h" />
     <ClInclude Include="PSE.h" />
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <Link>
-      <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
+      <LibraryDependencies>m;rt;dl;pthread</LibraryDependencies>
       <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
       <PositionIndependentCode>true</PositionIndependentCode>
-      <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <RemotePostBuildEvent>
-      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/games/PCSX2/$(TargetFileName)</Command>
-      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership or directory</Message>
+      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/i386-linux-gnu/pcsx2/$(TargetFileName)</Command>
+      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
     </RemotePostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|ARM'">
     <Link>
-      <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
+      <LibraryDependencies>m;rt;dl;pthread</LibraryDependencies>
       <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
       <PositionIndependentCode>true</PositionIndependentCode>
-      <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <RemotePostBuildEvent>
-      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/games/PCSX2/$(TargetFileName)</Command>
-      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership or directory</Message>
+      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/i386-linux-gnu/pcsx2/$(TargetFileName)</Command>
+      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
     </RemotePostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <Link>
-      <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
+      <LibraryDependencies>m;rt;dl;pthread</LibraryDependencies>
       <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
       <PositionIndependentCode>true</PositionIndependentCode>
-      <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <RemotePostBuildEvent>
-      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/games/PCSX2/$(TargetFileName)</Command>
-      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership or directory</Message>
+      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/i386-linux-gnu/pcsx2/$(TargetFileName)</Command>
+      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
     </RemotePostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Link>
-      <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
+      <LibraryDependencies>m;rt;dl;pthread</LibraryDependencies>
       <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
       <PositionIndependentCode>true</PositionIndependentCode>
-      <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <RemotePostBuildEvent>
-      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/games/PCSX2/$(TargetFileName)</Command>
-      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership or directory</Message>
+      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/i386-linux-gnu/pcsx2/$(TargetFileName)</Command>
+      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
     </RemotePostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x64'">
     <Link>
-      <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
+      <LibraryDependencies>m;rt;dl;pthread</LibraryDependencies>
       <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
       <PositionIndependentCode>true</PositionIndependentCode>
-      <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <RemotePostBuildEvent>
-      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/games/PCSX2/$(TargetFileName)</Command>
-      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership or directory</Message>
+      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/i386-linux-gnu/pcsx2/$(TargetFileName)</Command>
+      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
     </RemotePostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
-      <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
+      <LibraryDependencies>m;rt;dl;pthread</LibraryDependencies>
       <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
       <PositionIndependentCode>true</PositionIndependentCode>
-      <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <RemotePostBuildEvent>
-      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/games/PCSX2/$(TargetFileName)</Command>
-      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership or directory</Message>
+      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/i386-linux-gnu/pcsx2/$(TargetFileName)</Command>
+      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
     </RemotePostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <Link>
-      <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
-      <AdditionalOptions>
-      </AdditionalOptions>
+      <AdditionalOptions>-m32</AdditionalOptions>
       <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LibraryDependencies>dl;pthread</LibraryDependencies>
     </Link>
     <ClCompile>
       <PositionIndependentCode>true</PositionIndependentCode>
-      <AdditionalOptions>
-      </AdditionalOptions>
-      <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>-m32</AdditionalOptions>
     </ClCompile>
     <RemotePostBuildEvent>
-      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/games/PCSX2/$(TargetFileName)</Command>
-      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership or directory</Message>
+      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/i386-linux-gnu/pcsx2/$(TargetFileName)</Command>
+      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
     </RemotePostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x86'">
     <Link>
-      <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
-      <AdditionalOptions>
-      </AdditionalOptions>
+      <AdditionalOptions>-m32</AdditionalOptions>
       <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LibraryDependencies>dl;pthread</LibraryDependencies>
     </Link>
     <ClCompile>
       <PositionIndependentCode>true</PositionIndependentCode>
-      <AdditionalOptions>
-      </AdditionalOptions>
-      <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>-m32</AdditionalOptions>
     </ClCompile>
     <RemotePostBuildEvent>
-      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/games/PCSX2/$(TargetFileName)</Command>
-      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership or directory</Message>
+      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/i386-linux-gnu/pcsx2/$(TargetFileName)</Command>
+      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
     </RemotePostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
     <Link>
-      <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
-      <AdditionalOptions>
-      </AdditionalOptions>
+      <AdditionalOptions>-m32</AdditionalOptions>
       <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LibraryDependencies>dl;pthread</LibraryDependencies>
     </Link>
     <ClCompile>
       <PositionIndependentCode>true</PositionIndependentCode>
-      <AdditionalOptions>
-      </AdditionalOptions>
-      <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>-m32</AdditionalOptions>
     </ClCompile>
     <RemotePostBuildEvent>
-      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/games/PCSX2/$(TargetFileName)</Command>
-      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership or directory</Message>
+      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/i386-linux-gnu/pcsx2/$(TargetFileName)</Command>
+      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
     </RemotePostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

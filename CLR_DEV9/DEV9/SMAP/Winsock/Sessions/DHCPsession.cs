@@ -20,7 +20,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
     class UDP_DHCPsession : Session
     {
-        #region CurrentConfig
+#region CurrentConfig
         public byte[] PS2IP;
         private byte[] NetMask;
         public byte[] Gateway;
@@ -28,7 +28,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         private byte[] DNS1;
         private byte[] DNS2;
         public byte[] Broadcast;
-        #endregion
+#endregion
 
         ConcurrentQueue<UDP> recvBuff = new ConcurrentQueue<UDP>();
         byte hType;
@@ -94,7 +94,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             HandleGateway(parAdapter, parGateway);
             HandleDNS(parAdapter, parDNS1, parDNS2);
             HandleBroadcast(PS2IP, NetMask);
-            #region ICS
+#region ICS
             //Special case for ICS
             if (Gateway == null & PSE.CLR_PSE_Utils.IsWindows())
             {
@@ -137,7 +137,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     }
                 }
             }
-            #endregion
+#endregion
         }
 
         private void HandleNetMask(NetworkInterface parAdapter, byte[] parNetMask)

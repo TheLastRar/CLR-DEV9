@@ -7,6 +7,7 @@ using System.Management;
 
 namespace CLRDEV9.DEV9.SMAP
 {
+    //Figure out on linux
     class BridgeHelper
     {
         static string oldBridge = "BridgeMP";
@@ -66,7 +67,7 @@ namespace CLRDEV9.DEV9.SMAP
             return null;
         }
 
-        public static string[] ListBridgedAdapters()
+        private static string[] ListBridgedAdapters()
         {
             List<string> guids = new List<string>();
 
