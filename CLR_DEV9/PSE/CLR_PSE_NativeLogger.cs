@@ -44,18 +44,20 @@ namespace PSE
             NewLine = "\n";
             //TODO console logging in Linux
             isWindows = CLR_PSE_Utils.IsWindows();
-
         }
 
         public override void Write(char value)
         {
+            Write(new char[] { value });
+        }
+
+        public override void Write(char[] value)
+        {
             if (isWindows)
             {
                 //Convert string to bytes of needed encoding
-                char[] chrtmp = new char[] { value };
-
-                byte[] strBytes = new byte[enc.GetByteCount(chrtmp) + 1];
-                Array.Copy(enc.GetBytes(chrtmp), strBytes, strBytes.Length - 1);
+                byte[] strBytes = new byte[enc.GetByteCount(value) + 1];
+                Array.Copy(enc.GetBytes(value), strBytes, strBytes.Length - 1);
                 GCHandle strHandle = GCHandle.Alloc(strBytes, GCHandleType.Pinned);
 
                 try
@@ -69,7 +71,7 @@ namespace PSE
                 }
             }
             else
-            //Works on Linux (mono)
+            //Works on Linux (Mono & CoreCLR)
             {
                 if (std == 2)
                 {

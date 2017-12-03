@@ -175,13 +175,12 @@ namespace PSE
             }
         }
 
-        public static void MsgBoxError(Exception e)
+        public static void MsgBoxErrorTrapper(Exception e)
         {
             Console.Error.WriteLine(e.Message + Environment.NewLine + e.StackTrace);
             System.Windows.Forms.MessageBox.Show("Encounted Exception! : "  + e.Message + Environment.NewLine + e.StackTrace);
             try
             {
-                //System.IO.File.WriteAllLines(logPath + "\\" + libraryName + " ERR.txt", new string[] { e.Message + Environment.NewLine + e.StackTrace });
                 if (sources != null)
                 {
                     WriteLine(TraceEventType.Critical, ERRTRAP, e.Message + Environment.NewLine + e.StackTrace);

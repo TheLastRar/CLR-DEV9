@@ -37,7 +37,7 @@ namespace CLRDEV9.DEV9.SMAP
             }
             catch (Exception e)
             {
-                LOG.MsgBoxError(e);
+                LOG.MsgBoxErrorTrapper(e);
                 throw;
             }
             //return 0;

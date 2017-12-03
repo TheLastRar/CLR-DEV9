@@ -73,7 +73,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
                 return -1;
             }
         }
@@ -91,7 +91,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
                 return -1;
             }
         }
@@ -103,7 +103,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
                 throw;
             }
         }
@@ -123,7 +123,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
                 throw;
             }
         }
@@ -135,7 +135,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
                 throw;
             }
         }
@@ -148,7 +148,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
                 throw;
             }
         }
@@ -161,7 +161,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
                 throw;
             }
         }
@@ -173,7 +173,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
                 throw;
             }
         }
@@ -185,7 +185,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
                 throw;
             }
         }
@@ -198,7 +198,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
                 throw;
             }
         }
@@ -210,7 +210,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
                 throw;
             }
         }
@@ -222,7 +222,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
                 throw;
             }
         }
@@ -236,7 +236,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
                 throw;
             }
         }
@@ -249,7 +249,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
                 throw;
             }
         }
@@ -262,7 +262,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
                 throw;
             }
         }
@@ -275,7 +275,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
                 throw;
             }
         }
@@ -288,7 +288,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
                 throw;
             }
         }
@@ -308,7 +308,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
                 throw;
             }
         }
@@ -336,7 +336,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
                 return 1;
             }
         }
@@ -351,7 +351,7 @@ namespace CLRDEV9
             }
             catch (Exception e)
             {
-                CLR_PSE_PluginLog.MsgBoxError(e);
+                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
                 throw;
             }
         }
