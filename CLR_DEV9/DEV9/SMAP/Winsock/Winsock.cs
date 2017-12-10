@@ -29,8 +29,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
         static public List<string[]> GetAdapters()
         {
             //Add Auto
-            List<string[]> names = new List<string[]>();
-            names.Add(new string[] { "Auto", "Autoselected adapter", "Auto" });
+            List<string[]> names = new List<string[]> { new string[] { "Auto", "Autoselected adapter", "Auto" }};
 
             NetworkInterface[] interfaces = NetworkInterface.GetAllNetworkInterfaces();
 
@@ -184,8 +183,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 foreach (ConnectionKey key in keys)
                 {
                     IPPayload pl;
-                    Session session;
-                    if (!connections.TryGetValue(key, out session)) { continue; }
+
+                    if (!connections.TryGetValue(key, out Session session)) { continue; }
                     pl = session.Recv();
                     if (!(pl == null))
                     {
@@ -233,8 +232,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     ConnectionKey[] keys = connections.Keys.ToArray();
                     foreach (ConnectionKey key in keys)
                     {
-                        Session session;
-                        if (!connections.TryGetValue(key, out session)) { continue; }
+                        if (!connections.TryGetValue(key, out Session session)) { continue; }
                         session.Reset();
                     }
                     //}
@@ -469,8 +467,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
 
         public int SendFromConnection(ConnectionKey Key, IPPacket ipPkt)
         {
-            Session s;
-            connections.TryGetValue(Key, out s);
+            connections.TryGetValue(Key, out Session s);
             if (s != null)
             {
                 return s.Send(ipPkt.Payload) ? 1 : 0;
@@ -482,10 +479,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
         public void HandleConnectionClosed(object sender, EventArgs e)
         {
             Session s = (Session)sender;
-            Session dummy;
+
             s.ConnectionClosedEvent -= HandleConnectionClosed;
             //deadConnections.Enqueue(s);
-            connections.TryRemove(s.Key, out dummy);
+            connections.TryRemove(s.Key, out Session dummy);
             s.Dispose();
             Log_Info("Closed Dead Connection");
         }
@@ -510,8 +507,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     {
                         connections[key].Dispose();
                     }
-                    NetPacket p;
-                    while (vRecBuffer.TryDequeue(out p)) { }
+                    while (vRecBuffer.TryDequeue(out NetPacket p)) { }
                     connections.Clear();
                     fixedUDPPorts.Clear();
 

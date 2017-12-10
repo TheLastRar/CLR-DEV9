@@ -365,10 +365,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         private NumCheckResult CheckNumbers(TCP tcp)
         {
-            UInt32 seqNum;
-            List<UInt32> oldSeqNums;
-
-            GetAllMyNumbers(out seqNum, out oldSeqNums);
+            GetAllMyNumbers(out UInt32 seqNum, out List<UInt32> oldSeqNums);
 
             Log_Verb("CHECK_NUMBERS");
             Log_Verb("[SRV]CurrSeqNumber = " + seqNum + " [PS2]Ack Number = " + tcp.AcknowledgementNumber);

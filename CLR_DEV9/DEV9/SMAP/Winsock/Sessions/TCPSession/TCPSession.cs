@@ -40,8 +40,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         }
         private TCP PopRecvBuff()
         {
-            TCP tcp;
-            if (_recvBuff.TryDequeue(out tcp))
+            if (_recvBuff.TryDequeue(out TCP tcp))
             {
                 //if (state == TCPState.SentSYN_ACK)
                 //{
