@@ -32,7 +32,7 @@ namespace CLRDEV9.DEV9.ATA
             //Would check both drives, but the PS2 would only have 1
             regError &= unchecked((byte)(~DEV9Header.ATA_ERR_ICRC));
             //Passed self-Diag
-            regError = (byte)(0x01 & (regError & DEV9Header.ATA_ERR_ICRC));
+            regError = (byte)(0x01 | (regError & DEV9Header.ATA_ERR_ICRC));
 
             regNsector = 1;
             regSector = 1;

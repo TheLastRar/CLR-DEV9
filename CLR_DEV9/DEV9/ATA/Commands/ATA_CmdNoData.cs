@@ -37,7 +37,7 @@ namespace CLRDEV9.DEV9.ATA
             Log_Info("HDD_InitDevParameters");
 
             curSectors = regNsector;
-            curHeads = (UInt16)((regSelect & 0x7) + 1);
+            curHeads = (byte)((regSelect & 0x7) + 1);
             PostCmdNoData();
         }
 

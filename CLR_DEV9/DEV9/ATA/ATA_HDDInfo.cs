@@ -12,8 +12,8 @@ namespace CLRDEV9.DEV9.ATA
 {
     partial class ATA_State
     {
-        UInt16 curHeads = 16;
-        UInt16 curSectors = 63;
+        byte curHeads = 16;
+        byte curSectors = 63;
         UInt16 curCylinders = 0;
 
         byte curMultipleSectorsSetting = 128;
@@ -22,7 +22,7 @@ namespace CLRDEV9.DEV9.ATA
         {
             UInt16 sectorSize = 512;
             Log_Verb("HddSize : " + DEV9Header.config.HddSize);
-            long nbSectors = (((long)sizeMb / (long)sectorSize) * 1024L * 1024L);
+            long nbSectors = ((sizeMb / sectorSize) * 1024L * 1024L);
             Log_Verb("nbSectors : " + nbSectors);
 
             identifyData = new byte[512];
@@ -37,7 +37,7 @@ namespace CLRDEV9.DEV9.ATA
             cylinderslong = (Math.Min(nbSectors, 16514064L) / curHeads / curSectors);
             curCylinders = (UInt16)Math.Min(cylinderslong, ushort.MaxValue);
 
-            int curOldsize = ((UInt16)curCylinders) * curHeads * curSectors;
+            int curOldsize = curCylinders * curHeads * curSectors;
             //SET MAX ADDRESS will set the nbSectors reported
 
             //M-General configuration bit-significant information:
@@ -135,7 +135,7 @@ namespace CLRDEV9.DEV9.ATA
             //         data block on READ/WRITE Multiple commands
             //bit 8: Multiple sector setting is valid
             #endregion
-            DataLib.WriteUInt16(identifyData, ref index, (UInt16)(curMultipleSectorsSetting & (1 << 8)));   //word 59
+            DataLib.WriteUInt16(identifyData, ref index, (UInt16)(curMultipleSectorsSetting | (1 << 8)));   //word 59
             //Total number of user addressable logical sectors
             DataLib.WriteUInt32(identifyData, ref index, (UInt32)Math.Min(nbSectors, 268435456));//word 60-61
             //DMA modes

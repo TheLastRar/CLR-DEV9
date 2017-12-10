@@ -283,7 +283,7 @@ namespace CLRDEV9.DEV9.SPEED
                         Log_Info("IF_CTRL ATA Hard Reset");
                         dev9.ata.ATA_HardReset();
                     }
-                    if ((regIFCtrl & 0xFF00) == 1)
+                    if ((regIFCtrl & 0xFF00) > 0)
                         Log_Error("IF_CTRL Unkown Bit(s)" + (regIFCtrl & 0xFF00).ToString("X"));
                     #endregion
                     break;

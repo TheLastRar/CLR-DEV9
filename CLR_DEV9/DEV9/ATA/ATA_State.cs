@@ -397,7 +397,7 @@ namespace CLRDEV9.DEV9.ATA
 
                 Log_Error("DEV9 ERROR : tried to get LBA address while LBA mode disabled\n");
                 //(c.Nh + h).Ns+(s-1)
-                long CHSasLBA = ((regLcyl & regHcyl << 8) * curHeads + (regSelect & 0x0f)) * curSectors + (regSector - 1);
+                long CHSasLBA = ((regLcyl + regHcyl << 8) * curHeads + (regSelect & 0x0F)) * curSectors + (regSector - 1);
                 return -1;
             }
         }
@@ -448,7 +448,7 @@ namespace CLRDEV9.DEV9.ATA
             maxLBA = Math.Max(DEV9Header.config.HddSize * 1024L * 1024L, hddImage.Length) / 512;
             if ((regSelect & 0x40) == 0) //CHS mode
             {
-                Math.Max(maxLBA, curCylinders * curHeads * curSectors);
+                maxLBA = Math.Max(maxLBA, curCylinders * curHeads * curSectors);
             }
 
             lba = HDD_GetLBA();
