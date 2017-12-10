@@ -313,6 +313,7 @@ namespace CLRDEV9.Config
             switch (ret.Key)
             {
                 case ConfigFile.EthAPI.Winsock:
+                    DEV9Header.config.SocketConnectionSettings.LANMode = cbLANMode.Checked;
                     DEV9Header.config.SocketConnectionSettings.AutoDNS1 = cbAutoDNS1.Checked;
                     if (!cbAutoDNS1.Checked)
                     {
