@@ -7,7 +7,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
-
 namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 {
     partial class TCPSession : Session
@@ -18,10 +17,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             SendingSYN_ACK,
             SentSYN_ACK,
             Connected,
-            //Closing_ClosedByPS2,
-            Closing_ClosedByPS2AndRemote_WaitingForAck,
-            Closing_ClosedByRemote_WaitingForAck,
-            Closing_ClosedByRemoteAcknowledged,
+            Closing_ClosedByPS2,
+            Closing_ClosedByPS2ThenRemote_WaitingForAck,
+            Closing_ClosedByRemote,
+            Closing_ClosedByRemoteThenPS2_WaitingForAck,
             CloseCompleted
         }
         private enum NumCheckResult
@@ -57,9 +56,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         }
         #endregion
         //TCP LastDataPacket = null; //Only 1 outstanding data packet from the remote source can exist at a time
-        object clientSentry = new object();
-        TcpClient client;
-        NetworkStream netStream = null;
+        //object clientSentry = new object();
+        Socket client;
+        //TcpClient client;
+        //NetworkStream netStream = null;
         TCPState state = TCPState.None;
 
         UInt16 srcPort = 0; //PS2 Port
@@ -148,14 +148,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         //}
         public override void Dispose()
         {
-            //open = false;
-            lock (clientSentry)
+
+            if (client != null)
             {
-                if (client != null)
-                {
-                    client.Close();
-                }
+                client.Close();
             }
+
             myNumberACKed.Dispose();
         }
 

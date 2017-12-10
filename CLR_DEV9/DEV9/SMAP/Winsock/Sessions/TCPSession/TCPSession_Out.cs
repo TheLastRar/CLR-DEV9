@@ -14,28 +14,19 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             TCP tcp = (TCP)res.AsyncState;
             try
             {
-                lock (clientSentry)
-                {
-                    //Log_Error("EndConnect");
-                    client.EndConnect(res);
-                }
+                //lock (clientSentry)
+                //{
+                //Log_Error("EndConnect");
+                client.EndConnect(res);
+                //}
             }
             catch (SocketException err)
             {
                 Log_Error("TCP Connection Error: " + err.Message);
                 Log_Error("ErrorCode: " + err.ErrorCode);
             }
-            bool connected = false;
-            lock (clientSentry)
-            {
-                client.NoDelay = true;
-                connected = client.Connected;
-                if (connected)
-                {
-                    netStream = client.GetStream();
-                }
-            }
-            if (connected)
+
+            if (client.Connected)
             {
                 //TODO: Port this to CreateBasePacket?
                 //This needs to specify custom TCP Options
@@ -96,26 +87,23 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
             if (tcp.RST == true) //Test this
             {
-                lock (clientSentry)
+                Log_Info("PS2 has reset connection");
+                if (client != null)
                 {
-                    if (client != null)
+                    if (client.Connected)
                     {
-                        if (client.Connected)
-                        {
-                            client.Close();
-                            //open = false;
-                            //PS2 sent RST, clearly not expecting
-                            //more data
-                        }
+                        client.Close();
                     }
-                    else
-                    {
-                        Log_Error("RESET CLOSED CONNECTION");
-                    }
-                    state = TCPState.CloseCompleted;
-                    RaiseEventConnectionClosed();
-                    return true;
                 }
+                else
+                {
+                    Log_Error("RESET CLOSED CONNECTION");
+                }
+                state = TCPState.CloseCompleted;
+                //PS2 sent RST, clearly not expecting
+                //more data
+                RaiseEventConnectionClosed();
+                return true;
             }
 
             switch (state)
@@ -127,24 +115,25 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 case TCPState.SentSYN_ACK:
                     return SendConnected(tcp);
                 case TCPState.Connected:
-                    if (tcp.FIN == true) //Connection Close Part 1, receive FIN from PS2
+                    if (tcp.FIN == true) //Connection Close Part 1, received FIN from PS2
                     {
-                        NumCheckResult Result = CheckNumbers(tcp);
-                        if (Result == NumCheckResult.GotOldData)
-                        {
-                            throw new NotImplementedException();
-                        }
-                        if (Result == NumCheckResult.Bad) { throw new Exception("Bad TCP Number Received"); }
-                        CloseByPS2Stage1();
-                        return true;
+                        return CloseByPS2Stage1_2(tcp);
                     }
                     return SendData(tcp);
-                case TCPState.Closing_ClosedByPS2AndRemote_WaitingForAck:
-                    return CloseByPS2Stage2(tcp);
-                case TCPState.Closing_ClosedByRemote_WaitingForAck:
-                    return CloseByRemoteStage2(tcp, false);
-                case TCPState.Closing_ClosedByRemoteAcknowledged:
-                    return CloseByRemoteStage2(tcp, true);
+
+                case TCPState.Closing_ClosedByPS2:
+                    return SendNoData(tcp);
+                case TCPState.Closing_ClosedByPS2ThenRemote_WaitingForAck:
+                    return CloseByPS2Stage4(tcp);
+
+                case TCPState.Closing_ClosedByRemote:
+                    if (tcp.FIN == true) //Connection Close Part 3, received FIN from PS2
+                    {
+                        return CloseByRemoteStage3_4(tcp);
+                    }
+                    return SendData(tcp);
+                case TCPState.Closing_ClosedByRemoteThenPS2_WaitingForAck:
+                    return CloseByRemoteStage2_ButAfter4(tcp);
                 case TCPState.CloseCompleted:
                     throw new Exception("Attempt to send data on closed TCP connection");
                 default:
@@ -199,14 +188,16 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 }
             }
 
-            lock (clientSentry)
-            {
-                client?.Close();
-                client = null;
-            }
-            netStream = null;
-            client = new TcpClient(new IPEndPoint(adapterIP, 0));
+            client?.Close();
+            client = null;
+
+            client = new Socket(SocketType.Stream, ProtocolType.Tcp);
+            client.Bind(new IPEndPoint(adapterIP, 0));
+            client.Blocking = false;
+            client.NoDelay = true;
+
             IPAddress address = new IPAddress(DestIP);
+            //IPAddress address = new IPAddress(new byte[] { 127, 0, 0, 1 });
             client.BeginConnect(address, destPort, new AsyncCallback(AsyncConnectComplete), tcp);
             state = TCPState.SendingSYN_ACK;
             //open = true;
@@ -249,10 +240,14 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         //PS2 Sending Data
         private bool SendData(TCP tcp)
         {
-            if (tcp.SYN == true)
+            if (tcp.SYN)
             {
                 Log_Error("Attempt to Connect to an open Port");
                 throw new Exception("Attempt to Connect to an open Port");
+            }
+            if (tcp.URG)
+            {
+                throw new Exception("Urgent Data Not Supported");
             }
             for (int i = 0; i < tcp.Options.Count; i++)
             {
@@ -291,28 +286,35 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     //Send the Data
                     try
                     {
-                        netStream.Write(tcp.GetPayload(), (int)delta, tcp.GetPayload().Length - (int)delta);
+                        int sent = 0;
+                        byte[] payload = tcp.GetPayload();
+                        while (sent != payload.Length)
+                        {
+                            SocketError err;
+                            try
+                            {
+                                sent = client.Send(payload, sent, payload.Length - sent, SocketFlags.None, out err);
+                            }
+                            catch (ObjectDisposedException) { err = SocketError.Shutdown; }
+                            if (err != SocketError.WouldBlock & err != SocketError.Success)
+                            {
+                                throw new SocketException((int)err);
+                            }
+                            if (err == SocketError.WouldBlock)
+                            {
+                                System.Threading.Thread.Sleep(1);
+                            }
+                        }
                     }
-                    catch (IOException e)
+                    catch (SocketException e)
                     {
-                        if (e.InnerException != null && e.InnerException is SocketException)
-                        {
-                            SocketException err = e.InnerException as SocketException;
-                            Log_Error("TCP Recv Error: " + err.Message);
-                            Log_Error("Error Code: " + err.ErrorCode);
-                        }
-                        else
-                        {
-                            Log_Error("Got IO Error: " + e.ToString());
-#if NETCOREAPP2_0
-#else
-                            System.Windows.Forms.MessageBox.Show("Got IO Error: " + e.ToString());
-#endif
-                        }
+                        Log_Error("TCP Recv Error: " + e.Message);
+                        Log_Error("Error Code: " + e.ErrorCode);
                         //Connection Lost
                         //Send Shutdown by RST (Untested)
+                        client.Close();
                         CloseByRemoteRST();
-                        //open = false;
+
                         return true;
                     }
                     unchecked
@@ -328,6 +330,36 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
                 PushRecvBuff(ret);
             }
+            return true;
+        }
+
+        //PS2 Sending ACK on half-open connection
+        private bool SendNoData(TCP tcp)
+        {
+            if (tcp.SYN == true)
+            {
+                Log_Error("Attempt to Connect to an open Port");
+                throw new Exception("Attempt to Connect to an open Port");
+            }
+            for (int i = 0; i < tcp.Options.Count; i++)
+            {
+                switch (tcp.Options[i].Code)
+                {
+                    case 0://End
+                    case 1://Nop
+                        continue;
+                    case 8:
+                        lastRecivedTimeStamp = ((TCPopTS)(tcp.Options[i])).SenderTimeStamp;
+                        break;
+                    default:
+                        Log_Error("Got Unknown Option " + tcp.Options[i].Code);
+                        throw new Exception("Got Unknown Option " + tcp.Options[i].Code);
+                        //break;
+                }
+            }
+
+            ErrorOnNonEmptyPacket(tcp);
+
             return true;
         }
 
@@ -381,7 +413,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
             return NumCheckResult.OK;
         }
-
         private uint GetDelta(uint parExpectedSeq, uint parGotSeq)
         {
             uint delta = parExpectedSeq - parGotSeq;
@@ -393,22 +424,38 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             }
             return delta;
         }
+        private void ErrorOnNonEmptyPacket(TCP tcp)
+        {
+            NumCheckResult ResultFIN = CheckNumbers(tcp);
+            if (ResultFIN == NumCheckResult.GotOldData) { return; }
+            if (ResultFIN == NumCheckResult.Bad) { Log_Error("Bad TCP Numbers Received"); throw new Exception("Bad TCP Numbers Received"); }
+            if (tcp.GetPayload().Length > 0)
+            {
+                uint delta = GetDelta(expectedSeqNumber, tcp.SequenceNumber);
+                if (delta == 0)
+                {
+                    return;
+                }
+                Log_Error("Invalid Packet, Packet Has Data");
+
+                throw new Exception("Invalid Packet");
+            }
+        }
 
         //On Close by PS2
-        //PS2 Sends FIN+ACK
-        //CloseByPS2Stage1 sends FIN+ACK, state set to Closing_ClosedByPS2AndRemote
-        //(Close in 3 steps)
-        //PS2 Sends ACK
-        //Connection Closing Finished
-        private void CloseByPS2Stage1()
+        //S1: PS2 Sends FIN+ACK
+        //S2: CloseByPS2Stage1_2 sends ACK, state set to Closing_ClosedByPS2
+        //S3: When server closes socket, we send FIN in CloseByPS2Stage3
+        //and set state to Closing_ClosedByPS2ThenRemote_WaitingForAck
+        //S4: PS2 then Sends ACK
+
+        //Connection Closing Finished in CloseByPS2Stage4
+        private bool CloseByPS2Stage1_2(TCP tcp)
         {
-            lock (clientSentry)
-            {
-                client.Close();
-            }
-            netStream = null;
             Log_Info("PS2 has closed connection");
-            //Connection Close Part 2, Send ACK to PS2
+
+            ErrorOnNonEmptyPacket(tcp); //Sending FIN with data
+
             receivedPS2SeqNumbers.RemoveAt(0);
             receivedPS2SeqNumbers.Add(expectedSeqNumber);
             unchecked
@@ -416,93 +463,87 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 expectedSeqNumber += 1;
             }
 
+            //lock (clientSentry)
+            //{
+            client.Shutdown(SocketShutdown.Send);
+            //}
+
+            //Connection Close Part 2, Send ACK to PS2
             TCP ret = CreateBasePacket();
-            IncrementMyNumber(1);
 
             ret.ACK = true;
-            ret.FIN = true;
 
             PushRecvBuff(ret);
-            state = TCPState.Closing_ClosedByPS2AndRemote_WaitingForAck;
+            state = TCPState.Closing_ClosedByPS2;
+
+            return true;
         }
         //PS2 responding to server response to PS2 Closing connection
-        private bool CloseByPS2Stage2(TCP tcp)
+        private bool CloseByPS2Stage4(TCP tcp)
         {
-            //Close Part 4, Recive ACK from PS2
+            //Close Part 4, Receive ACK from PS2
             Log_Info("Compleated Close By PS2");
-            NumCheckResult ResultFIN = CheckNumbers(tcp);
-            if (ResultFIN == NumCheckResult.GotOldData) { return false; }
-            if (ResultFIN == NumCheckResult.Bad) { Log_Error("Bad TCP Numbers Received"); throw new Exception("Bad TCP Numbers Received"); }
-            state = TCPState.CloseCompleted;
-            //recv buffer should be empty
-            RaiseEventConnectionClosed();
-            //open = false;
+            ErrorOnNonEmptyPacket(tcp);
+
+            if (myNumberACKed.WaitOne(0))
+            {
+                Log_Info("ACK was for FIN");
+                client.Close();
+                state = TCPState.CloseCompleted;
+                //recv buffer should be empty
+                RaiseEventConnectionClosed();
+            }
+
             return true;
         }
 
         //On Close By Server
-        //CloseByRemoteStage1 sends FIN+ACK, state set to Closing_ClosedByRemote
-        //Either
-        //PS2 Sends ACK, state set to ConnectionClosedByRemoteAcknowledged
-        //PS2 Then sends FIN
-        //Connection Closed
-        //
-        //or
-        //PS2 Sends ACK+FIN
-        //Connection Closed
-        private bool CloseByRemoteStage2(TCP tcp, bool HasACKedFIN)
+        //S1: CloseByRemoteStage1 sends FIN+ACK, state set to Closing_ClosedByRemote
+        //S2: PS2 Will then sends ACK, this is only checked after stage4
+        //S3: PS2 Will send FIN, possible in the previous ACK packet
+        //S4: CloseByRemoteStage3_4 sends ACK, state set to 
+        //Closing_ClosedByRemoteThenPS2_WaitingForAck
+        //We Then Check if S3 has been compleated
+
+        private bool CloseByRemoteStage2_ButAfter4(TCP tcp)
         {
-            NumCheckResult ResultFIN = CheckNumbers(tcp);
+            Log_Info("Compleated Close By PS2");
+            ErrorOnNonEmptyPacket(tcp);
+
+            if (myNumberACKed.WaitOne(0))
+            {
+                Log_Info("ACK was for FIN");
+                client.Close();
+                state = TCPState.CloseCompleted;
+                //Recive buffer may not be empty
+            }
+            return true;
+        }
+
+        private bool CloseByRemoteStage3_4(TCP tcp)
+        {
+            Log_Info("PS2 has closed connection after remote");
+
+            ErrorOnNonEmptyPacket(tcp);
+
             receivedPS2SeqNumbers.RemoveAt(0);
             receivedPS2SeqNumbers.Add(expectedSeqNumber);
-
-            //Expect FIN + ACK
-            if (tcp.FIN & (HasACKedFIN | tcp.ACK))
+            unchecked
             {
-                Log_Info("Compleated Close By Remote");
-
-                if (ResultFIN == NumCheckResult.GotOldData) { return false; }
-                if (ResultFIN == NumCheckResult.Bad) { Log_Error("Bad TCP Numbers Received"); throw new Exception("Bad TCP Numbers Received"); }
-
-                unchecked
-                {
-                    expectedSeqNumber += 1;
-                }
-                TCP ret = CreateBasePacket();
-
-                ret.ACK = true;
-
-                PushRecvBuff(ret);
-                state = TCPState.CloseCompleted;
-                //open = false;
-                return true;
+                expectedSeqNumber += 1;
             }
-            else if (tcp.ACK)
-            {
-                Log_Info("Got ACK from PS2 during server FIN");
-                if (ResultFIN == NumCheckResult.GotOldData) { return false; }
-                if (ResultFIN == NumCheckResult.Bad) { Log_Error("Bad TCP Numbers Received"); throw new Exception("Bad TCP Numbers Received"); ; }
-                if (tcp.GetPayload().Length != 0)
-                {
-                    uint delta = GetDelta(expectedSeqNumber, tcp.SequenceNumber);
-                    if (delta == 0)
-                    {
-                        return true;
-                    }
-                    Log_Error("Invalid Packet, Packet Has Data");
 
-                    throw new Exception("Invalid Packet");
-                }
-                if (myNumberACKed.WaitOne(0))
-                {
-                    Log_Info("ACK was for FIN");
-                    state = TCPState.Closing_ClosedByRemoteAcknowledged;
-                }
-                return true;
-            }
-            Log_Error("Invalid Packet");
-            throw new Exception("Invalid Packet");
-            //return false;
+            client.Shutdown(SocketShutdown.Send);
+
+            TCP ret = CreateBasePacket();
+
+            ret.ACK = true;
+
+            PushRecvBuff(ret);
+
+            state = TCPState.Closing_ClosedByRemoteThenPS2_WaitingForAck;
+
+            return CloseByRemoteStage2_ButAfter4(tcp);
         }
 
         //Error on sending data

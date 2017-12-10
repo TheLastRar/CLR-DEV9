@@ -28,15 +28,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 return null;
             }
 
-            int avaData = 0;
-
-            lock (clientSentry)
+            if (state != TCPState.Connected &
+                state != TCPState.Closing_ClosedByPS2)
             {
-                if (client == null) { return null; }
-
-                if (client.Connected == false) { return null; }
-
-                avaData = client.Available;
+                return null;
             }
 
             int maxSize;
@@ -49,21 +44,56 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 maxSize = Math.Min(maxSegmentSize - 16, windowSize);
             }
 
-            if (avaData != 0 & maxSize != 0 &&
+            if (maxSize != 0 &&
                 myNumberACKed.WaitOne(0))
             {
-                if (avaData > maxSize)
+                if (client.Available > maxSize)
                 {
                     Log_Info("Got a lot of data");
-                    avaData = maxSize;
                 }
 
-                byte[] recived = new byte[avaData];
-                //Log_Verb("Received " + avaData);
-                netStream.Read(recived, 0, avaData);
-                Log_Verb("[SRV]Sending " + avaData + " bytes");
-                TCP iRet = CreateBasePacket(recived);
-                IncrementMyNumber((uint)avaData);
+                byte[] buffer = new byte[maxSize];
+                SocketError err;
+                int recived = -1;
+                try
+                {
+                    recived = client.Receive(buffer, 0, maxSize, SocketFlags.None, out err);
+                }
+                catch (ObjectDisposedException) { err = SocketError.Shutdown; }
+                if (err == SocketError.WouldBlock)
+                {
+                    return null;
+                }
+                else if (err != SocketError.Success)
+                {
+                    throw new SocketException((int)err);
+                }
+                if (recived == 0)
+                {
+                    //Server Closed Socket
+                    client.Shutdown(SocketShutdown.Receive);
+
+                    switch (state)
+                    {
+                        case TCPState.Connected:
+                            CloseByRemoteStage1();
+                            break;
+                        case TCPState.Closing_ClosedByPS2:
+                            CloseByPS2Stage3();
+                            break;
+                        default:
+                            throw new Exception("Remote Close In Invalid State");
+                    }
+                    return null;
+                }
+
+                Log_Verb("[SRV]Sending " + recived + " bytes");
+
+                byte[] recivedData = new byte[recived];
+                Array.Copy(buffer, recivedData, recived);
+
+                TCP iRet = CreateBasePacket(recivedData);
+                IncrementMyNumber((uint)recived);
 
                 iRet.ACK = true;
                 iRet.PSH = true;
@@ -73,22 +103,28 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 return iRet;
             }
 
-            lock (clientSentry)
-            {
-                if (client.Client.Poll(1, SelectMode.SelectRead) && client.Client.Available == 0 && state == TCPState.Connected)
-                {
-                    //Log_Info("Detected Closed By Remote Connection");
-                    CloseByRemoteStage1();
-                    client.Close();
-                }
-            }
             return null;
+        }
+
+        private void CloseByPS2Stage3()
+        {
+            Log_Info("Remote has closed connection after PS2");
+
+            TCP ret = CreateBasePacket();
+            IncrementMyNumber(1);
+
+            ret.ACK = true;
+            ret.FIN = true;
+
+            myNumberACKed.Reset();
+            Log_Verb("myNumberACKed Reset");
+
+            PushRecvBuff(ret);
+            state = TCPState.Closing_ClosedByPS2ThenRemote_WaitingForAck;
         }
 
         private void CloseByRemoteStage1()
         {
-            client.Close();
-            netStream = null;
             Log_Info("Remote has closed connection");
 
             TCP ret = CreateBasePacket();
@@ -97,8 +133,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             ret.ACK = true;
             ret.FIN = true;
 
+            myNumberACKed.Reset();
+            Log_Verb("myNumberACKed Reset");
+
             PushRecvBuff(ret);
-            state = TCPState.Closing_ClosedByRemote_WaitingForAck;
+            state = TCPState.Closing_ClosedByRemote;
         }
     }
 }
