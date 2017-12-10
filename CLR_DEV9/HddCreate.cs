@@ -109,7 +109,7 @@ namespace CLRDEV9
         private void SetFileProgress(int currentSize)
         {
 #if NETCOREAPP2_0
-            Log_Info(currentSize + "//" + neededSize + "MiB");
+            Log_Info(currentSize + " / " + neededSize + "MiB");
 #else
             if (InvokeRequired)
             {
@@ -121,7 +121,7 @@ namespace CLRDEV9
             else
             {
                 pbFile.Value = currentSize;
-                lbProgress.Text = currentSize + "//" + neededSize + "MiB";
+                lbProgress.Text = currentSize + " / " + neededSize + "MiB";
             }
 #endif
         }

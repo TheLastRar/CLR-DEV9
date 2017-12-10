@@ -42,6 +42,8 @@ namespace CLRDEV9.DEV9.ATA
                 case 0xD2: //SMART_ATTR_AUTOSAVE
                     SMART_SetAutoSaveAttribute();
                     return;
+                case 0xD3: //SMART_ATTR_SAVE
+                    return;
                 case 0xDA: //SMART_STATUS (is fault in disk?)
                     SMART_ReturnStatus();
                     return;
