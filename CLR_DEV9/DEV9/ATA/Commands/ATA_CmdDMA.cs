@@ -145,11 +145,6 @@ namespace CLRDEV9.DEV9.ATA
 
             //Do Async Read
             HDD_Read(DRQCmdDMADataToHost);
-            //Due to performance issues, force it to be sync
-            while (ioRead.WaitOne(0))
-            {
-                System.Threading.Thread.Sleep(1);
-            }
         }
 
         void HDD_WriteDMA(bool isLBA48)
