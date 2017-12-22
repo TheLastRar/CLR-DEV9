@@ -103,7 +103,7 @@ namespace CLRDEV9.DEV9.SPEED
                     UInt16 r38 = (UInt16)(reg38 & ~SPEED_Header.SPD_R_38_AVAIL_MASK);
                     if (dev9.ata.dmaReady)
                     {
-                        r38 |= (UInt16)Math.Min(dev9.ata.nsector, SPEED_Header.SPD_R_38_AVAIL_MASK);
+                        r38 |= (UInt16)Math.Min(dev9.ata.nsectorLeft, SPEED_Header.SPD_R_38_AVAIL_MASK);
                     }
                     return r38;
                 case SPEED_Header.SPD_R_IF_CTRL:
