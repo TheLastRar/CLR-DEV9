@@ -28,7 +28,7 @@ namespace CLRDEV9.DEV9.ATA
         {
             PreCmdExecuteDeviceDiag();
             //Perform Self Diag
-            Log_Error("ExecuteDeviceDiag");
+            //Log_Error("ExecuteDeviceDiag");
             //Would check both drives, but the PS2 would only have 1
             regError &= unchecked((byte)(~DEV9Header.ATA_ERR_ICRC));
             //Passed self-Diag
