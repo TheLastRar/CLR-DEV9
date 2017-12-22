@@ -29,7 +29,9 @@ namespace CLRDEV9.DEV9.ATA
         //Read Buffer
         int rdTransferred;
         int wrTransferred;
-        byte[] readBuffer;
+        //Max tranfer on 24bit is 256*512 = 128KB
+        //Max tranfer on 48bit is 65536*512 = 32MB
+        byte[] readBuffer = new byte[256 * 512];
         //Read Buffer
 
         //PIO Buffer
@@ -104,7 +106,8 @@ namespace CLRDEV9.DEV9.ATA
             if (!HDD_CanAssessOrSetError()) return;
 
             nsectorLeft = nsector;
-            readBuffer = new byte[nsector * 512];
+            if (readBuffer.Length < nsector * 512)
+                readBuffer = new byte[nsector * 512];  
             waitingCmd = drqCMD;
 
             ioRead.Set();
@@ -125,7 +128,8 @@ namespace CLRDEV9.DEV9.ATA
             if (!HDD_CanAssessOrSetError()) return;
 
             nsectorLeft = nsector;
-            readBuffer = new byte[nsector * 512];
+            if (readBuffer.Length < nsector * 512)
+                readBuffer = new byte[nsector * 512];
 
             IO_Read();
 

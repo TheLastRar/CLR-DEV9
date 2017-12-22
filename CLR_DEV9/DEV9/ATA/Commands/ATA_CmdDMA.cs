@@ -18,7 +18,8 @@ namespace CLRDEV9.DEV9.ATA
         void PostCmdDMADataToHost()
         {
             //Log_Info("HDD_ReadDMA Done");
-            readBuffer = null;
+            //readBuffer = null;
+            nsectorLeft = 0;
 
             regStatus &= unchecked((byte)(~DEV9Header.ATA_STAT_DRQ));
             regStatus &= unchecked((byte)(~DEV9Header.ATA_STAT_BUSY));
@@ -51,6 +52,7 @@ namespace CLRDEV9.DEV9.ATA
             WriteCacheSectors.Enqueue(currentWriteSectors);
             currentWrite = null;
             currentWriteSectors = 0;
+            nsectorLeft = 0;
 
             regStatus &= unchecked((byte)(~DEV9Header.ATA_STAT_DRQ));
             dmaReady = false;
@@ -64,7 +66,6 @@ namespace CLRDEV9.DEV9.ATA
             }
             else
             {
-
                 awaitFlush = true;
             }
 
