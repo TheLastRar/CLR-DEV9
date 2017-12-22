@@ -48,41 +48,54 @@ namespace CLRDEV9.DEV9.ATA
                 if (ioType == 0)
                 {
                     //Log_Info("ioRead");
-                    long lba = HDD_GetLBA();
-
-                    if (lba == -1)
-                        throw new IOException("Invalid LBA");
-
-                    long pos = lba * 512L;
-                    hddImage.Seek(pos, SeekOrigin.Begin);
-
-                    if (hddImage.Read(readBuffer, 0, readBuffer.Length) != nsector * 512)
-                    {
-                        throw new IOException("Read Less Than Requested");
-                    }
-                    ioRead.Reset();
+                    IO_Read();
                 }
                 else if (ioType == 1)
                 {
                     //Log_Info("ioWrite");
-                    if (!WriteCacheSectors.TryDequeue(out long sector))
+                    if (!IO_Write())
                     {
-                        ioWrite.Reset();
                         if (ioClose.WaitOne(0))
                         {
                             return;
                         }
-                        continue;
                     }
-                    WriteCache.TryDequeue(out byte[] data);
-                    hddImage.Seek(sector * 512L, SeekOrigin.Begin);
-                    hddImage.Write(data, 0, data.Length);
-                    hddImage.Flush();
                 }
             }
         }
+        
+        void IO_Read()
+        {
+            long lba = HDD_GetLBA();
 
-        void HDD_Read(Cmd drqCMD)
+            if (lba == -1)
+                throw new IOException("Invalid LBA");
+
+            long pos = lba * 512L;
+            hddImage.Seek(pos, SeekOrigin.Begin);
+
+            if (hddImage.Read(readBuffer, 0, nsector * 512) != nsector * 512)
+            {
+                throw new IOException("Read Less Than Requested");
+            }
+            ioRead.Reset();
+        }
+
+        bool IO_Write()
+        {
+            if (!WriteCacheSectors.TryDequeue(out long sector))
+            {
+                ioWrite.Reset();
+                return false;
+            }
+            WriteCache.TryDequeue(out byte[] data);
+            hddImage.Seek(sector * 512L, SeekOrigin.Begin);
+            hddImage.Write(data, 0, data.Length);
+            hddImage.Flush();
+            return true;
+        }
+
+        void HDD_ReadAsync(Cmd drqCMD)
         {
             ioWrite.Reset();
 
@@ -95,12 +108,28 @@ namespace CLRDEV9.DEV9.ATA
             waitingCmd = drqCMD;
 
             ioRead.Set();
+        }
+        //Test
+        void HDD_ReadSync(Cmd drqCMD)
+        {
+            ioWrite.Reset();
 
-            //Due to performance issues, force it to be sync
-            while (ioRead.WaitOne(0))
+            //wait until thread waiting
+            while (ioThread.ThreadState != ThreadState.WaitSleepJoin & ioThread.ThreadState != ThreadState.Stopped)
             {
-                System.Threading.Thread.Sleep(1);
+                System.Threading.Thread.Sleep(0);
             }
+
+            nsectorLeft = 0;
+
+            if (!HDD_CanAssessOrSetError()) return;
+
+            nsectorLeft = nsector;
+            readBuffer = new byte[nsector * 512];
+
+            IO_Read();
+
+            drqCMD();
         }
 
         bool HDD_CanAssessOrSetError()
