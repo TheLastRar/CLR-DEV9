@@ -106,7 +106,7 @@ namespace CLRDEV9.DEV9.ATA
                 return;
             }
 
-            HDD_Read(HDD_ReadPIOS2);
+            HDD_ReadSync(HDD_ReadPIOS2);
         }
 
         void HDD_ReadPIOS2()

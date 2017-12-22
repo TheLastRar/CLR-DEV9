@@ -143,8 +143,8 @@ namespace CLRDEV9.DEV9.ATA
                 return;
             }
 
-            //Do Async Read
-            HDD_Read(DRQCmdDMADataToHost);
+            //Do Sync Read
+            HDD_ReadSync(DRQCmdDMADataToHost);
         }
 
         void HDD_WriteDMA(bool isLBA48)
