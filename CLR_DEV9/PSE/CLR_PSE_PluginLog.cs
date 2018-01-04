@@ -112,11 +112,25 @@ namespace PSE
                 }
 
                 //Console Normal
-                stdOut = new TextWriterTraceListener(new CLR_PSE_NativeLogger(false));
+                if (CLR_PSE_Utils.IsWindows())
+                {
+                    stdOut = new TextWriterTraceListener(new CLR_PSE_NativeLoggerWin(false));
+                }
+                else
+                {
+                    stdOut = new TextWriterTraceListener(Console.Out);
+                }
                 stdOut.Filter = new EventTypeFilter(consoleStdLevel); //information
                 stdOut.Name = "StdOut";
                 //Console Error
-                stdErr = new TextWriterTraceListener(new CLR_PSE_NativeLogger(true));
+                if (CLR_PSE_Utils.IsWindows())
+                {
+                    stdErr = new TextWriterTraceListener(new CLR_PSE_NativeLoggerWin(true));
+                }
+                else
+                {
+                    stdOut = new TextWriterTraceListener(Console.Error);
+                }
                 stdErr.Filter = new EventTypeFilter(consoleErrLevel);
                 stdErr.Name = "StdErr";
 
@@ -180,7 +194,7 @@ namespace PSE
             Console.Error.WriteLine(e.Message + Environment.NewLine + e.StackTrace);
 #if NETCOREAPP2_0
 #else
-            System.Windows.Forms.MessageBox.Show("Encounted Exception! : "  + e.Message + Environment.NewLine + e.StackTrace);
+            System.Windows.Forms.MessageBox.Show("Encounted Exception! : " + e.Message + Environment.NewLine + e.StackTrace);
 #endif
             try
             {

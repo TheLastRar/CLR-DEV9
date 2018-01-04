@@ -5,7 +5,7 @@ using System.Text;
 
 namespace PSE
 {
-    internal sealed class CLR_PSE_NativeLogger : TextWriter
+    internal sealed class CLR_PSE_NativeLoggerWin : TextWriter
     {
         const UInt16 STDIN = 0;
         const UInt16 STDOUT = 1;
@@ -21,11 +21,9 @@ namespace PSE
 
         Encoding enc = new UTF8Encoding();
         byte[] fmtBytes;
-        UInt16 std = 2;
+        UInt16 std;
 
-        bool isWindows = false;
-
-        public CLR_PSE_NativeLogger(bool useError)
+        public CLR_PSE_NativeLoggerWin(bool useError)
         {
             //Init fixed format
             byte[] strBytes = new byte[enc.GetByteCount("%s") + 1];
@@ -34,16 +32,14 @@ namespace PSE
 
             if ((useError))
             {
-                std = 2;
+                std = STDERR;
             }
             else
             {
-                std = 1;
+                std = STDOUT;
             }
             //printf will auto-expand it to a \r\n
             NewLine = "\n";
-            //TODO console logging in Linux
-            isWindows = CLR_PSE_Utils.IsWindows();
         }
 
         public override void Write(char value)
@@ -53,34 +49,19 @@ namespace PSE
 
         public override void Write(char[] value)
         {
-            if (isWindows)
-            {
-                //Convert string to bytes of needed encoding
-                byte[] strBytes = new byte[enc.GetByteCount(value) + 1];
-                Array.Copy(enc.GetBytes(value), strBytes, strBytes.Length - 1);
-                GCHandle strHandle = GCHandle.Alloc(strBytes, GCHandleType.Pinned);
+            //Convert string to bytes of needed encoding
+            byte[] strBytes = new byte[enc.GetByteCount(value) + 1];
+            Array.Copy(enc.GetBytes(value), strBytes, strBytes.Length - 1);
+            GCHandle strHandle = GCHandle.Alloc(strBytes, GCHandleType.Pinned);
 
-                try
-                {
-                    //write bytes to stdstream
-                    NativeMethods.__stdio_common_vfprintf(0, NativeMethods.__acrt_iob_func(std), fmtBytes, IntPtr.Zero, new IntPtr[] { strHandle.AddrOfPinnedObject() });
-                }
-                finally
-                {
-                    strHandle.Free();
-                }
-            }
-            else
-            //Works on Linux (Mono & CoreCLR)
+            try
             {
-                if (std == 2)
-                {
-                    Console.Error.Write(value);
-                }
-                else
-                {
-                    Console.Write(value);
-                }
+                //write bytes to stdstream
+                NativeMethods.__stdio_common_vfprintf(0, NativeMethods.__acrt_iob_func(std), fmtBytes, IntPtr.Zero, new IntPtr[] { strHandle.AddrOfPinnedObject() });
+            }
+            finally
+            {
+                strHandle.Free();
             }
         }
 

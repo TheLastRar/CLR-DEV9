@@ -185,7 +185,7 @@
     <Compile Include="DEV9\SPEED\SPEED_State.cs" />
     <Compile Include="DEV9\SPEED\SPEED_State_Regs.cs" />
     <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="PSE\CLR_PSE_NativeLogger.cs" />
+    <Compile Include="PSE\CLR_PSE_NativeLoggerWin.cs" />
     <Compile Include="Config\ConfigFile.cs" />
     <Compile Include="Config\ConfigDirectIP.cs" />
     <Compile Include="Config\ConfigFormEth.cs">
