@@ -31,8 +31,6 @@ namespace CLRDEV9
         public const uint SPD_REGBASE = 0x10000000;
 
         public const UInt16 ATA_INTR_INTRQ = (1 << 0);
-        public const UInt16 ATA_INTR_1 = (1 << 1);
-        public const UInt16 ATA_INTR_ALL = (ATA_INTR_INTRQ | ATA_INTR_1);
         //SMAP INTRs
         public const uint SPD_INTR_DVR = (1 << 9);
         public const uint SPD_INTR_UART = (1 << 12);
@@ -415,7 +413,7 @@ namespace CLRDEV9
         public const uint ATA_R_ALT_STATUS = (ATA_DEV9_HDD_BASE + 0x1c);//On Read (from MegaDev9)
         public const uint ATA_R_CONTROL = (ATA_DEV9_HDD_BASE + 0x1c);//On Write
         public const uint ATA_DEV9_INT = (0x01);
-        public const uint ATA_DEV9_INT_DMA = (0x02); //not sure rly
+
         public const uint ATA_DEV9_HDD_END = (ATA_R_CONTROL + 4);
 
         /* 

@@ -430,13 +430,14 @@ namespace CLRDEV9.DEV9
             //Log_Info("rDMA");
             long ptr = pMem.Position;
 
-            if (isDMAforSMAP)
+            if (spd.dmaSMAP)
             {
                 smap.SMAP_ReadDMA8Mem(pMem, size);
             }
             else
             {
-                ata.ATAreadDMA8Mem(pMem, size);
+                //ata.ATAreadDMA8Mem(pMem, size);
+                spd.SPEEDreadDMA8Mem(pMem, size);
             }
 
             long delta = pMem.Position - ptr;
@@ -454,13 +455,14 @@ namespace CLRDEV9.DEV9
             //Log_Info("wDMA");
             long ptr = pMem.Position;
 
-            if (isDMAforSMAP)
+            if (spd.dmaSMAP)
             {
                 smap.SMAP_WriteDMA8Mem(pMem, size);
             }
             else
             {
-                ata.ATAwriteDMA8Mem(pMem, size);
+                //ata.ATAwriteDMA8Mem(pMem, size);
+                spd.SPEEDwriteDMA8Mem(pMem, size);
             }
 
             long delta = pMem.Position - ptr;

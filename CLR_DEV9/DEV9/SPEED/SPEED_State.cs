@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 
 namespace CLRDEV9.DEV9.SPEED
 {
@@ -68,13 +69,11 @@ namespace CLRDEV9.DEV9.SPEED
                     Log_Verb("SPD_R_INTR_MASK 16bit read " + regIntrMask.ToString("X"));
                     return regIntrMask;
 
-                //case DEV9Header.DEV9_R_REV:
-                //    //hard = 0x0030; // expansion bay
-                //    hard = 0x0032; // expansion bay
-                //    Log_Verb("DEV9_R_REV 16bit read " + hard.ToString("X"));
-                //    return hard;
-
                 case SPEED_Header.SPD_R_REV_1:
+                    Log_Error("SPD_R_REV_1 16bit read " + 0.ToString("X"));
+                    return 0;
+
+                case SPEED_Header.SPD_R_REV_2:
                     Log_Verb("STD_R_REV_1 16bit read " + regRev1.ToString("X"));
                     return regRev1;
 
@@ -98,13 +97,41 @@ namespace CLRDEV9.DEV9.SPEED
                 case SPEED_Header.SPD_R_XFR_CTRL:
                     Log_Verb("SPD_R_XFR_CTRL 16bit read " + regXFRCtrl.ToString("X"));
                     return regXFRCtrl;
-                case SPEED_Header.SPD_R_38:
-                    Log_Verb("SPD_R_38 16bit read " + reg38.ToString("X"));
-                    UInt16 r38 = (UInt16)(reg38 & ~SPEED_Header.SPD_R_38_AVAIL_MASK);
-                    if (dev9.ata.dmaReady)
+                case SPEED_Header.SPD_R_DBUF_STAT:
+
+                    if (ifRead) //Semi async
                     {
-                        r38 |= (UInt16)Math.Min(dev9.ata.nsectorLeft, SPEED_Header.SPD_R_38_AVAIL_MASK);
+                        HDDWriteFIFO(); //Yes this is not a typo
                     }
+                    else
+                    {
+                        HDDReadFIFO();
+                    }
+
+                    byte count = (byte)((bytesWriteFIFO - bytesReadFIFO) / 512);
+                    UInt16 r38;
+                    if (xfrWrite) //or ifRead?
+                    {
+                        r38 = (byte)(SPEED_Header.SPD_DBUF_AVAIL_MAX - count);
+                        r38 |= (count == 0) ? SPEED_Header.SPD_DBUF_STAT_1 : (UInt16)0;
+                        r38 |= (count > 0) ? SPEED_Header.SPD_DBUF_STAT_2 : (UInt16)0;
+                    }
+                    else
+                    {
+                        r38 = count;
+                        r38 |= (count < SPEED_Header.SPD_DBUF_AVAIL_MAX) ? SPEED_Header.SPD_DBUF_STAT_1 : (UInt16)0;
+                        r38 |= (count == 0) ? SPEED_Header.SPD_DBUF_STAT_2 : (UInt16)0;
+                        //If overflow (HDD->SPEED), set both SPD_DBUF_STAT_2 & SPD_DBUF_STAT_FULL
+                        //and overflow INTR set
+                    }
+
+                    if (count == SPEED_Header.SPD_DBUF_AVAIL_MAX)
+                    {
+                        r38 |= SPEED_Header.SPD_DBUF_STAT_FULL;
+                    }
+
+                    Log_Verb("SPD_R_38  16bit read " + r38.ToString("X"));
+
                     return r38;
                 case SPEED_Header.SPD_R_IF_CTRL:
                     Log_Verb("SPD_R_IF_CTRL 16bit read " + regIFCtrl.ToString("X"));
@@ -224,13 +251,29 @@ namespace CLRDEV9.DEV9.SPEED
             {
                 case SPEED_Header.SPD_R_DMA_CTRL:
                     Log_Verb("SPD_R_DMA_CTRL 16bit write " + value.ToString("X"));
-                    dev9.isDMAforSMAP = (value & 0x1) == 1;
-                    if ((regDMACtrl & 0x1) == 1)
+                    regDMACtrl = value;
+
+                    if (dmaSMAP)
                         Log_Verb("SPD_R_DMA_CTRL DMA For SMAP");
                     else
                         Log_Verb("SPD_R_DMA_CTRL DMA For ATA");
-                    //ORed with 0x06
-                    regDMACtrl = value;
+
+                    if ((value & SPEED_Header.SPD_DMA_FASTEST) != 0)
+                        Log_Verb("SPD_R_DMA_CTRL Fastest DMA Mode");
+                    else
+                        Log_Verb("SPD_R_DMA_CTRL Slower DMA Mode");
+
+                    if ((value & SPEED_Header.SPD_DMA_WIDE) != 0)
+                        Log_Verb("SPD_R_DMA_CTRL Wide(32bit) DMA Mode Set");
+                    else
+                        Log_Verb("SPD_R_DMA_CTRL 16bit DMA Mode");
+
+                    if ((value & SPEED_Header.SPD_DMA_PAUSE) != 0)
+                        Log_Error("SPD_R_DMA_CTRL Pause DMA");
+
+                    if ((value & 0b1111_1111_1110_0000) != 0)
+                        Log_Error("SPD_R_DMA_CTRL Unkown value written" + value.ToString("X"));
+
                     return;
                 case SPEED_Header.SPD_R_INTR_MASK:
                     Log_Verb("SPD_R_INTR_MASK16 16bit write " + value.ToString("X") + " , checking for masked/unmasked interrupts");
@@ -243,46 +286,92 @@ namespace CLRDEV9.DEV9.SPEED
                     return;
                 case SPEED_Header.SPD_R_XFR_CTRL:
                     Log_Verb("SPD_R_XFR_CTRL 16bit write " + value.ToString("X"));
+
                     regXFRCtrl = value;
+
+                    if (xfrWrite)
+                        Log_Verb("SPD_R_XFR_CTRL Set Write");
+                    else
+                        Log_Verb("SPD_R_XFR_CTRL Set Read");
+
+                    if ((value & (1 << 1)) != 0)
+                        Log_Verb("SPD_R_XFR_CTRL Unkown Bit 1");
+
+                    if ((value & (1 << 2)) != 0)
+                        Log_Verb("SPD_R_XFR_CTRL Unkown Bit 2");
+
+                    if (xfrDMAEN)
+                        Log_Verb("SPD_R_XFR_CTRL For DMA Enabled");
+                    else
+                        Log_Verb("SPD_R_XFR_CTRL For DMA Disabled");
+
+                    if ((value & 0b1111_1111_0111_1000) != 0)
+                        Log_Error("SPD_R_DMA_CTRL Unkown value written" + value.ToString("X"));
+                    
                     break;
-                case SPEED_Header.SPD_R_38:  //ATA only?
-                    //Always get 3 written?
+                case SPEED_Header.SPD_R_DBUF_STAT:
                     Log_Verb("SPD_R_38 16bit write " + value.ToString("X"));
-                    if (value != 3)
+
+                    if ((value & SPEED_Header.SPD_DBUF_RESET_SOMETHING) != 0)
+                        Log_Verb("SPD_R_DBUF_STAT Reset Something");
+
+                    if ((value & SPEED_Header.SPD_DBUF_RESET_FIFO) != 0)
                     {
-                        Log_Error("SPD_R_38 16bit write " + value.ToString("X") + " Which != 3!!!");
+                        Log_Verb("SPD_R_XFR_CTRL Reset FIFO");
+                        bytesWriteFIFO = 0;
+                        bytesReadFIFO = 0;
+                        xfrWrite = false; //??
+                        ifRead = true; //??
+                        FIFOIntr();
                     }
-                    reg38 = value;
+
+                    if (value != 3)
+                        Log_Error("SPD_R_38 16bit write " + value.ToString("X") + " Which != 3!!!");
+
                     break;
                 case SPEED_Header.SPD_R_IF_CTRL: //ATA only?
                     Log_Verb("SPD_R_IF_CTRL 16bit write " + value.ToString("X"));
                     regIFCtrl = value;
                     #region regIFCtrl
-                    if ((regIFCtrl & 0x1) != 0)
+                    if ((regIFCtrl & SPEED_Header.SPD_IF_UDMA) != 0)
                         Log_Verb("IF_CTRL UDMA Enabled");
                     else
                         Log_Verb("IF_CTRL UDMA Disabled");
-                    if ((regIFCtrl & 0x2) != 0)
+                    if (ifRead)
                         Log_Verb("IF_CTRL DMA Is ATA Read");
                     else
                         Log_Verb("IF_CTRL DMA Is ATA Write");
-                    if ((regIFCtrl & SPEED_Header.SPD_IF_DMA_ENABLE) != 0)
-                        Log_Verb("IF_CTRL DMA Enabled");
+                    if (ifDMAEN)
+                        Log_Verb("IF_CTRL ATA DMA Enabled");
                     else
-                        Log_Verb("IF_CTRL DMA Disabled");
-                    if ((regIFCtrl & 0x8) != 0)
-                        Log_Verb("IF_CTRL Unkown Mode Bit A");
-                    if ((regIFCtrl & 0x10) != 0)
-                        Log_Error("IF_CTRL Unkown Bit 5");
-                    if ((regIFCtrl & 0x20) != 0)
-                        Log_Error("IF_CTRL Unkown Bit 6");
-                    if ((regIFCtrl & 0x40) != 0)
-                        Log_Verb("IF_CTRL Unkown Mode Bit B");
-                    if ((regIFCtrl & SPEED_Header.SPD_IF_ATA_RESET) != 0)
+                        Log_Verb("IF_CTRL ATA DMA Disabled");
+
+                    if ((regIFCtrl & (1 << 3)) != 0)
+                        Log_Verb("IF_CTRL Unkown Bit 3 Set");
+
+                    if ((regIFCtrl & (1 << 4)) != 0)
+                        Log_Error("IF_CTRL Unkown Bit 4 Set");
+                    if ((regIFCtrl & (1 << 5)) != 0)
+                        Log_Error("IF_CTRL Unkown Bit 5 Set");
+
+                    if ((regIFCtrl & SPEED_Header.SPD_IF_HDD_RESET) == 0) //Maybe?????? (TEST)
                     {
-                        Log_Info("IF_CTRL ATA Hard Reset");
+                        Log_Info("IF_CTRL HDD Hard Reset");
                         dev9.ata.ATA_HardReset();
                     }
+                    if ((regIFCtrl & SPEED_Header.SPD_IF_ATA_RESET) != 0)
+                    {
+                        Log_Info("IF_CTRL ATA Reset");
+                        //0x62    0x0020
+                        regIFCtrl = 0x001A;
+                        //0x66    0x0001
+                        regPIOMode = 0x24;
+                        regMDMAMode = 0x45;
+                        regUDMAMode = 0x83;
+                        //0x74    0x0083
+                        //0x76    0x4ABA (And consequently 0x78 = 0x4ABA.)
+                    }
+
                     if ((regIFCtrl & 0xFF00) > 0)
                         Log_Error("IF_CTRL Unkown Bit(s)" + (regIFCtrl & 0xFF00).ToString("X"));
                     #endregion
@@ -374,6 +463,103 @@ namespace CLRDEV9.DEV9.SPEED
                     dev9.Dev9Wu32((int)addr, value);
                     Log_Error("*Unknown 32bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
                     return;
+            }
+        }
+
+        //Fakes ATA FIFO
+        private void HDDWriteFIFO()
+        {
+            if (dev9.ata.dmaReady & ifDMAEN)
+            {
+                int unread = (bytesWriteFIFO - bytesReadFIFO);
+                int space = SPEED_Header.SPD_DBUF_AVAIL_MAX * 512 - unread;
+                if (space < 0) throw new Exception();
+                bytesWriteFIFO += Math.Min(dev9.ata.nsectorLeft * 512, space);
+            }
+            FIFOIntr();
+        }
+        private void HDDReadFIFO()
+        {
+            if (dev9.ata.dmaReady & ifDMAEN)
+            {
+                bytesReadFIFO = bytesWriteFIFO;
+            }
+            FIFOIntr();
+        }
+        private void IOPReadFIFO(int bytes)
+        {
+            bytesReadFIFO += bytes;
+            if (bytesReadFIFO > bytesWriteFIFO)
+                Log_Error("UNDERFLOW BY IOP");
+            FIFOIntr();
+        }
+        private void IOPWriteFIFO(int bytes)
+        {
+            bytesWriteFIFO += bytes;
+            if (bytesWriteFIFO - SPEED_Header.SPD_DBUF_AVAIL_MAX * 512 > bytesReadFIFO)
+                Log_Error("OVERFLOW BY IOP");
+            FIFOIntr();
+        }
+        private void FIFOIntr()
+        {
+            //FIFO Buffer Full/Empty
+            int unread = (bytesWriteFIFO - bytesReadFIFO);
+
+            if (unread == 0)
+            {
+                if ((regIntStat & SPEED_Header.SPD_INTR_ATA_FIFO_EMPTY) == 0)
+                    dev9.DEV9irq(SPEED_Header.SPD_INTR_ATA_FIFO_EMPTY, 1);
+            }
+            if (unread == SPEED_Header.SPD_DBUF_AVAIL_MAX * 512)
+            {
+                //Log_Error("FIFO Full");
+                //INTR Full?
+            }
+            //FIFO DATA
+            //if (xfrWrite)
+            //{
+            //    if (unread > 0)
+            //    {
+            //        if ((regIntStat & SPEED_Header.SPD_INTR_ATA_FIFO_DATA) == 0)
+            //            dev9.DEV9irq(SPEED_Header.SPD_INTR_ATA_FIFO_DATA, 1);
+            //    }
+            //    else
+            //    {
+            //        regIntStat &= unchecked((UInt16)~(SPEED_Header.SPD_INTR_ATA_FIFO_DATA));
+            //    }
+            //}
+            //else
+            //{ //Not sure this is correct
+            //    if (unread < SPEED_Header.SPD_DBUF_AVAIL_MAX & dev9.ata.dmaReady) //??
+            //    {
+            //        if ((regIntStat & SPEED_Header.SPD_INTR_ATA_FIFO_DATA) == 0)
+            //            dev9.DEV9irq(SPEED_Header.SPD_INTR_ATA_FIFO_DATA, 1);
+            //    }
+            //    else
+            //    {
+            //        regIntStat &= unchecked((UInt16)~(SPEED_Header.SPD_INTR_ATA_FIFO_DATA));
+            //    }
+            //}
+        }
+
+        public void SPEEDreadDMA8Mem(UnmanagedMemoryStream pMem, int size)
+        {
+            if (xfrDMAEN & !xfrWrite & !dmaSMAP)
+            {
+                Log_Info("rSPEED");
+                HDDWriteFIFO();
+                IOPReadFIFO(size);
+                dev9.ata.ATAreadDMA8Mem(pMem, size);
+            }
+        }
+        public void SPEEDwriteDMA8Mem(UnmanagedMemoryStream pMem, int size)
+        {
+            if (xfrDMAEN & xfrWrite & !dmaSMAP)
+            {
+                Log_Info("wSPEED");
+                IOPWriteFIFO(size);
+                dev9.ata.ATAwriteDMA8Mem(pMem, size);
+                HDDReadFIFO();
             }
         }
 

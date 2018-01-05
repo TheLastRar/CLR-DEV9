@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using CLRDEV9.DEV9.SPEED;
 
 namespace CLRDEV9.DEV9.ATA
 {
@@ -12,7 +13,7 @@ namespace CLRDEV9.DEV9.ATA
             regStatus &= unchecked((byte)(~DEV9Header.ATA_STAT_BUSY));
             regStatus |= (byte)DEV9Header.ATA_STAT_DRQ;
             dmaReady = true;
-            dev9.DEV9irq(DEV9Header.ATA_INTR_1, 1);
+            dev9.DEV9irq(SPEED_Header.SPD_INTR_ATA_FIFO_DATA, 1);
             //PCSX2 will Start DMA
         }
         void PostCmdDMADataToHost()
@@ -25,7 +26,7 @@ namespace CLRDEV9.DEV9.ATA
             regStatus &= unchecked((byte)(~DEV9Header.ATA_STAT_BUSY));
             dmaReady = false;
 
-            dev9.spd.regIntStat &= unchecked((UInt16)~(DEV9Header.ATA_INTR_1)); //Is this correct?
+            dev9.spd.regIntStat &= unchecked((UInt16)~(SPEED_Header.SPD_INTR_ATA_FIFO_DATA));
             if (regControlEnableIRQ) dev9.DEV9irq(DEV9Header.ATA_INTR_INTRQ, 1);
             //PCSX2 Will Start DMA
         }
@@ -43,7 +44,7 @@ namespace CLRDEV9.DEV9.ATA
             regStatus &= unchecked((byte)(~DEV9Header.ATA_STAT_BUSY));
             regStatus |= (byte)DEV9Header.ATA_STAT_DRQ;
             dmaReady = true;
-            dev9.DEV9irq(DEV9Header.ATA_INTR_1, 1); //Maybe?
+            dev9.DEV9irq(SPEED_Header.SPD_INTR_ATA_FIFO_DATA, 1);
             //PCSX2 will Start DMA
         }
         void PostCmdDMADataFromHost()
@@ -57,7 +58,7 @@ namespace CLRDEV9.DEV9.ATA
             regStatus &= unchecked((byte)(~DEV9Header.ATA_STAT_DRQ));
             dmaReady = false;
 
-            dev9.spd.regIntStat &= unchecked((UInt16)~(DEV9Header.ATA_INTR_1)); //Is this correct?
+            dev9.spd.regIntStat &= unchecked((UInt16)~(SPEED_Header.SPD_INTR_ATA_FIFO_DATA));
 
             if (fetWriteCacheEnabled)
             {
@@ -75,7 +76,7 @@ namespace CLRDEV9.DEV9.ATA
         public void ATAreadDMA8Mem(UnmanagedMemoryStream pMem, int size)
         {
             if ((udmaMode >= 0) &&
-                (dev9.spd.regIFCtrl & SPEED.SPEED_Header.SPD_IF_DMA_ENABLE) != 0)
+                (dev9.spd.regIFCtrl & SPEED.SPEED_Header.SPD_IF_ATA_DMAEN) != 0)
             {
                 if (size == 0)
                     return;
@@ -103,7 +104,7 @@ namespace CLRDEV9.DEV9.ATA
         public void ATAwriteDMA8Mem(UnmanagedMemoryStream pMem, int size)
         {
             if ((udmaMode >= 0) &&
-                (dev9.spd.regIFCtrl & SPEED.SPEED_Header.SPD_IF_DMA_ENABLE) != 0)
+                (dev9.spd.regIFCtrl & SPEED.SPEED_Header.SPD_IF_ATA_DMAEN) != 0)
             {
                 //size >>= 1;
                 Log_Verb("DEV9 : DMA write, size " + size + ", transferred " + wrTransferred + ", total size " + nsector * 512);

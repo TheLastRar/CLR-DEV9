@@ -9,7 +9,7 @@ namespace CLRDEV9.DEV9.ATA
             regStatus |= (byte)DEV9Header.ATA_STAT_BUSY;
             regStatus &= unchecked((byte)~DEV9Header.ATA_STAT_READY);
             dev9.spd.regIntStat &= unchecked((UInt16)~DEV9Header.ATA_INTR_INTRQ);
-            dev9.spd.regIntStat &= unchecked((UInt16)~DEV9Header.ATA_INTR_1); //Is this correct?
+            //dev9.spd.regIntStat &= unchecked((UInt16)~DEV9Header.ATA_INTR_DMA_RDY); //Is this correct?
         }
 
         void PostCmdExecuteDeviceDiag()
