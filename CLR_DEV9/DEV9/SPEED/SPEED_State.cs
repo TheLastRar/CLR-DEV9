@@ -107,6 +107,7 @@ namespace CLRDEV9.DEV9.SPEED
                     {
                         HDDReadFIFO();
                     }
+                    FIFOIntr();
 
                     byte count = (byte)((bytesWriteFIFO - bytesReadFIFO) / 512);
                     UInt16 r38;
@@ -342,7 +343,18 @@ namespace CLRDEV9.DEV9.SPEED
                     else
                         Log_Verb("IF_CTRL DMA Is ATA Write");
                     if (ifDMAEN)
+                    {
                         Log_Verb("IF_CTRL ATA DMA Enabled");
+                        if (ifRead) //Semi async
+                        {
+                            HDDWriteFIFO(); //Yes this is not a typo
+                        }
+                        else
+                        {
+                            HDDReadFIFO();
+                        }
+                        FIFOIntr();
+                    }
                     else
                         Log_Verb("IF_CTRL ATA DMA Disabled");
 
@@ -476,7 +488,7 @@ namespace CLRDEV9.DEV9.SPEED
                 if (space < 0) throw new Exception();
                 bytesWriteFIFO += Math.Min(dev9.ata.nsectorLeft * 512, space);
             }
-            FIFOIntr();
+            //FIFOIntr();
         }
         private void HDDReadFIFO()
         {
@@ -484,21 +496,21 @@ namespace CLRDEV9.DEV9.SPEED
             {
                 bytesReadFIFO = bytesWriteFIFO;
             }
-            FIFOIntr();
+            //FIFOIntr();
         }
         private void IOPReadFIFO(int bytes)
         {
             bytesReadFIFO += bytes;
             if (bytesReadFIFO > bytesWriteFIFO)
                 Log_Error("UNDERFLOW BY IOP");
-            FIFOIntr();
+            //FIFOIntr();
         }
         private void IOPWriteFIFO(int bytes)
         {
             bytesWriteFIFO += bytes;
             if (bytesWriteFIFO - SPEED_Header.SPD_DBUF_AVAIL_MAX * 512 > bytesReadFIFO)
                 Log_Error("OVERFLOW BY IOP");
-            FIFOIntr();
+            //FIFOIntr();
         }
         private void FIFOIntr()
         {
@@ -550,6 +562,7 @@ namespace CLRDEV9.DEV9.SPEED
                 HDDWriteFIFO();
                 IOPReadFIFO(size);
                 dev9.ata.ATAreadDMA8Mem(pMem, size);
+                FIFOIntr();
             }
         }
         public void SPEEDwriteDMA8Mem(UnmanagedMemoryStream pMem, int size)
@@ -560,6 +573,7 @@ namespace CLRDEV9.DEV9.SPEED
                 IOPWriteFIFO(size);
                 dev9.ata.ATAwriteDMA8Mem(pMem, size);
                 HDDReadFIFO();
+                FIFOIntr();
             }
         }
 
