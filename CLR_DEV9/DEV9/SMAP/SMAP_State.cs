@@ -109,7 +109,7 @@ namespace CLRDEV9.DEV9.SMAP
 
                 //Fill the BD with info !
                 pbd.Length = (ushort)pk.size;
-                pbd.Pointer = (ushort)(0x4000 + pstart);
+                pbd.Pointer = (ushort)(0x4000 + pstart); //?
                 unchecked //Allow -int to uint
                 {
                     pbd.CtrlStat &= (ushort)~DEV9Header.SMAP_BD_RX_EMPTY;
@@ -153,17 +153,17 @@ namespace CLRDEV9.DEV9.SMAP
 
                 if (!((pbd.CtrlStat & DEV9Header.SMAP_BD_TX_READY) != 0))
                 {
-                    Log_Error("ERROR : !pbd->ctrl_stat&SMAP_BD_TX_READY\n");
+                    Log_Error("ERROR : !pbd->ctrl_stat&SMAP_BD_TX_READ");
                     break;
                 }
                 if ((pbd.Length & 3) != 0)
                 {
-                    //spams// emu_printf("WARN : pbd->length not alligned %d\n",pbd->length);
+                    //spams// Log_Error("WARN : !pbd->length not alligned");
                 }
 
                 if (pbd.Length > 1514)
                 {
-                    Log_Error("ERROR : Trying to send packet too big.\n");
+                    Log_Error("ERROR : Trying to send packet too big");
                 }
                 else
                 {

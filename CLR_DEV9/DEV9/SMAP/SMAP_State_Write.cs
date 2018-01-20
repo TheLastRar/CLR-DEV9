@@ -323,7 +323,7 @@ namespace CLRDEV9.DEV9.SMAP
                     dev9.Dev9Wu16((int)addr, value);
                     break;
                 case DEV9Header.SMAP_R_RXFIFO_SIZE:
-                    Log_Verb("SMAP_R_34 16bit write " + value.ToString("X"));
+                    Log_Verb("SMAP_R_RXFIFO_SIZE 16bit write " + value.ToString("X"));
                     dev9.Dev9Wu16((int)addr, value);
                     break;
                 case DEV9Header.SMAP_R_INTR_CLR:

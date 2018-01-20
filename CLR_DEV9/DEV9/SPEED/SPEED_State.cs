@@ -558,7 +558,7 @@ namespace CLRDEV9.DEV9.SPEED
         {
             if (xfrDMAEN & !xfrWrite & !dmaSMAP)
             {
-                Log_Info("rSPEED");
+                //Log_Info("rSPEED");
                 HDDWriteFIFO();
                 IOPReadFIFO(size);
                 dev9.ata.ATAreadDMA8Mem(pMem, size);
@@ -569,7 +569,7 @@ namespace CLRDEV9.DEV9.SPEED
         {
             if (xfrDMAEN & xfrWrite & !dmaSMAP)
             {
-                Log_Info("wSPEED");
+                //Log_Info("wSPEED");
                 IOPWriteFIFO(size);
                 dev9.ata.ATAwriteDMA8Mem(pMem, size);
                 HDDReadFIFO();
