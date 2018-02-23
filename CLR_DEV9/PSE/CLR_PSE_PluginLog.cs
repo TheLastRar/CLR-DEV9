@@ -95,7 +95,6 @@ namespace PSE
             {
                 throw new NullReferenceException();
             }
-
             if (sources == null || (currentLogPath != logFolderPath + Path.DirectorySeparatorChar + logFileName))
             {
                 Close();
@@ -110,7 +109,6 @@ namespace PSE
                     {
                     }
                 }
-
                 //Console Normal
                 if (CLR_PSE_Utils.IsWindows())
                 {
@@ -129,11 +127,10 @@ namespace PSE
                 }
                 else
                 {
-                    stdOut = new TextWriterTraceListener(Console.Error);
+                    stdErr = new TextWriterTraceListener(Console.Error);
                 }
                 stdErr.Filter = new EventTypeFilter(consoleErrLevel);
                 stdErr.Name = "StdErr";
-
                 currentLogPath = logFolderPath + Path.DirectorySeparatorChar + logFileName;
                 //Text File
                 try
@@ -148,7 +145,6 @@ namespace PSE
                     //Console.Error.WriteLine("Failed to Open Log File :" + e.ToString());
                     stdErr.WriteLine("Failed to Open Log File :" + e.ToString());
                 }
-
                 //Create sources
                 sources = new Dictionary<int, TraceSource>();
                 //Defualt Sources
