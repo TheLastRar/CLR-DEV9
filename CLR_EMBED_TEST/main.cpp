@@ -5,7 +5,8 @@
 
 int main_ext()
 {
-	void* hld = dlopen("/home/air/projects/CLR_DEV9_LINUX/bin/x86/Debug/libCLR_DEV9_LINUX.so", 3);
+	//void* hld = dlopen("/home/air/projects/CLR_DEV9_LINUX/bin/x86/Debug/libCLR_DEV9_LINUX.so", 3);
+	void* hld = dlopen("/home/air/projects/CLR_DEV9_LINUX_MONO/bin/x86/Debug/libCLR_DEV9_LINUX_MONO.so", 3);
 	if (hld == NULL)
 	{
 		printf("OPEN FAILED\n");
@@ -22,10 +23,10 @@ int main_ext()
 	DEV9config = (void(*)())dlsym(hld, "DEV9configure");
 
 	TestInit = (void(*)())dlsym(hld, "TestInit");
-	TestInit();
-	//PS2Esetset("/home/air/.config/PCSX2/inis_1.4.0/");
-	//PS2Einit();
-	//DEV9config();
+	//TestInit();
+	PS2Esetset("/home/air/.config/PCSX2/inis_1.4.0/");
+	PS2Einit();
+	DEV9config();
 
 	dlclose(hld);
 	return 0;

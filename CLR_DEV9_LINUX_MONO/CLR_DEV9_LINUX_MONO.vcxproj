@@ -39,169 +39,232 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{2ddc2238-e5c6-4297-b607-9ea7975dbf36}</ProjectGuid>
+    <ProjectGuid>{5E6D369F-7F00-4C44-8BC1-1E72C905492B}</ProjectGuid>
     <Keyword>Linux</Keyword>
-    <RootNamespace>CLR_EMBED_TEST</RootNamespace>
+    <RootNamespace>CLR_DEV9_LINUX</RootNamespace>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <ApplicationType>Linux</ApplicationType>
     <ApplicationTypeRevision>1.0</ApplicationTypeRevision>
     <TargetLinuxPlatform>Generic</TargetLinuxPlatform>
-    <LinuxProjectType>{D51BCBC9-82E9-4017-911E-C93873C4EA2B}</LinuxProjectType>
+    <LinuxProjectType>{2238F9CD-F817-4ECC-BD14-2524D2669B35}</LinuxProjectType>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|ARM'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x86'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x64'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings" />
   <ImportGroup Label="Shared" />
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <TargetExt>.so</TargetExt>
+    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include;$(ProjectDir)external\usr\include\mono-2.0;$(ProjectDir)external\usr\include\x86_64-linux-gnu</IncludePath>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
-    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
+    <TargetExt>.so</TargetExt>
+    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include;$(ProjectDir)external\usr\include\mono-2.0;$(ProjectDir)external\usr\include\x86_64-linux-gnu</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|ARM'">
-    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
+    <TargetExt>.so</TargetExt>
+    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include;$(ProjectDir)external\usr\include\mono-2.0;$(ProjectDir)external\usr\include\x86_64-linux-gnu</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
-    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
+    <TargetExt>.so</TargetExt>
+    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include;$(ProjectDir)external\usr\include\mono-2.0;$(ProjectDir)external\usr\include\x86_64-linux-gnu</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
+    <TargetExt>.so</TargetExt>
+    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include;$(ProjectDir)external\usr\include\mono-2.0;$(ProjectDir)external\usr\include\x86_64-linux-gnu</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x64'">
-    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
+    <TargetExt>.so</TargetExt>
+    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include;$(ProjectDir)external\usr\include\mono-2.0;$(ProjectDir)external\usr\include\x86_64-linux-gnu</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
+    <TargetExt>.so</TargetExt>
+    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include;$(ProjectDir)external\usr\include\mono-2.0;$(ProjectDir)external\usr\include\x86_64-linux-gnu</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
-    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
+    <TargetExt>.so</TargetExt>
+    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include;$(ProjectDir)external\usr\include\mono-2.0;$(ProjectDir)external\usr\include\x86_64-linux-gnu</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x86'">
-    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
-    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include\mono-2.0</IncludePath>
+    <TargetExt>.so</TargetExt>
+    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include;$(ProjectDir)external\usr\include\mono-2.0;$(ProjectDir)external\usr\include\x86_64-linux-gnu</IncludePath>
   </PropertyGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="DEV9.cpp" />
+    <ClCompile Include="PSE.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CLR_DEV9_LINUX_MONO\CLR_DEV9_LINUX_MONO.vcxproj">
-      <Project>{5e6d369f-7f00-4c44-8bc1-1e72c905492b}</Project>
-    </ProjectReference>
+    <ClInclude Include="DEV9.h" />
+    <ClInclude Include="PSE.h" />
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <Link>
-      <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
+      <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
+      <PositionIndependentCode>true</PositionIndependentCode>
       <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <RemotePostBuildEvent>
+      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/i386-linux-gnu/pcsx2/$(TargetFileName)</Command>
+      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
+    </RemotePostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|ARM'">
     <Link>
-      <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
+      <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
+      <PositionIndependentCode>true</PositionIndependentCode>
       <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <RemotePostBuildEvent>
+      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/i386-linux-gnu/pcsx2/$(TargetFileName)</Command>
+      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
+    </RemotePostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <Link>
-      <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
+      <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
+      <PositionIndependentCode>true</PositionIndependentCode>
       <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <RemotePostBuildEvent>
+      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/i386-linux-gnu/pcsx2/$(TargetFileName)</Command>
+      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
+    </RemotePostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Link>
-      <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
+      <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
+      <PositionIndependentCode>true</PositionIndependentCode>
       <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <RemotePostBuildEvent>
+      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/i386-linux-gnu/pcsx2/$(TargetFileName)</Command>
+      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
+    </RemotePostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x64'">
     <Link>
-      <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
+      <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
+      <PositionIndependentCode>true</PositionIndependentCode>
       <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <RemotePostBuildEvent>
+      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/i386-linux-gnu/pcsx2/$(TargetFileName)</Command>
+      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
+    </RemotePostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
+      <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
+      <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <ClCompile>
+      <PositionIndependentCode>true</PositionIndependentCode>
+      <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <RemotePostBuildEvent>
+      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/i386-linux-gnu/pcsx2/$(TargetFileName)</Command>
+      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
+    </RemotePostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <Link>
+      <AdditionalOptions>-m32</AdditionalOptions>
       <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
-    <Link>
-      <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <LibraryDependencies>dl;pthread</LibraryDependencies>
-      <AdditionalOptions>-m32 %(AdditionalOptions)</AdditionalOptions>
-    </Link>
-    <ClCompile>
       <PositionIndependentCode>true</PositionIndependentCode>
       <AdditionalOptions>-m32</AdditionalOptions>
+      <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <RemotePostBuildEvent>
+      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/i386-linux-gnu/pcsx2/$(TargetFileName)</Command>
+      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
+    </RemotePostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x86'">
     <Link>
+      <AdditionalOptions>-m32</AdditionalOptions>
       <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <LibraryDependencies>dl;pthread</LibraryDependencies>
-      <AdditionalOptions>-m32 %(AdditionalOptions)</AdditionalOptions>
+      <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
     </Link>
     <ClCompile>
       <PositionIndependentCode>true</PositionIndependentCode>
       <AdditionalOptions>-m32</AdditionalOptions>
+      <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <RemotePostBuildEvent>
+      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/i386-linux-gnu/pcsx2/$(TargetFileName)</Command>
+      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
+    </RemotePostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
     <Link>
+      <AdditionalOptions>-m32</AdditionalOptions>
       <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <LibraryDependencies>dl;pthread</LibraryDependencies>
-      <AdditionalOptions>-m32 %(AdditionalOptions)</AdditionalOptions>
+      <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
     </Link>
     <ClCompile>
       <PositionIndependentCode>true</PositionIndependentCode>
       <AdditionalOptions>-m32</AdditionalOptions>
+      <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <RemotePostBuildEvent>
+      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/i386-linux-gnu/pcsx2/$(TargetFileName)</Command>
+      <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
+    </RemotePostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
