@@ -111,6 +111,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 case TCPState.None:
                     return SendConnect(tcp);
                 case TCPState.SendingSYN_ACK:
+                    if (CheckRepeatSYNNumbers(tcp) == NumCheckResult.Bad) { Log_Error("Invalid Repeated SYN (SendingSYN_ACK)"); throw new Exception("Invalid Repeated SYN"); }
                     return true; //Ignore reconnect attempts while we are still attempting connection
                 case TCPState.SentSYN_ACK:
                     return SendConnected(tcp);
@@ -210,8 +211,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             //Log_Error("SendConnected");
             if (tcp.SYN == true)
             {
-                Log_Error("Attempt to Connect to an operning Port");
-                throw new Exception("Attempt to Connect to an operning Port");
+                if (CheckRepeatSYNNumbers(tcp) == NumCheckResult.Bad) { Log_Error("Invalid Repeated SYN (SentSYN_ACK)"); throw new Exception("Invalid Repeated SYN");}
+                return true; //Ignore reconnect attempts while we are still attempting connection
             }
             NumCheckResult Result = CheckNumbers(tcp);
             if (Result == NumCheckResult.Bad) { Log_Error("Bad TCP Numbers Received"); throw new Exception("Bad TCP Numbers Received"); }
@@ -363,6 +364,18 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             return true;
         }
 
+        private NumCheckResult CheckRepeatSYNNumbers(TCP tcp)
+        {
+            Log_Verb("CHECK_REPEAT_SYN_NUMBERS");
+            Log_Verb("[SRV]CurrAckNumber = " + expectedSeqNumber + " [PS2]Seq Number = " + tcp.SequenceNumber);
+
+            if (tcp.SequenceNumber != expectedSeqNumber - 1)
+            {
+                Log_Error("[PS2]Sent Unexpected Sequence Number From Repatet SYN Packet, Got " + tcp.SequenceNumber + " Expected " + (expectedSeqNumber - 1));
+                return NumCheckResult.Bad;
+            }
+            return NumCheckResult.OK;
+        }
         private NumCheckResult CheckNumbers(TCP tcp)
         {
             GetAllMyNumbers(out UInt32 seqNum, out List<UInt32> oldSeqNums);
