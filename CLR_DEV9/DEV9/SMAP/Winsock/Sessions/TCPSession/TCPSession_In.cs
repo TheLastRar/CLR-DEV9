@@ -47,16 +47,18 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             if (maxSize != 0 &&
                 myNumberACKed.WaitOne(0))
             {
-                if (client.Available > maxSize)
-                {
-                    Log_Info("Got a lot of data");
-                }
-
-                byte[] buffer = new byte[maxSize];
+                byte[] buffer = null;
                 SocketError err;
                 int recived = -1;
+
                 try
                 {
+                    if (client.Available > maxSize)
+                    {
+                        Log_Info("Got a lot of data");
+                    }
+
+                    buffer = new byte[maxSize];
                     recived = client.Receive(buffer, 0, maxSize, SocketFlags.None, out err);
                 }
                 catch (ObjectDisposedException) { err = SocketError.Shutdown; }
