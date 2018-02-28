@@ -122,6 +122,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
                         //Error.WriteLine("Got DNS Servers");
                         Options.Add(new DHCPopDNS(data, offset));
                         break;
+                    case 12:
+                        Options.Add(new DHCPopHOSTNAME(data, offset));
+                        break;
                     case 15:
                         //Error.WriteLine("Got Domain Name (Not supported)");
                         Options.Add(new DHCPopDNSNAME(data, offset));

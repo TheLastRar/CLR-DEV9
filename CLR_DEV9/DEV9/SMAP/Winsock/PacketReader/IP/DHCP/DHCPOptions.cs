@@ -140,6 +140,46 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DHCP
             return ret;
         }
     }
+    class DHCPopHOSTNAME : TCPOption
+    {
+        byte len;
+        byte[] hostNameBytes;
+        public string Name
+        {
+            get
+            {
+                int x = 0;
+                NetLib.ReadCString(hostNameBytes, ref x, hostNameBytes.Length, out string value);
+                return value;
+            }
+        }
+        public DHCPopHOSTNAME(string name)
+        {
+            hostNameBytes = Encoding.ASCII.GetBytes(name);
+            len = (byte)hostNameBytes.Length;
+            if (hostNameBytes.Length > len)
+            {
+                throw new Exception("Domain Name Overflow");
+            }
+        }
+        public DHCPopHOSTNAME(byte[] data, int offset) //Offset will include Kind and Len
+        {
+            len = data[offset + 1];
+            hostNameBytes = new byte[len];
+            Utils.memcpy(hostNameBytes, 0, data, offset + 2, len);
+        }
+        public override byte Length { get { return (byte)(2 + len); } }
+        public override byte Code { get { return 12; } }
+
+        public override byte[] GetBytes()
+        {
+            byte[] ret = new byte[Length];
+            ret[0] = Code;
+            ret[1] = (byte)(Length - 2);
+            Utils.memcpy(ret, 2, hostNameBytes, 0, len);
+            return ret;
+        }
+    }
     class DHCPopDNSNAME : TCPOption
     {
         byte len;
