@@ -340,7 +340,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             cMac = dhcp.ClientHardwareAddress;
             cookie = dhcp.MagicCookie;
 
-            TCPOption clientID = null;
+            DHCPopClientID clientID = null;
 
             byte msg = 0;
             byte[] reqList = null;
@@ -352,6 +352,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     case 0:
                         //Error.WriteLine("Got NOP");
                         continue;
+                    case 12:
+                        Log_Info("Got HostName");
+                        //TODO use name?
+                        break;
                     case 50:
                         Log_Info("Got Request IP");
                         if (Utils.memcmp(PS2IP, 0, ((DHCPopREQIP)dhcp.Options[i]).IPaddress, 0, 4) == false)
@@ -386,7 +390,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                         break;
                     case 61:
                         Log_Verb("Got Client ID");
-                        clientID = dhcp.Options[i];
+                        clientID = (DHCPopClientID)dhcp.Options[i];
                         //Ignore
                         break;
                     case 255:
@@ -394,7 +398,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                         break;
                     default:
                         Log_Error("Got Unknown Option " + dhcp.Options[i].Code);
-                        throw new Exception();
+                        throw new Exception("Got Unknown Option " + dhcp.Options[i].Code);
                         //break;
                 }
             }
@@ -471,11 +475,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                                 break;
                             case 77:
                                 //Isn't this surpossed to be sent by the client?
-                                Log_Verb("Request for User-Class, Ignoring");
+                                Log_Error("Request for User-Class, Ignoring");
                                 break;
                             default:
                                 Log_Error("Got Unknown Req " + reqList[i]);
-                                throw new Exception();
+                                throw new Exception("Got Unknown Req " + reqList[i]);
                         }
                     }
                     retPay.Options.Add(new DHCPopIPLT(86400));
