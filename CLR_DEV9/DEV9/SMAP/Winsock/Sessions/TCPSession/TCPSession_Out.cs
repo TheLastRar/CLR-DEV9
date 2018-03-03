@@ -88,6 +88,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             if (tcp.RST == true) //Test this
             {
                 Log_Info("PS2 has reset connection");
+                state = TCPState.CloseCompleted;
                 if (client != null)
                 {
                     if (client.Connected)
@@ -99,7 +100,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 {
                     Log_Error("RESET CLOSED CONNECTION");
                 }
-                state = TCPState.CloseCompleted;
                 //PS2 sent RST, clearly not expecting
                 //more data
                 RaiseEventConnectionClosed();

@@ -28,8 +28,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 return null;
             }
 
-            if (state != TCPState.Connected &
-                state != TCPState.Closing_ClosedByPS2)
+            if (!(state == TCPState.Connected |
+                state == TCPState.Closing_ClosedByPS2))
             {
                 return null;
             }
@@ -64,6 +64,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 catch (ObjectDisposedException) { err = SocketError.Shutdown; }
                 if (err == SocketError.WouldBlock)
                 {
+                    return null;
+                }
+                else if(err == SocketError.Shutdown)
+                {
+                    //In theory, this should only occur when the PS2 has RST the connection
+                    //and the call to TCPSession.Recv() occurs at just the right time.
+                    Log_Info("Recv() on shutdown socket");
                     return null;
                 }
                 else if (err != SocketError.Success)
