@@ -147,7 +147,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         //}
         public override void Dispose()
         {
-
             if (client != null)
             {
                 client.Close();
