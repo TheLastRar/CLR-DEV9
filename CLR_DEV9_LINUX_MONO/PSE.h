@@ -21,7 +21,7 @@
 #define CALLBACK __attribute__((stdcall))
 
 //Plugin Image
-extern MonoImage *pluginImage;
+extern MonoImage* pluginImage;
 extern MonoDomain* pluginDomain;
 
 //set by specific plugin

@@ -233,6 +233,11 @@ void LoadCoreCLR(string pluginPath, string monoUsrLibFolder, string monoEtcFolde
 		PSELog.Write("Set Debug (if only)\n");
 		mono_debug_init(MONO_DEBUG_FORMAT_MONO);
 
+		//const char* options[] = {
+		//	"--debugger-agent=transport=dt_socket,server=y,address=127.0.0.1:55555"
+		//};
+		//mono_jit_parse_options(1, (char**)options);
+
 		PSELog.Write("JIT Init\n");
 		pseDomain = mono_jit_init(pseDomainName.c_str());
 		if (pseDomain == NULL)

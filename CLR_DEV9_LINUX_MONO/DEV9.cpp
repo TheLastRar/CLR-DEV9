@@ -19,8 +19,6 @@ string pluginPSEType = "PSE.CLR_PSE_DEV9";
 
 string configDir;
 string logDir;
-char* configDirchar;
-char* logDirchar;
 
 //MonoDomain *pluginDomain = NULL;
 //MonoAssembly *pluginAssembly = NULL;
@@ -128,52 +126,23 @@ DEV9init(void)
 	{
 		PSELog.WriteLn("Loaded Plugin");
 
-		//MonoException* ex;
-
-		////managedSetSetDir((char*)configDir.c_str(), &ex);
-		//managedSetSetDir(configDirchar, &ex);
-		//if (ex)
-		//{
-		//	PSELog.WriteLn("SetSetError");
-		//	return -1;
-		//}
-		////managedSetLogDir((char*)logDir.c_str(), &ex);
-		//managedSetLogDir(logDirchar, &ex);
-		//if (ex)
-		//{
-		//	PSELog.WriteLn("SetLogError");
-		//	return -1;
-		//}
-
-		//PSELog.WriteLn(configDir.c_str());
-		//PSELog.WriteLn(logDir.c_str());
-
-		//int32_t ret = managedInit(&ex);
-		//if (ex)
-		//{
-		//	PSELog.WriteLn("InnitError");
-		//	mono_print_unhandled_exception((MonoObject*)ex);
-		//	return -1;
-		//}
-
-		MonoMethod *config = mono_class_get_method_from_name(pluginClassDEV9, "DEV9setSettingsDir", 1);
-		MonoMethod *log = mono_class_get_method_from_name(pluginClassDEV9, "DEV9setLogDir", 1);
-
-		MonoString *monoConfigPath = mono_string_new(pluginDomain, configDir.c_str());
-		MonoString *monoLogPath = mono_string_new(pluginDomain, logDir.c_str());
-
-		MonoString *args[1];
-
-		args[0] = monoConfigPath;
-		mono_runtime_invoke(config, NULL, (void**)args, NULL);
-
-		args[0] = monoLogPath;
-		mono_runtime_invoke(log, NULL, (void**)args, NULL);
-
 		MonoException* ex;
 
-		int32_t ret = managedInit(&ex);
+		managedSetSetDir(mono_string_new(pluginDomain, configDir.c_str()), &ex);
+		if (ex)
+		{
+			PSELog.WriteLn("SetSetError");
+			return -1;
+		}
 
+		managedSetLogDir(mono_string_new(pluginDomain, logDir.c_str()), &ex);
+		if (ex)
+		{
+			PSELog.WriteLn("SetLogError");
+			return -1;
+		}
+
+		ret = managedInit(&ex);
 		if (ex)
 		{
 			PSELog.WriteLn("InnitError");
@@ -486,7 +455,10 @@ DEV9configure()
 		if (ret != 0)
 			throw;
 	}
-	mono_thread_attach(mono_get_root_domain());
+	else
+	{
+		mono_thread_attach(mono_get_root_domain());
+	}
 
 	MonoException* ex;
 	managedConfig(&ex);
