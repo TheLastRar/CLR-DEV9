@@ -220,8 +220,8 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <Link>
-      <AdditionalOptions>-m32</AdditionalOptions>
-      <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>-m32 -Wl,-rpath,"$"ORIGIN/mono_i386/usr/lib</AdditionalOptions>
+      <AdditionalLibraryDirectories>/home/air/mono_i386/usr/lib;/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
     </Link>
     <ClCompile>
@@ -236,8 +236,8 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x86'">
     <Link>
-      <AdditionalOptions>-m32</AdditionalOptions>
-      <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>-m32 -Wl,-rpath,"$"ORIGIN/mono_i386/usr/lib</AdditionalOptions>
+      <AdditionalLibraryDirectories>/home/air/mono_i386/usr/lib;/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
     </Link>
     <ClCompile>
@@ -252,8 +252,8 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
     <Link>
-      <AdditionalOptions>-m32</AdditionalOptions>
-      <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>-m32 -Wl,-rpath,"$"ORIGIN/mono_i386/usr/lib</AdditionalOptions>
+      <AdditionalLibraryDirectories>/home/air/mono_i386/usr/lib;/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
     </Link>
     <ClCompile>
