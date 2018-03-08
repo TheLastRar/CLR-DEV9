@@ -5,6 +5,9 @@
 #include <iostream>
 #include <fstream>
 
+extern char _binary_CLR_DEV9_dll_start;
+extern char _binary_CLR_DEV9_dll_end;
+
 typedef uint32_t(*ThunkInit)(MonoException** ex);
 ThunkInit managedInit;
 

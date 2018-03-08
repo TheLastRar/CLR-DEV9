@@ -2,40 +2,26 @@
 
 using namespace std;
 
-const string pluginName = "CLR_DEV9_lx_wrapper";
-const uint32_t pluginType = 0x10;
-const uint8_t pluginVerMajor = 0;
-const uint8_t pluginVerMinor = 0;
-const uint8_t pluginVerPatch = 0;
+//const string pluginName = "CLR_DEV9_lx_wrapper";
+//const uint32_t pluginType = 0x10;
+//const uint8_t pluginVerMajor = 0;
+//const uint8_t pluginVerMinor = 0;
+//const uint8_t pluginVerPatch = 0;
 
-//string pluginPath;
-//string pluginLibPath;
-//string coreclrPath;
-
-string configFileName = "CLR_DEV9_lx.ini";
-string pluginFileName = "CLR_DEV9_CORE.dll";
-string pluginFileNameNoExt = "CLR_DEV9_CORE";
-string pluginPSEType = "PSE.CLR_PSE_DEV9";
-
-string configDir;
-string logDir;
-
-//MonoDomain *pluginDomain = NULL;
-//MonoAssembly *pluginAssembly = NULL;
-//MonoImage *pluginImage = NULL;
 MonoClass *pluginClassDEV9 = NULL;
+
+int32_t initRet = -1;
 
 int32_t LoadAssembly()
 {
 	PSELog.WriteLn("Init CLR");
-
+	//return -1;
 	if (pluginImage != NULL)
 	{
 		return 0;
 	}
 
-	//LoadCoreCLR(pluginPath, coreclrPath);
-	LoadCoreCLR(configDir + "CLR_DEV9.dll", "", "");
+	LoadCoreCLR(&_binary_CLR_DEV9_dll_start, (&_binary_CLR_DEV9_dll_end - &_binary_CLR_DEV9_dll_start), "", "");
 
 	if (pluginImage == NULL)
 	{
@@ -75,7 +61,7 @@ int32_t LoadAssembly()
 	managedClose = (ThunkVoid)mono_method_get_unmanaged_thunk(meth);
 	//shutdown
 	meth = mono_class_get_method_from_name(pluginClassDEV9, "DEV9shutdown", 0);
-	managedClose = (ThunkVoid)mono_method_get_unmanaged_thunk(meth);
+	managedShutdown = (ThunkVoid)mono_method_get_unmanaged_thunk(meth);
 	//set log + config
 	meth = mono_class_get_method_from_name(pluginClassDEV9, "DEV9setSettingsDir", 1);
 	managedSetSetDir = (ThunkSetDir)mono_method_get_unmanaged_thunk(meth);
@@ -116,33 +102,31 @@ int32_t LoadAssembly()
 	return 0;
 }
 
+__attribute__((constructor))
+void initialize_plugin()
+{
+	PSELog.WriteLn("Init Plugin");
+	initRet = LoadAssembly();
+}
+
+__attribute__((destructor))
+void destroy_plugin()
+{
+	CloseCoreCLR();
+}
+
 EXPORT_C_(int32_t)
 DEV9init(void)
 {
-	PSELog.WriteLn("Init Plugin");
-	int32_t ret = LoadAssembly();
+	int32_t ret = initRet;
 
 	if (ret == 0)
 	{
 		PSELog.WriteLn("Loaded Plugin");
-
 		MonoException* ex;
 
-		managedSetSetDir(mono_string_new(pluginDomain, configDir.c_str()), &ex);
-		if (ex)
-		{
-			PSELog.WriteLn("SetSetError");
-			return -1;
-		}
-
-		managedSetLogDir(mono_string_new(pluginDomain, logDir.c_str()), &ex);
-		if (ex)
-		{
-			PSELog.WriteLn("SetLogError");
-			return -1;
-		}
-
 		ret = managedInit(&ex);
+		managedOpen(NULL, &ex);
 		if (ex)
 		{
 			PSELog.WriteLn("InnitError");
@@ -159,6 +143,7 @@ EXPORT_C_(int32_t)
 DEV9open(void* pDsp)
 {
 	mono_thread_attach(mono_get_root_domain());
+
 	MonoException* ex;
 
 	int32_t ret = managedOpen(pDsp, &ex);
@@ -194,7 +179,7 @@ DEV9shutdown()
 	managedShutdown(&ex);
 
 	//Cleanup refrences
-	CloseCoreCLR();
+	//CloseCoreCLR();
 
 	if (ex)
 		throw;
@@ -204,53 +189,29 @@ DEV9shutdown()
 EXPORT_C_(void)
 DEV9setSettingsDir(const char* dir)
 {
-	PSELog.Write("SetSetting\n");
+	mono_thread_attach(mono_get_root_domain());
 
-	configDir = dir;
-	//string configPath = configDir + configFileName;
-
-	//ifstream reader;
-	//reader.open(configPath, ios::in);
-
-	//if (reader.is_open())
-	//{
-	//	getline(reader, pluginPath);
-	//	//if (!reader.eof())
-	//	//{
-	//	//	getline(reader, pluginLibPath);
-	//	//}
-	//	if (!reader.eof())
-	//	{
-	//		getline(reader, coreclrPath);
-	//	}
-	//	reader.close();
-	//}
-	//else
-	//{
-	//	pluginPath.append(configDir);
-	//	pluginPath.append(pluginFileName);
-
-	//	ofstream writer;
-	//	writer.open(configPath, ios::out | ios::trunc);
-	//	writer.write(pluginPath.c_str(), pluginPath.length());
-	//	writer.close();
-	//}
-
-	//PSELog.WriteLn(pluginPath.c_str());
-	//PSELog.WriteLn(coreclrPath.c_str());
-	//read txt file in config dir with;
-	//plugin path
-	//mono lib path
-	//mono config path
-
-	//create default file if none exists
+	MonoException* ex;
+	managedSetSetDir(mono_string_new(pluginDomain, dir), &ex);
+	if (ex)
+	{
+		mono_print_unhandled_exception((MonoObject*)ex);
+		throw;
+	}
 }
 
 EXPORT_C_(void)
 DEV9setLogDir(const char* dir)
 {
-	PSELog.Write("SetLog\n");
-	logDir = dir;
+	mono_thread_attach(mono_get_root_domain());
+
+	MonoException* ex;
+	managedSetLogDir(mono_string_new(pluginDomain, dir), &ex);
+	if (ex)
+	{
+		mono_print_unhandled_exception((MonoObject*)ex);
+		throw;
+	}
 }
 
 EXPORT_C_(uint8_t)
@@ -408,7 +369,7 @@ DEV9irqHandler()
 	MonoException* ex;
 
 	PSELog.WriteLn("GetIRQ");
-	MonoObject *ret = managedIrqHandler(&ex);
+	MonoObject* ret = managedIrqHandler(&ex);
 
 	if (ex)
 	{
@@ -446,19 +407,10 @@ DEV9irqHandler()
 EXPORT_C_(void)
 DEV9configure()
 {
-	bool preInit = false;
-	if (pluginDomain == NULL)
-	{
-		preInit = true;
-		int32_t ret = LoadAssembly();
+	if (initRet != 0)
+		throw;
 
-		if (ret != 0)
-			throw;
-	}
-	else
-	{
-		mono_thread_attach(mono_get_root_domain());
-	}
+	mono_thread_attach(mono_get_root_domain());
 
 	MonoException* ex;
 	managedConfig(&ex);
@@ -467,9 +419,4 @@ DEV9configure()
 		mono_print_unhandled_exception((MonoObject*)ex);
 		throw;
 	}
-
-	//if (preInit)
-	//{
-	//	CloseCoreCLR();
-	//}
 }

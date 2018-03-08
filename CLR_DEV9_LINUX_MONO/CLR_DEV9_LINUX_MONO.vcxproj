@@ -134,6 +134,11 @@
     <ClInclude Include="DEV9.h" />
     <ClInclude Include="PSE.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="CLR_DEV9.dll">
+      <DeploymentContent>false</DeploymentContent>
+    </None>
+  </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <Link>
       <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
@@ -220,7 +225,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <Link>
-      <AdditionalOptions>-m32 -Wl,-rpath,"$"ORIGIN/mono_i386/usr/lib</AdditionalOptions>
+      <AdditionalOptions>-m32 -Wl,-rpath,"$"ORIGIN/mono_i386/usr/lib $(RemoteProjectDir)/obj/CLR_DEV9.o</AdditionalOptions>
       <AdditionalLibraryDirectories>/home/air/mono_i386/usr/lib;/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
     </Link>
@@ -233,10 +238,18 @@
       <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/i386-linux-gnu/pcsx2/$(TargetFileName)</Command>
       <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
     </RemotePostBuildEvent>
+    <PreBuildEvent>
+      <Command>copy "$(SolutionDir)CLR_DEV9\bin\$(Configuration)\CLR_DEV9.dll" "$(ProjectDir)CLR_DEV9.dll" /Y</Command>
+    </PreBuildEvent>
+    <RemotePreLinkEvent>
+      <Command>objcopy --input binary --output elf32-i386 --binary-architecture i386 CLR_DEV9.dll $(RemoteProjectDir)/obj/CLR_DEV9.o</Command>
+    </RemotePreLinkEvent>
+    <RemotePreBuildEvent />
+    <RemotePreBuildEvent />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x86'">
     <Link>
-      <AdditionalOptions>-m32 -Wl,-rpath,"$"ORIGIN/mono_i386/usr/lib</AdditionalOptions>
+      <AdditionalOptions>-m32 -Wl,-rpath,"$"ORIGIN/mono_i386/usr/lib $(RemoteProjectDir)/obj/CLR_DEV9.o</AdditionalOptions>
       <AdditionalLibraryDirectories>/home/air/mono_i386/usr/lib;/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
     </Link>
@@ -249,10 +262,18 @@
       <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/i386-linux-gnu/pcsx2/$(TargetFileName)</Command>
       <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
     </RemotePostBuildEvent>
+    <PreBuildEvent>
+      <Command>copy "$(SolutionDir)CLR_DEV9\bin\$(Configuration)\CLR_DEV9.dll" "$(ProjectDir)CLR_DEV9.dll" /Y</Command>
+    </PreBuildEvent>
+    <RemotePreLinkEvent>
+      <Command>objcopy --input binary --output elf32-i386 --binary-architecture i386 CLR_DEV9.dll $(RemoteProjectDir)/obj/CLR_DEV9.o</Command>
+    </RemotePreLinkEvent>
+    <RemotePreBuildEvent />
+    <RemotePreBuildEvent />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
     <Link>
-      <AdditionalOptions>-m32 -Wl,-rpath,"$"ORIGIN/mono_i386/usr/lib</AdditionalOptions>
+      <AdditionalOptions>-m32 -Wl,-rpath,"$"ORIGIN/mono_i386/usr/lib $(RemoteProjectDir)/obj/CLR_DEV9.o</AdditionalOptions>
       <AdditionalLibraryDirectories>/home/air/mono_i386/usr/lib;/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
     </Link>
@@ -265,6 +286,14 @@
       <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/i386-linux-gnu/pcsx2/$(TargetFileName)</Command>
       <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
     </RemotePostBuildEvent>
+    <PreBuildEvent>
+      <Command>copy "$(SolutionDir)CLR_DEV9\bin\$(Configuration)\CLR_DEV9.dll" "$(ProjectDir)CLR_DEV9.dll" /Y</Command>
+    </PreBuildEvent>
+    <RemotePreLinkEvent>
+      <Command>objcopy --input binary --output elf32-i386 --binary-architecture i386 CLR_DEV9.dll $(RemoteProjectDir)/obj/CLR_DEV9.o</Command>
+    </RemotePreLinkEvent>
+    <RemotePreBuildEvent />
+    <RemotePreBuildEvent />
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

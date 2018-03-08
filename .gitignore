@@ -256,3 +256,4 @@ paket-files/
 # external headers from Linux
 **/external/usr/
 **/external/lib/
+CLR_DEV9_LINUX_MONO/CLR_DEV9.dll
