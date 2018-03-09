@@ -45,6 +45,8 @@ static char* pluginNamePtr = NULL;
 EXPORT_C_(const char*)
 PS2EgetLibName(void)
 {
+	mono_thread_attach(mono_get_root_domain());
+
 	MonoException* ex;
 	MonoString* ret = managedGetLibName(&ex);
 
@@ -68,6 +70,8 @@ PS2EgetLibName(void)
 EXPORT_C_(uint32_t)
 PS2EgetLibType(void)
 {
+	mono_thread_attach(mono_get_root_domain());
+
 	MonoException* ex;
 	uint32_t ret = managedGetLibType(&ex);
 
@@ -83,6 +87,12 @@ PS2EgetLibType(void)
 EXPORT_C_(uint32_t)
 PS2EgetLibVersion2(uint32_t type)
 {
+	Dl_info info;
+	int self = dladdr((void*)PS2EgetLibVersion2, &info);
+	mono_thread_attach(mono_get_root_domain());
+
+	char* thing = (char*)info.dli_fname;
+
 	MonoException* ex;
 	uint32_t ret = managedGetLibVersion2(type, &ex);
 
@@ -288,28 +298,56 @@ void LoadCoreCLR(char* pluginData, size_t pluginLength, string monoUsrLibFolder,
 		{
 			PSELog.WriteLn(mono_domain_get_friendly_name(pseDomain));
 		}
+
+		PSELog.WriteLn("Set Main Args()");
+
+		char pcsx2Path[PATH_MAX];
+		size_t len = readlink("/proc/self/exe", pcsx2Path, PATH_MAX - 1);
+		if (len < 0)
+		{
+			PSELog.Write("Init CLR Failed At readlink\n");
+			CloseCoreCLR();
+			return;
+		}
+
+		pcsx2Path[len] = 0;
+		PSELog.WriteLn("PCSX2 Path is %s", pcsx2Path);
+
+		char* argv[1];
+		argv[0] = pcsx2Path;//(char *)pluginPath.c_str();
+
+		int32_t ret = mono_runtime_set_main_args(1, argv);
+		mono_domain_set_config(pseDomain, ".", "");
+
+		if (ret != 0)
+		{
+			CloseCoreCLR();
+			return;
+		}
 	}
 	else
 	{
 		PSELog.WriteLn("Mono Already Running");
 		PSELog.WriteLn(mono_domain_get_friendly_name(pseDomain));
+		mono_thread_attach(mono_get_root_domain());
 	}
 
-	//pluginDomain = mono_domain_create_appdomain("Test", "machine.config");//mono_domain_create();
+	pluginDomain = mono_domain_create_appdomain("AssemblyDomain",NULL);//mono_domain_create();//pseDomain;
+	mono_domain_set_config(pluginDomain, ".", "");
 
-	pluginDomain = pseDomain;
-
-	//if (!mono_domain_set(pluginDomain, false))
-	//{
-	//	PSELog.WriteLn("Set Domain Failed");
-	//	CloseCoreCLR();
-	//	return;
-	//}
+	if (!mono_domain_set(pluginDomain, false))
+	{
+		PSELog.WriteLn("Set Domain Failed");
+		CloseCoreCLR();
+		return;
+	}
 
 	PSELog.WriteLn("Load Image");
 	MonoImageOpenStatus status;
 	pluginImage = mono_image_open_from_data_full(pluginData, pluginLength, true, &status, false);
-	mono_image_addref(pluginImage);
+
+	PSELog.WriteLn(mono_image_get_filename(pluginImage));
+
 	if (!pluginImage | (status != MONO_IMAGE_OK))
 	{
 		PSELog.WriteLn("Init Mono Failed At PluginImage");
@@ -327,6 +365,10 @@ void LoadCoreCLR(char* pluginData, size_t pluginLength, string monoUsrLibFolder,
 		return;
 	}
 
+	pluginImage = mono_assembly_get_image(pluginAssembly);
+
+	PSELog.WriteLn(mono_image_get_filename(pluginImage));
+
 	PSELog.WriteLn("Get PSE classes");
 
 	MonoClass *pseClass;
@@ -338,32 +380,6 @@ void LoadCoreCLR(char* pluginData, size_t pluginLength, string monoUsrLibFolder,
 	if (!pseClass | !pseClass_mono)
 	{
 		PSELog.WriteLn("Failed to load CLR_PSE classes");
-		CloseCoreCLR();
-		return;
-	}
-
-	PSELog.WriteLn("Set Main Args()");
-
-	char pcsx2Path[PATH_MAX];
-	size_t len = readlink("/proc/self/exe", pcsx2Path, PATH_MAX - 1);
-	if (len < 0)
-	{
-		PSELog.Write("Init CLR Failed At readlink\n");
-		CloseCoreCLR();
-		return;
-	}
-
-	pcsx2Path[len] = 0;
-	PSELog.WriteLn("PCSX2 Path is %s", pcsx2Path);
-
-	char* argv[1];
-	argv[0] = pcsx2Path;//(char *)pluginPath.c_str();
-
-	int32_t ret = mono_runtime_set_main_args(1, argv);
-	mono_domain_set_config(pluginDomain, ".", "");
-
-	if (ret != 0)
-	{
 		CloseCoreCLR();
 		return;
 	}
@@ -389,6 +405,13 @@ void LoadCoreCLR(char* pluginData, size_t pluginLength, string monoUsrLibFolder,
 	meth = mono_class_get_method_from_name(pseClass_mono, "FunctionPointerFromIRQHandler", 1);
 	FunctionPointerFromIRQHandler = (ThunkGetFuncPtr)mono_method_get_unmanaged_thunk(meth);
 
+	//if (!mono_domain_set(pseDomain, false))
+	//{
+	//	PSELog.WriteLn("Set Domain Failed");
+	//	CloseCoreCLR();
+	//	return;
+	//}
+
 	PSELog.WriteLn("Init CLR Done");
 }
 
@@ -411,7 +434,7 @@ void CloseCoreCLR()
 	}
 	if (pluginDomain != NULL)
 	{
-		//mono_domain_unload(pluginDomain);
+		mono_domain_unload(pluginDomain);
 		//mono_domain_free(pluginDomain,false);
 		pluginDomain = NULL;
 	}

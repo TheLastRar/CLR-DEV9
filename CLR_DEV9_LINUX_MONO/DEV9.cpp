@@ -145,7 +145,6 @@ DEV9open(void* pDsp)
 	mono_thread_attach(mono_get_root_domain());
 
 	MonoException* ex;
-
 	int32_t ret = managedOpen(pDsp, &ex);
 
 	if (ex)
