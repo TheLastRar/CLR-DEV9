@@ -345,6 +345,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             byte msg = 0;
             byte[] reqList = null;
 
+            uint leaseTime = 86400;
+
             for (int i = 0; i < dhcp.Options.Count; i++)
             {
                 switch (dhcp.Options[i].Code)
@@ -361,6 +363,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                         if (Utils.memcmp(PS2IP, 0, ((DHCPopREQIP)dhcp.Options[i]).IPaddress, 0, 4) == false)
                             throw new Exception("ReqIP missmatch");
                         break;
+                    //case 51:
+                    //    Log_Info("Got Requested Lease Time");
+                    //    leaseTime = ((DHCPopIPLT)(dhcp.Options[i])).IPLeaseTime;
+                    //    break;
                     case 53:
                         msg = ((DHCPopMSG)(dhcp.Options[i])).Message;
                         Log_Info("Got MSG ID = " + msg);
@@ -482,7 +488,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                                 throw new Exception("Got Unknown Req " + reqList[i]);
                         }
                     }
-                    retPay.Options.Add(new DHCPopIPLT(86400));
+                    retPay.Options.Add(new DHCPopIPLT(leaseTime));
                 }
             }
 
