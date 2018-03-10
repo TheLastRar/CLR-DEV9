@@ -95,6 +95,10 @@ int32_t LoadAssembly()
 	meth = mono_class_get_method_from_name(pluginClassDEV9, "DEV9irqHandler", 0);
 	managedIrqHandler = (ThunkIrqHandler)mono_method_get_unmanaged_thunk(meth);
 
+	//Test
+	meth = mono_class_get_method_from_name(pluginClassDEV9, "DEV9test", 0);
+	managedTest = (ThunkInit)mono_method_get_unmanaged_thunk(meth);
+
 	//config
 	meth = mono_class_get_method_from_name(pluginClassDEV9, "DEV9configure", 0);
 	managedConfig = (ThunkVoid)mono_method_get_unmanaged_thunk(meth);
@@ -386,17 +390,22 @@ DEV9irqHandler()
 
 //freeze
 
-//Test is done before SetConfig
-//So we don't know where our
-//plugin or mono is
-//meaning I can't invoke
-//the managed test function
-//EXPORT_C_(int32_t)
-//DEV9test()
-//{
-//	PSELog.Write("Test\n");
-//  return 0;
-//}
+EXPORT_C_(int32_t)
+DEV9test()
+{
+	if (initRet != 0)
+		return initRet;
+
+	mono_thread_attach(mono_get_root_domain());
+
+	MonoException* ex;
+	managedTest(&ex);
+	if (ex)
+	{
+		mono_print_unhandled_exception((MonoObject*)ex);
+		return -1;
+	}
+}
 
 
 EXPORT_C_(void)

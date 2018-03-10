@@ -51,4 +51,6 @@ ThunkIrqCallback managedIrqCallback;
 typedef MonoObject*(*ThunkIrqHandler)(MonoException** ex);
 ThunkIrqHandler managedIrqHandler;
 
+ThunkInit managedTest;
+
 ThunkVoid managedConfig;
