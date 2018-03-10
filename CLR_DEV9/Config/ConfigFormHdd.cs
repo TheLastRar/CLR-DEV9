@@ -1,6 +1,4 @@
-﻿#if NETCOREAPP2_0
-#else
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.IO;
 using System.Windows.Forms;
@@ -127,4 +125,3 @@ namespace CLRDEV9.Config
         }
     }
 }
-#endif

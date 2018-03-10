@@ -1,6 +1,4 @@
-﻿#if NETCOREAPP2_0
-#else
-
+﻿
 namespace CLRDEV9.Config
 {
     partial class ConfigFormHdd
@@ -158,4 +156,3 @@ namespace CLRDEV9.Config
         private System.Windows.Forms.OpenFileDialog ofHdd;
     }
 }
-#endif

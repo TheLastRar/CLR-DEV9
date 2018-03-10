@@ -6,7 +6,6 @@ namespace PSE
 {
     class CLR_PSE_Mono
     {
-
         //Can't figure out how to do this in mono-embed
         static CLR_CyclesCallback CyclesCallbackFromFunctionPointer(IntPtr func)
         {

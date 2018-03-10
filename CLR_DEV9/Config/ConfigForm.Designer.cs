@@ -1,6 +1,4 @@
-﻿#if NETCOREAPP2_0
-#else
-
+﻿
 namespace CLRDEV9.Config
 {
     partial class ConfigForm
@@ -132,4 +130,3 @@ namespace CLRDEV9.Config
         private System.Windows.Forms.Button btnCancel;
     }
 }
-#endif

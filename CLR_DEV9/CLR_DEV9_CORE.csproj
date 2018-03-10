@@ -21,6 +21,22 @@
     <None Remove="obj_netfx\**" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Remove="Config\ConfigForm.cs" />
+    <Compile Remove="Config\ConfigForm.Designer.cs" />
+    <Compile Remove="Config\ConfigFormEth.cs" />
+    <Compile Remove="Config\ConfigFormEth.Designer.cs" />
+    <Compile Remove="Config\ConfigFormHdd.cs" />
+    <Compile Remove="Config\ConfigFormHdd.Designer.cs" />
+    <Compile Remove="Config\ConfigFormIncomingPorts.cs" />
+    <Compile Remove="Config\ConfigFormIncomingPorts.Designer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Remove="Config\ConfigForm.resx" />
+    <EmbeddedResource Remove="Config\ConfigFormEth.resx" />
+    <EmbeddedResource Remove="Config\ConfigFormHdd.resx" />
+    <EmbeddedResource Remove="Config\ConfigFormIncomingPorts.resx" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.Win32.Registry" Version="4.5.0-preview2-25707-02" />
     <PackageReference Include="System.Management" Version="4.5.0-preview1-25913-02" />
   </ItemGroup>

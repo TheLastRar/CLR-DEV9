@@ -1,6 +1,4 @@
-﻿#if NETCOREAPP2_0
-#else
-
+﻿
 namespace CLRDEV9.Config
 {
     partial class ConfigFormIncomingPorts
@@ -173,4 +171,3 @@ namespace CLRDEV9.Config
         private System.Windows.Forms.DataGridViewCheckBoxColumn cEnable;
     }
 }
-#endif

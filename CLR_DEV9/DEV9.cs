@@ -84,7 +84,6 @@ namespace CLRDEV9
             {
                 Log_Info("Open");
                 ConfigFile.LoadConf(iniFolderPath, "CLR_DEV9.ini");
-
                 if (DEV9Header.config.Hdd.Contains("\\") || DEV9Header.config.Hdd.Contains("/"))
                     return dev9.Open(DEV9Header.config.Hdd);
                 else

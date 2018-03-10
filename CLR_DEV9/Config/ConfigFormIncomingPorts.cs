@@ -1,6 +1,4 @@
-﻿#if NETCOREAPP2_0
-#else
-using CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP;
+﻿using CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP;
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
@@ -194,4 +192,3 @@ namespace CLRDEV9.Config
         }
     }
 }
-#endif
