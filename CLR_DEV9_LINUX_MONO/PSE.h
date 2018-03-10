@@ -22,7 +22,7 @@
 
 //Plugin Image
 extern MonoImage* pluginImage;
-extern MonoDomain* pluginDomain;
+//extern MonoDomain* pluginDomain;
 
 //helper methods
 typedef MonoObject*(*ThunkGetDelegate)(void* func, MonoException** ex);

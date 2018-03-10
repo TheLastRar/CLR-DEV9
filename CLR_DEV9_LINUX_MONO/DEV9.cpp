@@ -177,21 +177,17 @@ DEV9shutdown()
 	MonoException* ex;
 	managedShutdown(&ex);
 
-	//Cleanup refrences
-	//CloseCoreCLR();
-
 	if (ex)
 		throw;
 }
 
-//TODO
 EXPORT_C_(void)
 DEV9setSettingsDir(const char* dir)
 {
 	mono_thread_attach(mono_get_root_domain());
 
 	MonoException* ex;
-	managedSetSetDir(mono_string_new(pluginDomain, dir), &ex);
+	managedSetSetDir(mono_string_new(mono_domain_get(), dir), &ex);
 	if (ex)
 	{
 		mono_print_unhandled_exception((MonoObject*)ex);
@@ -205,7 +201,7 @@ DEV9setLogDir(const char* dir)
 	mono_thread_attach(mono_get_root_domain());
 
 	MonoException* ex;
-	managedSetLogDir(mono_string_new(pluginDomain, dir), &ex);
+	managedSetLogDir(mono_string_new(mono_domain_get(), dir), &ex);
 	if (ex)
 	{
 		mono_print_unhandled_exception((MonoObject*)ex);

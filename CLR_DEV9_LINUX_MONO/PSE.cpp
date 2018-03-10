@@ -87,12 +87,6 @@ PS2EgetLibType(void)
 EXPORT_C_(uint32_t)
 PS2EgetLibVersion2(uint32_t type)
 {
-	Dl_info info;
-	int self = dladdr((void*)PS2EgetLibVersion2, &info);
-	mono_thread_attach(mono_get_root_domain());
-
-	char* thing = (char*)info.dli_fname;
-
 	MonoException* ex;
 	uint32_t ret = managedGetLibVersion2(type, &ex);
 
@@ -104,13 +98,6 @@ PS2EgetLibVersion2(uint32_t type)
 
 	return ret;
 }
-
-//EXPORT_C_(void)
-//TestInit()
-//{
-//	LoadCoreCLR("/home/air/.config/PCSX2/inis_1.4.0/CLR_DEV9_CORE.dll", "", "");
-//	CloseCoreCLR();
-//}
 
 void LoadCoreCLR(char* pluginData, size_t pluginLength, string monoUsrLibFolder, string monoEtcFolder)
 {
@@ -214,8 +201,6 @@ void LoadCoreCLR(char* pluginData, size_t pluginLength, string monoUsrLibFolder,
 	MonoImageOpenStatus status;
 	pluginImage = mono_image_open_from_data_full(pluginData, pluginLength, true, &status, false);
 
-	PSELog.WriteLn(mono_image_get_filename(pluginImage));
-
 	if (!pluginImage | (status != MONO_IMAGE_OK))
 	{
 		PSELog.WriteLn("Init Mono Failed At PluginImage");
@@ -233,9 +218,7 @@ void LoadCoreCLR(char* pluginData, size_t pluginLength, string monoUsrLibFolder,
 		return;
 	}
 
-	pluginImage = mono_assembly_get_image(pluginAssembly);
-
-	PSELog.WriteLn(mono_image_get_filename(pluginImage));
+	//pluginImage = mono_assembly_get_image(pluginAssembly);
 
 	PSELog.WriteLn("Get PSE classes");
 
@@ -273,12 +256,12 @@ void LoadCoreCLR(char* pluginData, size_t pluginLength, string monoUsrLibFolder,
 	meth = mono_class_get_method_from_name(pseClass_mono, "FunctionPointerFromIRQHandler", 1);
 	FunctionPointerFromIRQHandler = (ThunkGetFuncPtr)mono_method_get_unmanaged_thunk(meth);
 
-	//if (!mono_domain_set(pseDomain, false))
-	//{
-	//	PSELog.WriteLn("Set Domain Failed");
-	//	CloseCoreCLR();
-	//	return;
-	//}
+	if (!mono_domain_set(pseDomain, false))
+	{
+		PSELog.WriteLn("Set Domain Failed");
+		CloseCoreCLR();
+		return;
+	}
 
 	PSELog.WriteLn("Init CLR Done");
 }
@@ -290,23 +273,22 @@ void CloseCoreCLR()
 		mono_free(pluginNamePtr);
 		pluginNamePtr = NULL;
 	}
-	if (pluginAssembly != NULL)
+	if (pluginDomain != NULL)
 	{
-		mono_assembly_close(pluginAssembly);
+		mono_domain_unload(pluginDomain);
+		pluginDomain = NULL;
 		pluginAssembly = NULL;
 	}
+	//if (pluginAssembly != NULL)
+	//{
+	//	mono_assembly_close(pluginAssembly);
+	//	pluginAssembly = NULL;
+	//}
 	if (pluginImage != NULL)
 	{
 		mono_image_close(pluginImage);
 		pluginImage = NULL;
 	}
-	if (pluginDomain != NULL)
-	{
-		mono_domain_unload(pluginDomain);
-		//mono_domain_free(pluginDomain,false);
-		pluginDomain = NULL;
-	}
-
 	//LoadExtraFD();
 	//CloseCLRFD();
 }
