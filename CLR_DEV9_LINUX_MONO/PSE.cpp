@@ -12,7 +12,6 @@ using namespace std;
 
 //Public
 MonoImage *pluginImage = NULL;
-MonoDomain* pluginDomain = NULL; //Plugin Specific Domain
 
 //coreclr_create_delegate_ptr createDelegate;
 //Helper Methods
@@ -27,7 +26,7 @@ PluginLog PSELog;
 const char* pseDomainName = "PSE_Mono";
 
 MonoDomain* pseDomain = NULL; //Base Domain
-//PluginDomain
+MonoDomain* pluginDomain = NULL; //Plugin Specific Domain
 MonoAssembly* pluginAssembly = NULL; //Plugin
 //PluginImage
 
@@ -134,8 +133,10 @@ void LoadCoreCLR(char* pluginData, size_t pluginLength, string monoUsrLibFolder,
 		mono_config_parse(NULL);
 		mono_set_signal_chaining(true);
 
-		PSELog.Write("Set Debug (if only)\n");
+#if !NDEBUG
+		PSELog.Write("Set Debug\n");
 		mono_debug_init(MONO_DEBUG_FORMAT_MONO);
+#endif
 
 		//const char* options[] = {
 		//	"--debugger-agent=transport=dt_socket,server=y,address=127.0.0.1:55555"
@@ -166,7 +167,7 @@ void LoadCoreCLR(char* pluginData, size_t pluginLength, string monoUsrLibFolder,
 		}
 
 		pcsx2Path[len] = 0;
-		PSELog.WriteLn("PCSX2 Path is %s", pcsx2Path);
+		//PSELog.WriteLn("PCSX2 Path is %s", pcsx2Path);
 
 		char* argv[1];
 		argv[0] = pcsx2Path;//(char *)pluginPath.c_str();
@@ -187,7 +188,7 @@ void LoadCoreCLR(char* pluginData, size_t pluginLength, string monoUsrLibFolder,
 		mono_thread_attach(mono_get_root_domain());
 	}
 
-	pluginDomain = mono_domain_create_appdomain("AssemblyDomain",NULL);//mono_domain_create();//pseDomain;
+	pluginDomain = mono_domain_create_appdomain("AssemblyDomain" ,NULL);
 	mono_domain_set_config(pluginDomain, ".", "");
 
 	if (!mono_domain_set(pluginDomain, false))
@@ -219,6 +220,13 @@ void LoadCoreCLR(char* pluginData, size_t pluginLength, string monoUsrLibFolder,
 	}
 
 	//pluginImage = mono_assembly_get_image(pluginAssembly);
+
+	if (!mono_domain_set(pseDomain, false))
+	{
+		PSELog.WriteLn("Set Domain Failed");
+		CloseCoreCLR();
+		return;
+	}
 
 	PSELog.WriteLn("Get PSE classes");
 
@@ -256,13 +264,6 @@ void LoadCoreCLR(char* pluginData, size_t pluginLength, string monoUsrLibFolder,
 	meth = mono_class_get_method_from_name(pseClass_mono, "FunctionPointerFromIRQHandler", 1);
 	FunctionPointerFromIRQHandler = (ThunkGetFuncPtr)mono_method_get_unmanaged_thunk(meth);
 
-	if (!mono_domain_set(pseDomain, false))
-	{
-		PSELog.WriteLn("Set Domain Failed");
-		CloseCoreCLR();
-		return;
-	}
-
 	PSELog.WriteLn("Init CLR Done");
 }
 
@@ -277,13 +278,9 @@ void CloseCoreCLR()
 	{
 		mono_domain_unload(pluginDomain);
 		pluginDomain = NULL;
+		//Also unloads the assembly
 		pluginAssembly = NULL;
 	}
-	//if (pluginAssembly != NULL)
-	//{
-	//	mono_assembly_close(pluginAssembly);
-	//	pluginAssembly = NULL;
-	//}
 	if (pluginImage != NULL)
 	{
 		mono_image_close(pluginImage);

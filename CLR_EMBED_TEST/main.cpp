@@ -64,9 +64,11 @@ int main()
 	close(dest);
 	//
 
-	//main_ext(p1);
+	void* ptr = main_ext(p1);
 	dlclose(main_ext(p2));
 	dlclose(main_ext(p1));
+	dlclose(ptr);
 
+	dlclose(main_ext(p1));
     return 0;
 }
