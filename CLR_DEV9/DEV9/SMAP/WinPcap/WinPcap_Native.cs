@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Management;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -14,34 +15,34 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
         #region 'PInvoke mess'
         //TODO, support libPcap
         //API changes?
-        const string PCAP_LIB_NAME = "wpcap.dll";
         private class NativeMethods
         {
+            //Windows
             [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
             public static extern IntPtr LoadLibrary(string lpFileName);
             [DllImport("kernel32", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             public static extern bool FreeLibrary(IntPtr hModule);
-
-            [DllImport(PCAP_LIB_NAME)]
-            public static extern string pcap_lib_version();
-            [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
+            //Pcap
+            [DllImport("wpcap")]
+            public static extern IntPtr pcap_lib_version();
+            [DllImport("wpcap", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
             public static extern IntPtr pcap_open_live(string device, int snaplen, int promisc, int to_ms, StringBuilder errbuf);
-            [DllImport(PCAP_LIB_NAME)]
+            [DllImport("wpcap")]
             public static extern int pcap_datalink(IntPtr p);
-            [DllImport(PCAP_LIB_NAME)]
+            [DllImport("wpcap")]
             public static extern IntPtr pcap_datalink_val_to_name(int dlt);
-            [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
+            [DllImport("wpcap", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
             public static extern int pcap_setnonblock(IntPtr p, int nonblock, [MarshalAs(UnmanagedType.LPStr)] StringBuilder errbuf);
-            [DllImport(PCAP_LIB_NAME)]
+            [DllImport("wpcap")]
             public static extern int pcap_next_ex(IntPtr p, out IntPtr ptr_pkt_header, out IntPtr ptr_pkt_data);
-            [DllImport(PCAP_LIB_NAME)]
+            [DllImport("wpcap")]
             public static extern int pcap_sendpacket(IntPtr p, byte[] buf, int size);
-            [DllImport(PCAP_LIB_NAME)]
+            [DllImport("wpcap")]
             public static extern int pcap_close(IntPtr p);
-            [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
+            [DllImport("wpcap", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
             public static extern int pcap_findalldevs(ref IntPtr alldevsp, StringBuilder errbuf);
-            [DllImport(PCAP_LIB_NAME, CharSet = CharSet.Ansi)]
+            [DllImport("wpcap", CharSet = CharSet.Ansi)]
             public static extern void pcap_freealldevs(IntPtr alldevsp);
         }
         #endregion
@@ -153,13 +154,30 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
 
         static bool PcapAvailable()
         {
-            //TODO, detect on Linux
-            IntPtr hmod = NativeMethods.LoadLibrary(PCAP_LIB_NAME);
-            if (hmod == IntPtr.Zero)
+            if (PSE.CLR_PSE_Utils.IsWindows())
             {
-                return false;
+                IntPtr hmod = NativeMethods.LoadLibrary("wpcap");
+                if (hmod == IntPtr.Zero)
+                {
+                    return false;
+                }
+                NativeMethods.FreeLibrary(hmod);
             }
-            NativeMethods.FreeLibrary(hmod);
+            else
+            {
+                //On linux, wpcap is remapped to libpcap.so.<version>
+                //this is done via a dllmap, so managed code does not
+                //know what it is remapped to, so just call a method
+                //and see if it errors
+                try
+                {
+                    NativeMethods.pcap_lib_version();
+                }
+                catch
+                {
+                    return false;
+                }
+            }
             return true;
         }
 
@@ -182,8 +200,33 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
                 pcap_if d_0 = (pcap_if)Marshal.PtrToStructure(rawPcapAdapter, typeof(pcap_if));
                 foreach (pcap_if d in d_0)
                 {
-                    devices.Add(new string[] { d.description, d.name });
+                    errbuf.Clear();
+                    IntPtr handle;
+                    if ((handle = NativeMethods.pcap_open_live(d.name,
+                                0,
+                                0,
+                                1000,
+                                errbuf)) == IntPtr.Zero)
+                    {
+                        //PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.WinPcap,
+                        //    errbuf.ToString());
+                        //PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.WinPcap,
+                        //    "Unable to open the adapter. " + d.name + " is not supported by WinPcap");
+                        continue;
+                    }
+
+                    if (PcapIsValid(handle, false))
+                    {
+                        devices.Add(new string[] { d.description, d.name });
+                    }
+
+                    NativeMethods.pcap_close(handle);
                 }
+            }
+            catch
+            {
+                PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.WinPcap,
+                    "Error Finding devices, halted search");
             }
             finally
             {
@@ -215,12 +258,33 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             return null;
         }
 
+        static bool PcapIsValid(IntPtr handle, bool log)
+        {
+            int dlt;
+            string dlt_name;
+
+            dlt = NativeMethods.pcap_datalink(handle);
+            dlt_name = Marshal.PtrToStringAnsi(NativeMethods.pcap_datalink_val_to_name(dlt));
+            if (log)
+                PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.WinPcap, 
+                    "Device uses DLT " + dlt + ": " + dlt_name);
+            switch (dlt)
+            {
+                case 1: //DLT_EN10MB
+                    break;
+                default:
+                    if (log)
+                        PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.WinPcap,
+                            "Unsupported DataLink Type " + dlt + ": " + dlt_name);
+                    return false;
+            }
+            return true;
+        }
+
         bool PcapInitIO(string adapter)
         {
             StringBuilder errbuf = new StringBuilder(PCAP_ERRBUF_SIZE);
 
-            int dlt;
-            string dlt_name;
             //Set PS2 MAC Based on Adapter MAC
             if ((adHandle = NativeMethods.pcap_open_live(adapter,
                                             65536,
@@ -233,17 +297,9 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
                 return false;
             }
 
-            dlt = NativeMethods.pcap_datalink(adHandle);
-            dlt_name = Marshal.PtrToStringAnsi(NativeMethods.pcap_datalink_val_to_name(dlt));
-
-            Log_Info("Device uses DLT " + dlt + ": " + dlt_name);
-            switch (dlt)
+            if (!PcapIsValid(adHandle, true))
             {
-                case 1: //DLT_EN10MB
-                    break;
-                default:
-                    Log_Error("Unsupported DataLink Type " + dlt + ": " + dlt_name);
-                    return false;
+                return false;
             }
 
             if (NativeMethods.pcap_setnonblock(adHandle, 1, errbuf) == -1)

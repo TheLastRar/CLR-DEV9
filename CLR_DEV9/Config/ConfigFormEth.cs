@@ -48,17 +48,18 @@ namespace CLRDEV9.Config
                     apiIndex.Add(ConfigFile.EthAPI.Tap, curIndex);
                     curIndex++;
                 }
-                //WinPcap
-                winPcapAdapters = WinPcapAdapter.GetAdapters();
-                if (winPcapAdapters != null)
-                {
-                    cbAPI.Items.Add("WinPcap Bridged");
-                    apiIndex.Add(ConfigFile.EthAPI.WinPcapBridged, curIndex);
-                    curIndex++;
-                    cbAPI.Items.Add("WinPcap Switched (Promiscuous)");
-                    apiIndex.Add(ConfigFile.EthAPI.WinPcapSwitched, curIndex);
-                    curIndex++;
-                }
+            }
+
+            //WinPcap
+            winPcapAdapters = WinPcapAdapter.GetAdapters();
+            if (winPcapAdapters != null)
+            {
+                cbAPI.Items.Add("WinPcap Bridged");
+                apiIndex.Add(ConfigFile.EthAPI.WinPcapBridged, curIndex);
+                curIndex++;
+                cbAPI.Items.Add("WinPcap Switched (Promiscuous)");
+                apiIndex.Add(ConfigFile.EthAPI.WinPcapSwitched, curIndex);
+                curIndex++;
             }
 
             if (apiIndex.ContainsKey(DEV9Header.config.EthType))

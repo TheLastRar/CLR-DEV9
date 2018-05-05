@@ -23,7 +23,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             //Check if we have winPcap
             if (!PcapAvailable())
             {
-                Console.Error.WriteLine("WinPcap not found");
+                //Console.Error.WriteLine("WinPcap not found");
                 return null;
             }
 
@@ -80,7 +80,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             hostMAC = hostAdapter.GetPhysicalAddress().GetAddressBytes();
 
             //If parDevice starts with "{", assume device is given by GUID (as it would be under windows)
-            //else, use the string as is (wine)
+            //else, use the string as is (wine, linux)
             if (!PcapInitIO(parDevice.StartsWith("{") ? @"\Device\NPF_" + parDevice : parDevice))
             {
                 Log_Error("Can't Open Device " + parDevice);
