@@ -354,6 +354,32 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     case 0:
                         //Error.WriteLine("Got NOP");
                         continue;
+                    case 1:
+                        Log_Info("Got SubnetMask?");
+                        if (Utils.memcmp(NetMask, 0, ((DHCPopSubnet)dhcp.Options[i]).SubnetMask, 0, 4) == false)
+                            throw new Exception("SubnetMask missmatch");
+                        break;
+                    case 3:
+                        Log_Info("Got Router?");
+                        if (((DHCPopRouter)dhcp.Options[i]).RouterIPs.Count != 1)
+                        {
+                            throw new Exception("RouterIPs count missmatch");
+                        }
+                        if (Utils.memcmp(Gateway, 0, ((DHCPopRouter)dhcp.Options[i]).RouterIPs[0], 0, 4) == false)
+                            throw new Exception("RouterIPs missmatch");
+                        break;
+                    case 6:
+                        Log_Info("Got DNS?");
+                        if ((((DHCPopDNS)dhcp.Options[i]).DNSServers.Count != 0 & DNS1 == null) ||
+                            (((DHCPopDNS)dhcp.Options[i]).DNSServers.Count != 1 & DNS2 == null) ||
+                            (((DHCPopDNS)dhcp.Options[i]).DNSServers.Count != 2 & DNS2 != null))
+                        {
+                            throw new Exception("DNS count missmatch");
+                        }
+                        if ((DNS1 != null && Utils.memcmp(DNS1, 0, ((DHCPopDNS)dhcp.Options[i]).DNSServers[0], 0, 4) == false) ||
+                            (DNS2 != null && Utils.memcmp(DNS2, 0, ((DHCPopDNS)dhcp.Options[i]).DNSServers[1], 0, 4) == false))
+                            throw new Exception("DNS missmatch");
+                        break;
                     case 12:
                         Log_Info("Got HostName");
                         //TODO use name?
@@ -363,10 +389,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                         if (Utils.memcmp(PS2IP, 0, ((DHCPopREQIP)dhcp.Options[i]).IPaddress, 0, 4) == false)
                             throw new Exception("ReqIP missmatch");
                         break;
-                    //case 51:
-                    //    Log_Info("Got Requested Lease Time");
-                    //    leaseTime = ((DHCPopIPLT)(dhcp.Options[i])).IPLeaseTime;
-                    //    break;
+                    case 51:
+                        Log_Info("Got Requested Lease Time");
+                        leaseTime = ((DHCPopIPLT)(dhcp.Options[i])).IPLeaseTime;
+                        break;
                     case 53:
                         msg = ((DHCPopMSG)(dhcp.Options[i])).Message;
                         Log_Info("Got MSG ID = " + msg);
