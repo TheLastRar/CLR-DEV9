@@ -44,11 +44,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         {
             //Socket
 
-            //Load DNS from Adapter
-            if (parAdapter == null)
-            {
-                parAdapter = AutoAdapter();
-            }
+            ////Load DNS from Adapter
+            //if (parAdapter == null)
+            //{
+            //    parAdapter = AutoAdapter();
+            //}
             //Set IP, NetMask and Gateway based on if LANMode is set
             if (parLANMode)
             {
@@ -261,7 +261,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             }
         }
 
-        private NetworkInterface AutoAdapter()
+        public static NetworkInterface AutoAdapter()
         {
             IPAddress IPaddress = null;
             List<IPAddress> DNS_IP = new List<IPAddress>();
@@ -516,15 +516,15 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         //public override bool isOpen() { return true; }
         public override void Dispose() { }
 
-        private void Log_Error(string str)
+        private static void Log_Error(string str)
         {
             PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.DHCPSession, str);
         }
-        private void Log_Info(string str)
+        private static void Log_Info(string str)
         {
             PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.DHCPSession, str);
         }
-        private void Log_Verb(string str)
+        private static void Log_Verb(string str)
         {
             PSE.CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.DHCPSession, str);
         }

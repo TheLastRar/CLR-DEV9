@@ -78,6 +78,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                              where ip.Address.AddressFamily == AddressFamily.InterNetwork
                              select ip.Address).SingleOrDefault();
             }
+            else
+            {
+                adapter = UDP_DHCPsession.AutoAdapter();
+            }
 
             if (!DEV9Header.config.SocketConnectionSettings.AutoDNS1)
             {
@@ -157,7 +161,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 }
             }
 
-            SetMAC(null/*adapter.GetPhysicalAddress().GetAddressBytes()*/);
+            SetMAC(null);
+            //if (adapter != null)
+                SetMAC(adapter.GetPhysicalAddress().GetAddressBytes());
         }
 
         public override bool Blocks()
