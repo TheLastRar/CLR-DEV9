@@ -22,7 +22,7 @@
 
 //Plugin Image
 extern MonoImage* pluginImage;
-//extern MonoDomain* pluginDomain;
+extern MonoDomain* pluginDomain;
 
 //helper methods
 typedef MonoObject*(*ThunkGetDelegate)(void* func, MonoException** ex);
@@ -56,5 +56,5 @@ struct PluginLog
 };
 extern PluginLog PSELog;
 
-void LoadCoreCLR(char* pluginData, size_t pluginLength, std::string monoUsrLibFolder, std::string monoEtcFolder);
+void LoadCoreCLR(char* pluginData, size_t pluginLength, const char* configData, std::string monoUsrLibFolder, std::string monoEtcFolder);
 void CloseCoreCLR();

@@ -21,13 +21,15 @@ int32_t LoadAssembly()
 		return 0;
 	}
 
-	LoadCoreCLR(&_binary_CLR_DEV9_dll_start, (&_binary_CLR_DEV9_dll_end - &_binary_CLR_DEV9_dll_start), "", "");
+	LoadCoreCLR(&_binary_CLR_DEV9_dll_start, (&_binary_CLR_DEV9_dll_end - &_binary_CLR_DEV9_dll_start), config, "", "");
 
 	if (pluginImage == NULL)
 	{
 		//PSELog.WriteLn("Init CLR Failed");
 		return -1;
 	}
+
+	mono_domain_set(pluginDomain, false);
 
 	PSELog.WriteLn("Get DEV9 Class");
 	pluginClassDEV9 = mono_class_from_name(pluginImage, "PSE", "CLR_PSE_DEV9");
@@ -97,11 +99,13 @@ int32_t LoadAssembly()
 
 	//Test
 	meth = mono_class_get_method_from_name(pluginClassDEV9, "DEV9test", 0);
-	managedTest = (ThunkInit)mono_method_get_unmanaged_thunk(meth);
+	managedFormTest = (ThunkInit)mono_method_get_unmanaged_thunk(meth);
 
 	//config
 	meth = mono_class_get_method_from_name(pluginClassDEV9, "DEV9configure", 0);
 	managedConfig = (ThunkVoid)mono_method_get_unmanaged_thunk(meth);
+
+	mono_domain_set(mono_get_root_domain(), false);
 
 	return 0;
 }
@@ -127,10 +131,13 @@ DEV9init(void)
 	if (ret == 0)
 	{
 		PSELog.WriteLn("Loaded Plugin");
-		MonoException* ex;
 
+		mono_domain_set(pluginDomain, false);
+
+		MonoException* ex;
 		ret = managedInit(&ex);
-		managedOpen(NULL, &ex);
+
+
 		if (ex)
 		{
 			PSELog.WriteLn("InnitError");
@@ -147,9 +154,13 @@ EXPORT_C_(int32_t)
 DEV9open(void* pDsp)
 {
 	mono_thread_attach(mono_get_root_domain());
+	mono_domain_set(pluginDomain, false);
+	mono_thread_attach(mono_domain_get());
 
 	MonoException* ex;
 	int32_t ret = managedOpen(pDsp, &ex);
+
+	mono_domain_set(mono_get_root_domain(), false);
 
 	if (ex)
 	{
@@ -164,8 +175,12 @@ DEV9open(void* pDsp)
 EXPORT_C_(void)
 DEV9close()
 {
+	mono_domain_set(pluginDomain, false);
+
 	MonoException* ex;
 	managedClose(&ex);
+
+	mono_domain_set(mono_get_root_domain(), false);
 
 	if (ex)
 	{
@@ -178,20 +193,32 @@ DEV9close()
 EXPORT_C_(void)
 DEV9shutdown()
 {
+	mono_domain_set(pluginDomain, false);
+
 	MonoException* ex;
 	managedShutdown(&ex);
 
+	mono_domain_set(mono_get_root_domain(), false);
+
 	if (ex)
+	{
+		mono_print_unhandled_exception((MonoObject*)ex);
 		throw;
+	}
 }
 
 EXPORT_C_(void)
 DEV9setSettingsDir(const char* dir)
 {
 	mono_thread_attach(mono_get_root_domain());
+	mono_domain_set(pluginDomain, false);
+	mono_thread_attach(mono_domain_get());
 
 	MonoException* ex;
 	managedSetSetDir(mono_string_new(mono_domain_get(), dir), &ex);
+
+	mono_domain_set(mono_get_root_domain(), false);
+
 	if (ex)
 	{
 		mono_print_unhandled_exception((MonoObject*)ex);
@@ -203,9 +230,14 @@ EXPORT_C_(void)
 DEV9setLogDir(const char* dir)
 {
 	mono_thread_attach(mono_get_root_domain());
+	mono_domain_set(pluginDomain, false);
+	mono_thread_attach(mono_domain_get());
 
 	MonoException* ex;
 	managedSetLogDir(mono_string_new(mono_domain_get(), dir), &ex);
+
+	mono_domain_set(mono_get_root_domain(), false);
+
 	if (ex)
 	{
 		mono_print_unhandled_exception((MonoObject*)ex);
@@ -216,8 +248,12 @@ DEV9setLogDir(const char* dir)
 EXPORT_C_(uint8_t)
 DEV9read8(uint32_t addr)
 {
+	mono_domain_set(pluginDomain, false);
+
 	MonoException* ex;
 	uint8_t ret = managedRead8(addr,&ex);
+
+	mono_domain_set(mono_get_root_domain(), false);
 
 	if (ex)
 	{
@@ -231,8 +267,12 @@ DEV9read8(uint32_t addr)
 EXPORT_C_(uint16_t)
 DEV9read16(uint32_t addr)
 {
+	mono_domain_set(pluginDomain, false);
+
 	MonoException* ex;
 	uint16_t ret = managedRead16(addr,&ex);
+
+	mono_domain_set(mono_get_root_domain(), false);
 
 	if (ex)
 	{
@@ -246,8 +286,12 @@ DEV9read16(uint32_t addr)
 EXPORT_C_(uint32_t)
 DEV9read32(uint32_t addr)
 {
+	mono_domain_set(pluginDomain, false);
+
 	MonoException* ex;
 	uint32_t ret = managedRead32(addr, &ex);
+
+	mono_domain_set(mono_get_root_domain(), false);
 
 	if (ex)
 	{
@@ -261,8 +305,12 @@ DEV9read32(uint32_t addr)
 EXPORT_C_(void)
 DEV9write8(uint32_t addr, uint8_t value)
 {
+	mono_domain_set(pluginDomain, false);
+
 	MonoException* ex;
 	managedWrite8(addr, value, &ex);
+
+	mono_domain_set(mono_get_root_domain(), false);
 
 	if (ex)
 	{
@@ -274,8 +322,12 @@ DEV9write8(uint32_t addr, uint8_t value)
 EXPORT_C_(void)
 DEV9write16(uint32_t addr, uint16_t value)
 {
+	mono_domain_set(pluginDomain, false);
+
 	MonoException* ex;
 	managedWrite16(addr, value, &ex);
+
+	mono_domain_set(mono_get_root_domain(), false);
 
 	if (ex)
 	{
@@ -287,8 +339,12 @@ DEV9write16(uint32_t addr, uint16_t value)
 EXPORT_C_(void)
 DEV9write32(uint32_t addr, uint32_t value)
 {
+	mono_domain_set(pluginDomain, false);
+
 	MonoException* ex;
 	managedWrite32(addr, value, &ex);
+
+	mono_domain_set(mono_get_root_domain(), false);
 
 	if (ex)
 	{
@@ -300,8 +356,12 @@ DEV9write32(uint32_t addr, uint32_t value)
 EXPORT_C_(void)
 DEV9readDMA8Mem(uint8_t* memPointer, int32_t size)
 {
+	mono_domain_set(pluginDomain, false);
+
 	MonoException* ex;
 	managedReadDMA8(memPointer, size, &ex);
+
+	mono_domain_set(mono_get_root_domain(), false);
 
 	if (ex)
 	{
@@ -313,8 +373,12 @@ DEV9readDMA8Mem(uint8_t* memPointer, int32_t size)
 EXPORT_C_(void)
 DEV9writeDMA8Mem(uint8_t* memPointer, int32_t size)
 {
+	mono_domain_set(pluginDomain, false);
+
 	MonoException* ex;
 	managedWriteDMA8(memPointer, size, &ex);
+
+	mono_domain_set(mono_get_root_domain(), false);
 
 	if (ex)
 	{
@@ -326,8 +390,12 @@ DEV9writeDMA8Mem(uint8_t* memPointer, int32_t size)
 EXPORT_C_(void)
 DEV9async(uint32_t cycles)
 {
+	mono_domain_set(pluginDomain, false);
+
 	MonoException* ex;
 	managedAsync(cycles, &ex);
+
+	mono_domain_set(mono_get_root_domain(), false);
 
 	if (ex)
 	{
@@ -339,6 +407,8 @@ DEV9async(uint32_t cycles)
 EXPORT_C_(void)
 DEV9irqCallback(void* DEV9callback)
 {
+	mono_domain_set(pluginDomain, false);
+
 	PSELog.WriteLn("SetCallback");
 	MonoException* ex;
 
@@ -348,11 +418,14 @@ DEV9irqCallback(void* DEV9callback)
 	if (ex)
 	{
 		mono_print_unhandled_exception((MonoObject*)ex);
+		mono_domain_set(mono_get_root_domain(), false);
 		throw;
 	}
 
 	PSELog.WriteLn("SetIRQ");
 	managedIrqCallback(ret, &ex);
+
+	mono_domain_set(mono_get_root_domain(), false);
 
 	if (ex)
 	{
@@ -360,10 +433,12 @@ DEV9irqCallback(void* DEV9callback)
 		throw;
 	}
 }
-
+//This will need a special fix
 EXPORT_C_(void*)
 DEV9irqHandler()
 {
+	mono_domain_set(pluginDomain, false);
+
 	PSELog.WriteLn("GetHandler");
 	MonoException* ex;
 
@@ -373,11 +448,14 @@ DEV9irqHandler()
 	if (ex)
 	{
 		mono_print_unhandled_exception((MonoObject*)ex);
+		mono_domain_set(mono_get_root_domain(), false);
 		throw;
 	}
 
 	PSELog.WriteLn("Call Helper");
 	void *retPtr = FunctionPointerFromIRQHandler(ret, &ex);
+
+	mono_domain_set(mono_get_root_domain(), false);
 
 	if (ex)
 	{
@@ -393,18 +471,20 @@ DEV9irqHandler()
 EXPORT_C_(int32_t)
 DEV9test()
 {
-	if (initRet != 0)
-		return initRet;
+	//if (initRet != 0)
+	//	return initRet;
 
-	mono_thread_attach(mono_get_root_domain());
+	//mono_thread_attach(mono_get_root_domain());
 
-	MonoException* ex;
-	managedTest(&ex);
-	if (ex)
-	{
-		mono_print_unhandled_exception((MonoObject*)ex);
-		return -1;
-	}
+	//MonoException* ex;
+	//managedTest(&ex);
+	//if (ex)
+	//{
+	//	mono_print_unhandled_exception((MonoObject*)ex);
+	//	return -1;
+	//}
+
+	return 0;
 }
 
 
@@ -415,9 +495,14 @@ DEV9configure()
 		throw;
 
 	mono_thread_attach(mono_get_root_domain());
+	mono_domain_set(pluginDomain, false);
+	mono_thread_attach(mono_domain_get());
 
 	MonoException* ex;
 	managedConfig(&ex);
+
+	mono_domain_set(mono_get_root_domain(), false);
+
 	if (ex)
 	{
 		mono_print_unhandled_exception((MonoObject*)ex);

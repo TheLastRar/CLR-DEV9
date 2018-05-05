@@ -8,6 +8,13 @@
 extern char _binary_CLR_DEV9_dll_start;
 extern char _binary_CLR_DEV9_dll_end;
 
+//Use void mono_dllmap_insert (MonoImage *assembly, const char *dll, const char *func, const char *tdll, const char *tfunc) instead?
+const char* config = " \
+<configuration> \
+	<dllmap dll=\"wpcap\" target=\"libpcap.so.0.8\" /> \
+<configuration/> \
+";
+
 typedef uint32_t(*ThunkInit)(MonoException** ex);
 ThunkInit managedInit;
 
@@ -51,6 +58,6 @@ ThunkIrqCallback managedIrqCallback;
 typedef MonoObject*(*ThunkIrqHandler)(MonoException** ex);
 ThunkIrqHandler managedIrqHandler;
 
-ThunkInit managedTest;
+ThunkInit managedFormTest;
 
 ThunkVoid managedConfig;

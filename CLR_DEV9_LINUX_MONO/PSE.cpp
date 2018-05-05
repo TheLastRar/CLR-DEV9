@@ -45,9 +45,13 @@ EXPORT_C_(const char*)
 PS2EgetLibName(void)
 {
 	mono_thread_attach(mono_get_root_domain());
+	mono_domain_set(pluginDomain, false);
+	mono_thread_attach(mono_domain_get());
 
 	MonoException* ex;
 	MonoString* ret = managedGetLibName(&ex);
+
+	mono_domain_set(mono_get_root_domain(), false);
 
 	if (pluginNamePtr != NULL)
 	{
@@ -70,9 +74,13 @@ EXPORT_C_(uint32_t)
 PS2EgetLibType(void)
 {
 	mono_thread_attach(mono_get_root_domain());
+	mono_domain_set(pluginDomain, false);
+	mono_thread_attach(mono_domain_get());
 
 	MonoException* ex;
 	uint32_t ret = managedGetLibType(&ex);
+
+	mono_domain_set(mono_get_root_domain(), false);
 
 	if (ex)
 	{
@@ -86,8 +94,12 @@ PS2EgetLibType(void)
 EXPORT_C_(uint32_t)
 PS2EgetLibVersion2(uint32_t type)
 {
+	mono_domain_set(pluginDomain, false);
+
 	MonoException* ex;
 	uint32_t ret = managedGetLibVersion2(type, &ex);
+
+	mono_domain_set(mono_get_root_domain(), false);
 
 	if (ex)
 	{
@@ -98,7 +110,7 @@ PS2EgetLibVersion2(uint32_t type)
 	return ret;
 }
 
-void LoadCoreCLR(char* pluginData, size_t pluginLength, string monoUsrLibFolder, string monoEtcFolder)
+void LoadCoreCLR(char* pluginData, size_t pluginLength, const char* configData, string monoUsrLibFolder, string monoEtcFolder)
 {
 	PSELog.WriteLn("Init Mono Runtime");
 
@@ -219,14 +231,14 @@ void LoadCoreCLR(char* pluginData, size_t pluginLength, string monoUsrLibFolder,
 		return;
 	}
 
-	//pluginImage = mono_assembly_get_image(pluginAssembly);
+	mono_config_parse_memory(configData);
 
-	if (!mono_domain_set(pseDomain, false))
-	{
-		PSELog.WriteLn("Set Domain Failed");
-		CloseCoreCLR();
-		return;
-	}
+	//if (!mono_domain_set(pseDomain, false))
+	//{
+	//	PSELog.WriteLn("Set Domain Failed");
+	//	CloseCoreCLR();
+	//	return;
+	//}
 
 	PSELog.WriteLn("Get PSE classes");
 
@@ -264,11 +276,19 @@ void LoadCoreCLR(char* pluginData, size_t pluginLength, string monoUsrLibFolder,
 	meth = mono_class_get_method_from_name(pseClass_mono, "FunctionPointerFromIRQHandler", 1);
 	FunctionPointerFromIRQHandler = (ThunkGetFuncPtr)mono_method_get_unmanaged_thunk(meth);
 
+	if (!mono_domain_set(pseDomain, false))
+	{
+		PSELog.WriteLn("Set Domain Failed");
+		CloseCoreCLR();
+		return;
+	}
+
 	PSELog.WriteLn("Init CLR Done");
 }
 
 void CloseCoreCLR()
 {
+	mono_domain_set(pluginDomain, false);
 	if (pluginNamePtr != NULL)
 	{
 		mono_free(pluginNamePtr);
@@ -286,6 +306,7 @@ void CloseCoreCLR()
 		mono_image_close(pluginImage);
 		pluginImage = NULL;
 	}
+	mono_domain_set(pseDomain, false);
 	//LoadExtraFD();
 	//CloseCLRFD();
 }
