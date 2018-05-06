@@ -32,7 +32,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 try
                 {
                     recived = listener.Receive(ref remoteIPEndPoint);
-                    Log_Info("Listener Got Data");
+                    Log_Verb("Listener Got Data");
                 }
                 catch (SocketException err)
                 {

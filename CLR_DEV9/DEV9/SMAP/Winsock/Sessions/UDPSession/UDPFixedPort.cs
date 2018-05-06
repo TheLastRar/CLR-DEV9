@@ -42,7 +42,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 try
                 {
                     recived = client.Receive(ref remoteIPEndPoint);
-                    Log_Info("Got Data");
+                    Log_Verb("Got Data");
                 }
                 catch (SocketException err)
                 {
