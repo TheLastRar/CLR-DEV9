@@ -9,6 +9,7 @@
 #include <string>
 
 #include <mono/jit/jit.h>
+#include <mono/metadata/mono-gc.h>
 #include <mono/metadata/appdomain.h>
 #include <mono/metadata/assembly.h>
 #include <mono/metadata/debug-helpers.h>

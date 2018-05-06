@@ -141,7 +141,7 @@ void LoadCoreCLR(char* pluginData, size_t pluginLength, const char* configData, 
 			monoEtcFolder = "/etc/";
 		}
 
-		mono_set_dirs(monoUsrLibFolder.c_str(), monoEtcFolder.c_str());
+		//mono_set_dirs(monoUsrLibFolder.c_str(), monoEtcFolder.c_str());
 		mono_config_parse(NULL);
 		mono_set_signal_chaining(true);
 
@@ -149,11 +149,6 @@ void LoadCoreCLR(char* pluginData, size_t pluginLength, const char* configData, 
 		PSELog.Write("Set Debug\n");
 		mono_debug_init(MONO_DEBUG_FORMAT_MONO);
 #endif
-
-		//const char* options[] = {
-		//	"--debugger-agent=transport=dt_socket,server=y,address=127.0.0.1:55555"
-		//};
-		//mono_jit_parse_options(1, (char**)options);
 
 		PSELog.Write("JIT Init\n");
 		pseDomain = mono_jit_init(pseDomainName);
@@ -233,13 +228,6 @@ void LoadCoreCLR(char* pluginData, size_t pluginLength, const char* configData, 
 
 	mono_config_parse_memory(configData);
 
-	//if (!mono_domain_set(pseDomain, false))
-	//{
-	//	PSELog.WriteLn("Set Domain Failed");
-	//	CloseCoreCLR();
-	//	return;
-	//}
-
 	PSELog.WriteLn("Get PSE classes");
 
 	MonoClass *pseClass;
@@ -296,6 +284,8 @@ void CloseCoreCLR()
 	}
 	if (pluginDomain != NULL)
 	{
+		mono_domain_set(pseDomain, false);
+		PSELog.WriteLn("%p", pluginDomain);
 		mono_domain_unload(pluginDomain);
 		pluginDomain = NULL;
 		//Also unloads the assembly
@@ -303,7 +293,7 @@ void CloseCoreCLR()
 	}
 	if (pluginImage != NULL)
 	{
-		mono_image_close(pluginImage);
+		//mono_image_close(pluginImage);
 		pluginImage = NULL;
 	}
 	mono_domain_set(pseDomain, false);

@@ -105,7 +105,7 @@ int32_t LoadAssembly()
 	meth = mono_class_get_method_from_name(pluginClassDEV9, "DEV9configure", 0);
 	managedConfig = (ThunkVoid)mono_method_get_unmanaged_thunk(meth);
 
-	mono_domain_set(mono_get_root_domain(), false);
+	//mono_domain_set(mono_get_root_domain(), false);
 
 	return 0;
 }

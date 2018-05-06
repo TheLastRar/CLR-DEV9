@@ -239,7 +239,7 @@
       <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
     </RemotePostBuildEvent>
     <PreBuildEvent>
-      <Command>copy "$(SolutionDir)CLR_DEV9\bin\$(Configuration)\CLR_DEV9.dll" "$(ProjectDir)CLR_DEV9.dll" /Y</Command>
+      <Command>copy "$(SolutionDir)CLR_DEV9\bin\$(Configuration)\x86\CLR_DEV9.dll" "$(ProjectDir)CLR_DEV9.dll" /Y</Command>
     </PreBuildEvent>
     <RemotePreLinkEvent>
       <Command>objcopy --input binary --output elf32-i386 --binary-architecture i386 CLR_DEV9.dll $(RemoteProjectDir)/obj/CLR_DEV9.o</Command>
@@ -263,7 +263,7 @@
       <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
     </RemotePostBuildEvent>
     <PreBuildEvent>
-      <Command>copy "$(SolutionDir)CLR_DEV9\bin\$(Configuration)\CLR_DEV9.dll" "$(ProjectDir)CLR_DEV9.dll" /Y</Command>
+      <Command>copy "$(SolutionDir)CLR_DEV9\bin\$(Configuration)\x86\CLR_DEV9.dll" "$(ProjectDir)CLR_DEV9.dll" /Y</Command>
     </PreBuildEvent>
     <RemotePreLinkEvent>
       <Command>objcopy --input binary --output elf32-i386 --binary-architecture i386 CLR_DEV9.dll $(RemoteProjectDir)/obj/CLR_DEV9.o</Command>
@@ -287,7 +287,7 @@
       <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
     </RemotePostBuildEvent>
     <PreBuildEvent>
-      <Command>copy "$(SolutionDir)CLR_DEV9\bin\$(Configuration)\CLR_DEV9.dll" "$(ProjectDir)CLR_DEV9.dll" /Y</Command>
+      <Command>copy "$(SolutionDir)CLR_DEV9\bin\$(Configuration)\x86\CLR_DEV9.dll" "$(ProjectDir)CLR_DEV9.dll" /Y</Command>
     </PreBuildEvent>
     <RemotePreLinkEvent>
       <Command>objcopy --input binary --output elf32-i386 --binary-architecture i386 CLR_DEV9.dll $(RemoteProjectDir)/obj/CLR_DEV9.o</Command>

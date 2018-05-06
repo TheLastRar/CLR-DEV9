@@ -35,8 +35,8 @@ void* main_ext(char* path)
 	//PS2Esetset("/home/air/.config/PCSX2/inis_1.4.0/");
 	//PS2Einit();
 	//DEV9config();
-	int type = PS2Etype();
-	int ver = PS2Ever(type);
+	//int type = PS2Etype();
+	//int ver = PS2Ever(type);
 
 	//dlclose(hld);
 	return hld;
@@ -64,11 +64,16 @@ int main()
 	close(dest);
 	//
 
+	printf("Open Original\n");
 	void* ptr = main_ext(p1);
+	printf("Open & Close Copy\n");
 	dlclose(main_ext(p2));
-	dlclose(main_ext(p1));
+	//printf("Open & Close Original\n");
+	//dlclose(main_ext(p1));
+	printf("Close Original Original\n");
 	dlclose(ptr);
 
-	dlclose(main_ext(p1));
+	//printf("Open & Close Original\n");
+	//dlclose(main_ext(p1));
     return 0;
 }

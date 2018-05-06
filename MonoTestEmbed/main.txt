@@ -16,7 +16,7 @@ MonoImage* pluginImage;
 MonoAssembly* pluginAssembly;
 
 typedef void(*ThunkVoid)(MonoException** ex);
-ThunkVoid managedFormTest;
+ThunkVoid managedTest;
 
 void Load()
 {
@@ -120,12 +120,13 @@ void Load()
 	MonoMethod* meth;
 
 	meth = mono_class_get_method_from_name(pseClass_mono, "Test", 0);
-	managedFormTest = (ThunkVoid)mono_method_get_unmanaged_thunk(meth);
+	managedTest = (ThunkVoid)mono_method_get_unmanaged_thunk(meth);
 
 	//if (!mono_domain_set(pseDomain, false))
 	//{
-	//	printf("Set Domain Failed");
-	//	throw;
+	//	PSELog.WriteLn("Set Domain Failed");
+	//	CloseCoreCLR();
+	//	return;
 	//}
 
 	printf("Init CLR Done\n");
@@ -133,10 +134,9 @@ void Load()
 
 void Close()
 {
-	mono_domain_set(pluginDomain, false);
+	//mono_domain_set(pluginDomain, false);
 	if (pluginDomain != NULL)
 	{
-		mono_domain_set(mono_get_root_domain(), false);
 		mono_domain_unload(pluginDomain);
 		pluginDomain = NULL;
 		//Also unloads the assembly
@@ -155,12 +155,10 @@ int main()
 	printf("Hello from MonoTestEmbed!\n");
 	Load();
 
-	mono_domain_set(pluginDomain, false);
+	MonoException* ex;
+	managedTest(&ex);
 
-	MonoException* ex = NULL;
-	managedFormTest(&ex);
-
-	mono_domain_set(mono_get_root_domain(), false);
+	//mono_domain_set(mono_get_root_domain(), false);
 
 	if (ex)
 	{
