@@ -25,9 +25,8 @@ PluginLog PSELog;
 //after constuctors are called
 const char* pseDomainName = "PSE_Mono";
 
-MonoDomain* pseDomain = NULL; //Base Domain
+//MonoDomain* pseDomain = NULL; //Base Domain
 MonoDomain* pluginDomain = NULL; //Plugin Specific Domain
-MonoAssembly* pluginAssembly = NULL; //Plugin
 //PluginImage
 
 typedef MonoString*(*ThunkGetLibName)(MonoException** ex);
@@ -121,16 +120,14 @@ void LoadCoreCLR(char* pluginData, size_t pluginLength, const char* configData, 
 	}
 
 	//Check if mono is already active
-	pseDomain = mono_get_root_domain();
-		
-	if (pseDomain == NULL)
+	if (mono_get_root_domain() == NULL)
 	{
 		//Inc Reference
 		dlopen("libmono-2.0.so", RTLD_NOW | RTLD_LOCAL);
 
 		//LoadInitialFD();
 
-		PSELog.WriteLn("Set Dirs");
+		//PSELog.WriteLn("Set Dirs");
 
 		if (monoUsrLibFolder.length() == 0)
 		{
@@ -146,23 +143,24 @@ void LoadCoreCLR(char* pluginData, size_t pluginLength, const char* configData, 
 		mono_set_signal_chaining(true);
 
 #if !NDEBUG
-		PSELog.Write("Set Debug\n");
+		//PSELog.Write("Set Debug\n");
 		mono_debug_init(MONO_DEBUG_FORMAT_MONO);
 #endif
 
-		PSELog.Write("JIT Init\n");
-		pseDomain = mono_jit_init(pseDomainName);
-		if (pseDomain == NULL)
+		//PSELog.Write("JIT Init\n");
+		MonoDomain* rootDomain = mono_jit_init(/*pseDomainName*/"PSE_Mono");
+
+		if (rootDomain == NULL)
 		{
 			PSELog.Write("Init Mono Failed At jit_init\n");
 			return;
 		}
 		else
 		{
-			PSELog.WriteLn(mono_domain_get_friendly_name(pseDomain));
+			//PSELog.WriteLn(mono_domain_get_friendly_name(pseDomain));
 		}
 
-		PSELog.WriteLn("Set Main Args()");
+		//PSELog.WriteLn("Set Main Args()");
 
 		char pcsx2Path[PATH_MAX];
 		size_t len = readlink("/proc/self/exe", pcsx2Path, PATH_MAX - 1);
@@ -180,7 +178,7 @@ void LoadCoreCLR(char* pluginData, size_t pluginLength, const char* configData, 
 		argv[0] = pcsx2Path;//(char *)pluginPath.c_str();
 
 		int32_t ret = mono_runtime_set_main_args(1, argv);
-		mono_domain_set_config(pseDomain, ".", "");
+		mono_domain_set_config(rootDomain, ".", "");
 
 		if (ret != 0)
 		{
@@ -190,22 +188,23 @@ void LoadCoreCLR(char* pluginData, size_t pluginLength, const char* configData, 
 	}
 	else
 	{
-		PSELog.WriteLn("Mono Already Running");
-		PSELog.WriteLn(mono_domain_get_friendly_name(pseDomain));
+		//PSELog.WriteLn("Mono Already Running");
+		//PSELog.WriteLn(mono_domain_get_friendly_name(pseDomain));
 		mono_thread_attach(mono_get_root_domain());
 	}
 
-	pluginDomain = mono_domain_create_appdomain("AssemblyDomain" ,NULL);
+	pluginDomain = mono_domain_create_appdomain("AssemblyDomain", NULL);
 	mono_domain_set_config(pluginDomain, ".", "");
 
 	if (!mono_domain_set(pluginDomain, false))
 	{
-		PSELog.WriteLn("Set Domain Failed");
-		CloseCoreCLR();
-		return;
+		printf("Set Domain Failed\n");
+		throw;
 	}
 
-	PSELog.WriteLn("Load Image");
+	mono_config_parse_memory(configData);
+
+	//PSELog.WriteLn("Load Image");
 	MonoImageOpenStatus status;
 	pluginImage = mono_image_open_from_data_full(pluginData, pluginLength, true, &status, false);
 
@@ -213,12 +212,11 @@ void LoadCoreCLR(char* pluginData, size_t pluginLength, const char* configData, 
 	{
 		PSELog.WriteLn("Init Mono Failed At PluginImage");
 		CloseCoreCLR();
-		return;
 	}
 
-	PSELog.WriteLn("Load Assembly");
-	pluginAssembly = mono_assembly_load_from_full(pluginImage, "", &status, false);
+	//PSELog.WriteLn("Load Assembly");
 
+	MonoAssembly* pluginAssembly = mono_assembly_load_from_full(pluginImage, "", &status, false);
 	if (!pluginAssembly | (status != MONO_IMAGE_OK))
 	{
 		PSELog.WriteLn("Init Mono Failed At PluginAssembly");
@@ -226,9 +224,7 @@ void LoadCoreCLR(char* pluginData, size_t pluginLength, const char* configData, 
 		return;
 	}
 
-	mono_config_parse_memory(configData);
-
-	PSELog.WriteLn("Get PSE classes");
+	//PSELog.WriteLn("Get PSE classes");
 
 	MonoClass *pseClass;
 	MonoClass *pseClass_mono;
@@ -243,7 +239,7 @@ void LoadCoreCLR(char* pluginData, size_t pluginLength, const char* configData, 
 		return;
 	}
 
-	PSELog.WriteLn("Get PSE Methods");
+	//PSELog.WriteLn("Get PSE Methods");
 
 	MonoMethod* meth;
 
@@ -252,11 +248,11 @@ void LoadCoreCLR(char* pluginData, size_t pluginLength, const char* configData, 
 
 	meth = mono_class_get_method_from_name(pseClass, "PS2EgetLibType", 0);
 	managedGetLibType = (ThunkGetLibType)mono_method_get_unmanaged_thunk(meth);
-	
+
 	meth = mono_class_get_method_from_name(pseClass, "PS2EgetLibVersion2", 1);
 	managedGetLibVersion2 = (ThunkGetLibVersion2)mono_method_get_unmanaged_thunk(meth);
 
-	PSELog.WriteLn("Get helpers");
+	//PSELog.WriteLn("Get helpers");
 
 	meth = mono_class_get_method_from_name(pseClass_mono, "CyclesCallbackFromFunctionPointer", 1);
 	CyclesCallbackFromFunctionPointer = (ThunkGetDelegate)mono_method_get_unmanaged_thunk(meth);
@@ -264,39 +260,39 @@ void LoadCoreCLR(char* pluginData, size_t pluginLength, const char* configData, 
 	meth = mono_class_get_method_from_name(pseClass_mono, "FunctionPointerFromIRQHandler", 1);
 	FunctionPointerFromIRQHandler = (ThunkGetFuncPtr)mono_method_get_unmanaged_thunk(meth);
 
-	if (!mono_domain_set(pseDomain, false))
+	if (!mono_domain_set(mono_get_root_domain(), false))
 	{
 		PSELog.WriteLn("Set Domain Failed");
 		CloseCoreCLR();
 		return;
 	}
 
-	PSELog.WriteLn("Init CLR Done");
+	//PSELog.WriteLn("Init CLR Done");
 }
 
 void CloseCoreCLR()
 {
-	mono_domain_set(pluginDomain, false);
-	if (pluginNamePtr != NULL)
-	{
-		mono_free(pluginNamePtr);
-		pluginNamePtr = NULL;
-	}
 	if (pluginDomain != NULL)
 	{
-		mono_domain_set(pseDomain, false);
-		PSELog.WriteLn("%p", pluginDomain);
+		if (pluginNamePtr != NULL)
+		{
+
+			mono_free(pluginNamePtr);
+			pluginNamePtr = NULL;
+		}
+
+		mono_domain_set(mono_get_root_domain(), false);
 		mono_domain_unload(pluginDomain);
 		pluginDomain = NULL;
 		//Also unloads the assembly
-		pluginAssembly = NULL;
 	}
+
 	if (pluginImage != NULL)
 	{
-		//mono_image_close(pluginImage);
+		mono_image_close(pluginImage);
 		pluginImage = NULL;
 	}
-	mono_domain_set(pseDomain, false);
+	mono_domain_set(mono_get_root_domain(), false);
 	//LoadExtraFD();
 	//CloseCLRFD();
 }

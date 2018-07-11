@@ -15,6 +15,7 @@ void* main_ext(char* path)
 		printf("OPEN FAILED\n");
 		throw;
 	}
+
 	void(*PS2Esetset)(const char *);
 	int32_t(*PS2Einit)();
 
@@ -44,8 +45,6 @@ void* main_ext(char* path)
 
 int main()
 {
-
-	//main_int();
 	char* p1 = "/home/air/projects/CLR_DEV9_LINUX_MONO/bin/x86/Debug/libCLR_DEV9_LINUX_MONO.so";
 	char* p2 = "/home/air/projects/CLR_DEV9_LINUX_MONO/bin/x86/Debug/libCLR_DEV9_LINUX_MONO_copy.so";
 
@@ -64,14 +63,25 @@ int main()
 	close(dest);
 	//
 
+	void(*CLRCloseTest)();
+
 	printf("Open Original\n");
-	void* ptr = main_ext(p1);
-	printf("Open & Close Copy\n");
-	dlclose(main_ext(p2));
+	void* ptr1 = main_ext(p1);
+	printf("Open Copy\n");
+	void* ptr2 = main_ext(p2);
+	
+	printf("Close Original\n");
+	CLRCloseTest = (void(*)())dlsym(ptr2, "destroy_plugin_test");
+	CLRCloseTest();
+	dlclose(ptr2);
+
+	printf("Close Copy\n");
+	CLRCloseTest = (void(*)())dlsym(ptr1, "destroy_plugin_test");
+	CLRCloseTest();
+	dlclose(ptr1);
 	//printf("Open & Close Original\n");
 	//dlclose(main_ext(p1));
-	printf("Close Original Original\n");
-	dlclose(ptr);
+
 
 	//printf("Open & Close Original\n");
 	//dlclose(main_ext(p1));

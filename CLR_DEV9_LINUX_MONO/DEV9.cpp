@@ -14,7 +14,7 @@ int32_t initRet = -1;
 
 int32_t LoadAssembly()
 {
-	PSELog.WriteLn("Init CLR");
+	//PSELog.WriteLn("Init CLR");
 	//return -1;
 	if (pluginImage != NULL)
 	{
@@ -31,7 +31,7 @@ int32_t LoadAssembly()
 
 	mono_domain_set(pluginDomain, false);
 
-	PSELog.WriteLn("Get DEV9 Class");
+	//PSELog.WriteLn("Get DEV9 Class");
 	pluginClassDEV9 = mono_class_from_name(pluginImage, "PSE", "CLR_PSE_DEV9");
 
 	if (!pluginClassDEV9)
@@ -48,7 +48,7 @@ int32_t LoadAssembly()
 		return -1;
 	}
 
-	PSELog.WriteLn("Get Methods");
+	//PSELog.WriteLn("Get Methods");
 	//Load Methods
 	MonoMethod *meth;
 
@@ -105,7 +105,7 @@ int32_t LoadAssembly()
 	meth = mono_class_get_method_from_name(pluginClassDEV9, "DEV9configure", 0);
 	managedConfig = (ThunkVoid)mono_method_get_unmanaged_thunk(meth);
 
-	//mono_domain_set(mono_get_root_domain(), false);
+	mono_domain_set(mono_get_root_domain(), false);
 
 	return 0;
 }
@@ -113,14 +113,24 @@ int32_t LoadAssembly()
 __attribute__((constructor))
 void initialize_plugin()
 {
-	PSELog.WriteLn("Init Plugin");
+	//PSELog.WriteLn("Init Plugin");
 	initRet = LoadAssembly();
 }
 
-__attribute__((destructor))
+__attribute__((destructor(101)))
 void destroy_plugin()
 {
+	mono_thread_attach(mono_get_root_domain());
+	mono_domain_set(pluginDomain, false);
+	mono_thread_attach(mono_domain_get());
+
 	CloseCoreCLR();
+}
+
+EXPORT_C_(void)
+/*void*/ destroy_plugin_test()
+{
+	//CloseCoreCLR();
 }
 
 EXPORT_C_(int32_t)
