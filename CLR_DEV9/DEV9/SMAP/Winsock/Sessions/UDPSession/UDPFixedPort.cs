@@ -77,9 +77,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         public override void Reset()
         {
-            foreach (Session s in connections)
+            lock (connectionSentry)
             {
-                s.Reset();
+                foreach (Session s in connections)
+                {
+                    s.Reset();
+                }
             }
         }
 

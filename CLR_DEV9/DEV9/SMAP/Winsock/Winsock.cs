@@ -20,7 +20,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
         UDP_DHCPsession dhcpServer;
         IPAddress adapterIP = IPAddress.Any;
         //List<Session> Connections = new List<Session>();
-        object sentry = new object();
+        //object sentry = new object();
+        object sendSentry = new object();
+        object recvSentry = new object();
 
         ConcurrentDictionary<ConnectionKey, Session> connections = new ConcurrentDictionary<ConnectionKey, Session>();
 
@@ -178,123 +180,129 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
         //gets a packet.rv :true success
         public override bool Recv(ref NetPacket pkt)
         {
-            //return false;
-            Log_Verb("Reciving NetPacket");
-            bool result = false;
-
-            if (!vRecBuffer.TryDequeue(out pkt))
+            lock (recvSentry)
             {
-                pkt = null;
-                ConnectionKey[] keys = connections.Keys.ToArray();
-                foreach (ConnectionKey key in keys)
-                {
-                    IPPayload pl;
+                //return false;
+                Log_Verb("Reciving NetPacket");
+                bool result = false;
 
-                    if (!connections.TryGetValue(key, out Session session)) { continue; }
-                    pl = session.Recv();
-                    if (!(pl == null))
+                if (!vRecBuffer.TryDequeue(out pkt))
+                {
+                    pkt = null;
+                    ConnectionKey[] keys = connections.Keys.ToArray();
+                    foreach (ConnectionKey key in keys)
                     {
-                        IPPacket ipPkt = new IPPacket(pl);
-                        ipPkt.DestinationIP = session.SourceIP;
-                        ipPkt.SourceIP = session.DestIP;
-                        EthernetFrame ef = new EthernetFrame(ipPkt);
-                        ef.SourceMAC = virturalDHCPMAC;
-                        ef.DestinationMAC = ps2MAC;
-                        ef.Protocol = (UInt16)EtherFrameType.IPv4;
-                        pkt = ef.CreatePacket();
-                        result = true;
-                        break;
+                        IPPayload pl;
+
+                        if (!connections.TryGetValue(key, out Session session)) { continue; }
+                        pl = session.Recv();
+                        if (!(pl == null))
+                        {
+                            IPPacket ipPkt = new IPPacket(pl);
+                            ipPkt.DestinationIP = session.SourceIP;
+                            ipPkt.SourceIP = session.DestIP;
+                            EthernetFrame ef = new EthernetFrame(ipPkt);
+                            ef.SourceMAC = virturalDHCPMAC;
+                            ef.DestinationMAC = ps2MAC;
+                            ef.Protocol = (UInt16)EtherFrameType.IPv4;
+                            pkt = ef.CreatePacket();
+                            result = true;
+                            break;
+                        }
                     }
                 }
-            }
-            else
-            {
-                result = true;
-            }
+                else
+                {
+                    result = true;
+                }
 
-            if (result)
-            {
-                return true;
+                if (result)
+                {
+                    return true;
+                }
+                else
+                    return false;
             }
-            else
-                return false;
         }
         //sends the packet and deletes it when done (if successful).rv :true success
         public override bool Send(NetPacket pkt)
         {
-            Log_Verb("Sending NetPacket");
-            bool result = false;
-
-            EthernetFrame ef = new EthernetFrame(pkt);
-
-            switch (ef.Protocol)
+            lock (sendSentry)
             {
-                case (int)EtherFrameType.NULL:
-                    //Adapter Reset
+                Log_Verb("Sending NetPacket");
+                bool result = false;
 
-                    //lock (sentry)
-                    //{
-                    Log_Verb("Reset " + connections.Count + " Connections");
-                    ConnectionKey[] keys = connections.Keys.ToArray();
-                    foreach (ConnectionKey key in keys)
-                    {
-                        if (!connections.TryGetValue(key, out Session session)) { continue; }
-                        session.Reset();
-                    }
-                    //}
-                    break;
-                case (int)EtherFrameType.IPv4:
-                    result = SendIP((IPPacket)ef.Payload);
-                    break;
-                #region "ARP"
-                case (int)EtherFrameType.ARP:
-                    Log_Verb("ARP");
-                    ARPPacket arpPkt = ((ARPPacket)ef.Payload);
+                EthernetFrame ef = new EthernetFrame(pkt);
 
-                    if (arpPkt.Protocol == (UInt16)EtherFrameType.IPv4)
-                    {
-                        if (arpPkt.OP == 1) //ARP request
+                switch (ef.Protocol)
+                {
+                    case (int)EtherFrameType.NULL:
+                        //Adapter Reset
+
+                        //lock (sentry)
+                        //{
+                        Log_Verb("Reset " + connections.Count + " Connections");
+                        ConnectionKey[] keys = connections.Keys.ToArray();
+                        foreach (ConnectionKey key in keys)
                         {
-                            byte[] gateway;
-                            lock (sentry)
-                            {
-                                gateway = dhcpServer.Gateway;
-                            }
-                            //if (Utils.memcmp(arpPkt.TargetProtocolAddress, 0, gateway, 0, 4))
-                            if (!Utils.memcmp(arpPkt.TargetProtocolAddress, 0, dhcpServer.PS2IP, 0, 4))
-                            //it's trying to resolve the virtual gateway's mac addr
-                            {
-                                ARPPacket arpRet = new ARPPacket();
-                                arpRet.TargetHardwareAddress = arpPkt.SenderHardwareAddress;
-                                arpRet.SenderHardwareAddress = virturalDHCPMAC;
-                                arpRet.TargetProtocolAddress = arpPkt.SenderProtocolAddress;
-                                arpRet.SenderProtocolAddress = arpPkt.TargetProtocolAddress;
-                                arpRet.OP = 2;
-                                arpRet.Protocol = arpPkt.Protocol;
+                            if (!connections.TryGetValue(key, out Session session)) { continue; }
+                            session.Reset();
+                        }
+                        //}
+                        break;
+                    case (int)EtherFrameType.IPv4:
+                        result = SendIP((IPPacket)ef.Payload);
+                        break;
+                    #region "ARP"
+                    case (int)EtherFrameType.ARP:
+                        Log_Verb("ARP");
+                        ARPPacket arpPkt = ((ARPPacket)ef.Payload);
 
-                                EthernetFrame retARP = new EthernetFrame(arpRet);
-                                retARP.DestinationMAC = ps2MAC;
-                                retARP.SourceMAC = virturalDHCPMAC;
-                                retARP.Protocol = (UInt16)EtherFrameType.ARP;
-                                vRecBuffer.Enqueue(retARP.CreatePacket());
-                                break;
+                        if (arpPkt.Protocol == (UInt16)EtherFrameType.IPv4)
+                        {
+                            if (arpPkt.OP == 1) //ARP request
+                            {
+                                byte[] gateway;
+                                //lock (sentry)
+                                //{
+                                    gateway = dhcpServer.Gateway;
+                                //}
+                                //if (Utils.memcmp(arpPkt.TargetProtocolAddress, 0, gateway, 0, 4))
+                                if (!Utils.memcmp(arpPkt.TargetProtocolAddress, 0, dhcpServer.PS2IP, 0, 4))
+                                //it's trying to resolve the virtual gateway's mac addr
+                                {
+                                    ARPPacket arpRet = new ARPPacket();
+                                    arpRet.TargetHardwareAddress = arpPkt.SenderHardwareAddress;
+                                    arpRet.SenderHardwareAddress = virturalDHCPMAC;
+                                    arpRet.TargetProtocolAddress = arpPkt.SenderProtocolAddress;
+                                    arpRet.SenderProtocolAddress = arpPkt.TargetProtocolAddress;
+                                    arpRet.OP = 2;
+                                    arpRet.Protocol = arpPkt.Protocol;
+
+                                    EthernetFrame retARP = new EthernetFrame(arpRet);
+                                    retARP.DestinationMAC = ps2MAC;
+                                    retARP.SourceMAC = virturalDHCPMAC;
+                                    retARP.Protocol = (UInt16)EtherFrameType.ARP;
+                                    vRecBuffer.Enqueue(retARP.CreatePacket());
+                                    break;
+                                }
                             }
                         }
-                    }
 
-                    result = true;
-                    break;
-                #endregion
-                case 0x0081:
-                    Log_Error("VLAN-tagged frame (IEEE 802.1Q)");
-                    throw new NotImplementedException();
-                //break;
-                default:
-                    Log_Error("Unkown EtherframeType " + ef.Protocol.ToString("X4"));
-                    break;
+                        result = true;
+                        break;
+                    #endregion
+                    case 0x0081:
+                        Log_Error("VLAN-tagged frame (IEEE 802.1Q)");
+                        throw new NotImplementedException();
+                    //break;
+                    default:
+                        Log_Error("Unkown EtherframeType " + ef.Protocol.ToString("X4"));
+                        break;
+                }
+
+                return result;
             }
-
-            return result;
         }
 
         public bool SendIP(IPPacket ipPkt)
@@ -487,9 +495,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             Session s = (Session)sender;
 
             s.ConnectionClosedEvent -= HandleConnectionClosed;
-            //deadConnections.Enqueue(s);
-            connections.TryRemove(s.Key, out Session dummy);
-            s.Dispose();
+            lock (sendSentry)
+                lock (recvSentry)
+                {
+                    //deadConnections.Enqueue(s);
+                    connections.TryRemove(s.Key, out Session dummy);
+                    s.Dispose();
+                }
             Log_Info("Closed Dead Connection");
         }
 
@@ -506,19 +518,21 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             //TODO close all open connections
             if (disposing)
             {
-                lock (sentry)
-                {
-                    Log_Verb("Closing " + connections.Count + " Connections");
-                    foreach (ConnectionKey key in connections.Keys) //ToDo better multi-connection stuff
-                    {
-                        connections[key].Dispose();
-                    }
-                    while (vRecBuffer.TryDequeue(out NetPacket p)) { }
-                    connections.Clear();
-                    fixedUDPPorts.Clear();
+                //lock (sentry)
+                lock (sendSentry)
+                    lock(recvSentry)
+                        {
+                            Log_Verb("Closing " + connections.Count + " Connections");
+                            foreach (ConnectionKey key in connections.Keys) //ToDo better multi-connection stuff
+                            {
+                                connections[key].Dispose();
+                            }
+                            while (vRecBuffer.TryDequeue(out NetPacket p)) { }
+                            connections.Clear();
+                            fixedUDPPorts.Clear();
 
-                    dhcpServer.Dispose();
-                }
+                            dhcpServer.Dispose();
+                        }
             }
         }
 
