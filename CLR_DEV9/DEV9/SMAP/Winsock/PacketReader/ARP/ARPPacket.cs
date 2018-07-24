@@ -15,27 +15,24 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.ARP
                 throw new NotImplementedException();
             }
         }
-        public override byte[] GetBytes
+        public override byte[] GetBytes()
         {
-            get
-            {
-                byte[] ret = new byte[Length];
-                int counter = 0;
-                NetLib.WriteUInt16(ret, ref counter, HardWareType);
-                //
-                DataLib.WriteUInt16(ret, ref counter, Protocol);
-                //
-                NetLib.WriteByte08(ret, ref counter, HardwareAddressLength);
-                NetLib.WriteByte08(ret, ref counter, ProtocolAddressLength);
-                NetLib.WriteUInt16(ret, ref counter, OP);
+            byte[] ret = new byte[Length];
+            int counter = 0;
+            NetLib.WriteUInt16(ret, ref counter, HardWareType);
+            //
+            DataLib.WriteUInt16(ret, ref counter, Protocol);
+            //
+            NetLib.WriteByte08(ret, ref counter, HardwareAddressLength);
+            NetLib.WriteByte08(ret, ref counter, ProtocolAddressLength);
+            NetLib.WriteUInt16(ret, ref counter, OP);
 
-                NetLib.WriteByteArray(ret, ref counter, SenderHardwareAddress);
-                NetLib.WriteByteArray(ret, ref counter, SenderProtocolAddress);
+            NetLib.WriteByteArray(ret, ref counter, SenderHardwareAddress);
+            NetLib.WriteByteArray(ret, ref counter, SenderProtocolAddress);
 
-                NetLib.WriteByteArray(ret, ref counter, TargetHardwareAddress);
-                NetLib.WriteByteArray(ret, ref counter, TargetProtocolAddress);
-                return ret;
-            }
+            NetLib.WriteByteArray(ret, ref counter, TargetHardwareAddress);
+            NetLib.WriteByteArray(ret, ref counter, TargetProtocolAddress);
+            return ret;
         }
         public UInt16 HardWareType;
         public UInt16 Protocol; //In Net Order

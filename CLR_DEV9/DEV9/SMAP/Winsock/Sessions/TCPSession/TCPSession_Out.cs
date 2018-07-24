@@ -199,7 +199,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
             IPAddress address = new IPAddress(DestIP);
             //IPAddress address = new IPAddress(new byte[] { 127, 0, 0, 1 });
-            client.BeginConnect(address, destPort, new AsyncCallback(AsyncConnectComplete), tcp);
+            client.BeginConnect(address, destPort, new AsyncCallback(AsyncConnectComplete), tcp); //TODO replace with async
             state = TCPState.SendingSYN_ACK;
             //open = true;
             return true;

@@ -58,7 +58,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader
         public NetPacket CreatePacket()
         {
             NetPacket nPK = new NetPacket();
-            byte[] PLbytes = _pl.GetBytes;
+            byte[] PLbytes = _pl.GetBytes();
             int counter = 0;
 
             //byte[] rawbytes = new byte[PLbytes.Length + hlen];

@@ -187,41 +187,38 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
             hLen = opOffset;
         }
 
-        public override byte[] GetBytes
+        public override byte[] GetBytes()
         {
-            get
+            CalculateCheckSum(); //ReComputeHeaderLen called in CalculateCheckSum
+            _pl.CalculateCheckSum(SourceIP, DestinationIP);
+
+            byte[] ret = new byte[Length];
+            int counter = 0;
+            NetLib.WriteByte08(ret, ref counter, (byte)(_verHi + (hLen >> 2)));
+            NetLib.WriteByte08(ret, ref counter, typeOfService);//DSCP/ECN
+            NetLib.WriteUInt16(ret, ref counter, length);
+
+            NetLib.WriteUInt16(ret, ref counter, id);
+            NetLib.WriteByte08(ret, ref counter, fragmentFlags1);
+            NetLib.WriteByte08(ret, ref counter, fragmentFlags2);
+
+            NetLib.WriteByte08(ret, ref counter, ttl);
+            NetLib.WriteByte08(ret, ref counter, Protocol);
+            NetLib.WriteUInt16(ret, ref counter, checksum); //header csum
+
+            NetLib.WriteByteArray(ret, ref counter, SourceIP);
+            NetLib.WriteByteArray(ret, ref counter, DestinationIP); ;
+
+            //options
+            for (int i = 0; i < Options.Count; i++)
             {
-                CalculateCheckSum(); //ReComputeHeaderLen called in CalculateCheckSum
-                _pl.CalculateCheckSum(SourceIP, DestinationIP);
-
-                byte[] ret = new byte[Length];
-                int counter = 0;
-                NetLib.WriteByte08(ret, ref counter, (byte)(_verHi + (hLen >> 2)));
-                NetLib.WriteByte08(ret, ref counter, typeOfService);//DSCP/ECN
-                NetLib.WriteUInt16(ret, ref counter, length);
-
-                NetLib.WriteUInt16(ret, ref counter, id);
-                NetLib.WriteByte08(ret, ref counter, fragmentFlags1);
-                NetLib.WriteByte08(ret, ref counter, fragmentFlags2);
-
-                NetLib.WriteByte08(ret, ref counter, ttl);
-                NetLib.WriteByte08(ret, ref counter, Protocol);
-                NetLib.WriteUInt16(ret, ref counter, checksum); //header csum
-
-                NetLib.WriteByteArray(ret, ref counter, SourceIP);
-                NetLib.WriteByteArray(ret, ref counter, DestinationIP); ;
-
-                //options
-                for (int i = 0; i < Options.Count; i++)
-                {
-                    NetLib.WriteByteArray(ret, ref counter, Options[i].GetBytes());
-                }
-                counter = hLen;
-
-                byte[] plBytes = _pl.GetBytes();
-                NetLib.WriteByteArray(ret, ref counter, plBytes);
-                return ret;
+                NetLib.WriteByteArray(ret, ref counter, Options[i].GetBytes());
             }
+            counter = hLen;
+
+            byte[] plBytes = _pl.GetBytes();
+            NetLib.WriteByteArray(ret, ref counter, plBytes);
+            return ret;
         }
         //source ip
         //dest ip
