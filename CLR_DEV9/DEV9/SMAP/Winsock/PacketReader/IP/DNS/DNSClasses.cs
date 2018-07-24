@@ -115,6 +115,13 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DNS
 
         public override byte Length { get { return (byte)(base.Length + 4 + 2 + data.Length); } }
 
+        public DNSResponseEntry(string name, UInt16 Qtype, UInt16 Qclass, byte[] data, uint ttl) :
+            base(name, Qtype, Qclass)
+        {
+            this.data = data;
+            this.ttl = ttl;
+        }
+
         public DNSResponseEntry(byte[] buffer, int offset) : base(buffer, offset)
         {
             offset += base.Length;

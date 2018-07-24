@@ -48,6 +48,7 @@ namespace CLRDEV9
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.NetAdapter);
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.UDPSession);
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.DNSPacket);
+                CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.DNSSession);
 #if DEBUG
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.PluginInterface);
                 //CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.TCPSession);

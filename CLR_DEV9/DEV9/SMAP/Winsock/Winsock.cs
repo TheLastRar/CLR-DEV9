@@ -18,6 +18,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
     {
         ConcurrentQueue<NetPacket> vRecBuffer = new ConcurrentQueue<NetPacket>(); //Non IP packets
         UDP_DHCPsession dhcpServer;
+        UDP_DNSsession dnsServer;
         IPAddress adapterIP = IPAddress.Any;
         //List<Session> Connections = new List<Session>();
         //object sentry = new object();
@@ -66,6 +67,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             //Add allways on connections
             byte[] dns1 = null;
             byte[] dns2 = null;
+            Dictionary<string, byte[]> hosts = new Dictionary<string, byte[]>();
             NetworkInterface adapter = null;
 
             if (parDevice != "Auto")
@@ -94,6 +96,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 dns2 = IPAddress.Parse(DEV9Header.config.SocketConnectionSettings.DNS2).GetAddressBytes();
             }
 
+            foreach (Config.ConfigHost host in DEV9Header.config.Hosts)
+            {
+                hosts.Add(host.URL, IPAddress.Parse(host.IP).GetAddressBytes());
+            }
+
+            //DHCP emulated server
             ConnectionKey dhcpKey = new ConnectionKey();
             dhcpKey.Protocol = (byte)IPType.UDP;
             dhcpKey.SRVPort = 67;
@@ -105,6 +113,18 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             dhcpServer.DestIP = DefaultDHCPConfig.DHCP_IP;
 
             if (!connections.TryAdd(dhcpServer.Key, dhcpServer)) { throw new Exception("Connection Add Failed"); }
+            //DNS emulated server
+            ConnectionKey dnsKey = new ConnectionKey();
+            dnsKey.Protocol = (byte)IPType.UDP;
+            dnsKey.SRVPort = 53;
+
+            dnsServer = new UDP_DNSsession(dnsKey, hosts);
+            dnsServer.ConnectionClosedEvent += HandleConnectionClosed;
+            dnsServer.SourceIP = dhcpServer.PS2IP;
+            dnsServer.DestIP = DefaultDHCPConfig.DHCP_IP;
+
+            if (!connections.TryAdd(dnsServer.Key, dnsServer)) { throw new Exception("Connection Add Failed"); }
+            //
 
             foreach (Config.ConfigIncomingPort port in
                 DEV9Header.config.SocketConnectionSettings.IncomingPorts)
@@ -391,6 +411,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
 
             Key.PS2Port = tcp.SourcePort; Key.SRVPort = tcp.DestinationPort;
 
+            if (tcp.DestinationPort == 53 && Utils.memcmp(ipPkt.DestinationIP, 0, DefaultDHCPConfig.DHCP_IP, 0, 4))
+            { //DNS
+                throw new NotImplementedException("DNS over TCP not supported");
+            }
+
             int res = SendFromConnection(Key, ipPkt);
             if (res == 1)
                 return true;
@@ -418,6 +443,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             if (udp.DestinationPort == 67)
             { //DHCP
                 return dhcpServer.Send(ipPkt.Payload);
+            }
+
+            if (udp.DestinationPort == 53 && Utils.memcmp(ipPkt.DestinationIP, 0, DefaultDHCPConfig.DHCP_IP, 0, 4))
+            { //DNS
+                return dnsServer.Send(ipPkt.Payload);
             }
 
             int res = SendFromConnection(Key, ipPkt);
@@ -532,6 +562,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                             fixedUDPPorts.Clear();
 
                             dhcpServer.Dispose();
+                            dnsServer.Dispose();
                         }
             }
         }
