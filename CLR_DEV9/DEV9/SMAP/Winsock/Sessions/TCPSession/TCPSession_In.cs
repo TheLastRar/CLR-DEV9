@@ -75,7 +75,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 }
                 else if (err != SocketError.Success)
                 {
-                    throw new SocketException((int)err);
+                    //throw new SocketException((int)err);
+                    Log_Error("TCP Recv Error: " + (new SocketException((int)err)).Message);
+                    Log_Error("Error Code: " + (int)err);
+                    CloseByRemoteRST();
+                    return null;
                 }
                 if (recived == 0)
                 {

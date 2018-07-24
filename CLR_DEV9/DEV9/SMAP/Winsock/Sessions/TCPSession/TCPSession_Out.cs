@@ -309,7 +309,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     }
                     catch (SocketException e)
                     {
-                        Log_Error("TCP Recv Error: " + e.Message);
+                        Log_Error("TCP Send Error: " + e.Message);
                         Log_Error("Error Code: " + e.ErrorCode);
                         //Connection Lost
                         //Send Shutdown by RST (Untested)
