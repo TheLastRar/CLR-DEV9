@@ -57,17 +57,19 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
                 DestIP = remoteIPEndPoint.Address.GetAddressBytes(); //assumes ipv4
                 iRet.SourcePort = (UInt16)remoteIPEndPoint.Port;
-
-                foreach (Session s in connections)
+                lock (connectionSentry)
                 {
-                    //is forwarded port
-                    if (s is UDPServerSession) { return iRet; }
-                    UDPSession udpS = (UDPSession)s;
-                    //Call into method in UDPSession
-                    //to determin if we should recive
-                    //or discard packet.
-                    //packet is then sent from here
-                    if (udpS.WillRecive(DestIP)) { return iRet; }
+                    foreach (Session s in connections)
+                    {
+                        //is forwarded port
+                        if (s is UDPServerSession) { return iRet; }
+                        UDPSession udpS = (UDPSession)s;
+                        //Call into method in UDPSession
+                        //to determin if we should recive
+                        //or discard packet.
+                        //packet is then sent from here
+                        if (udpS.WillRecive(DestIP)) { return iRet; }
+                    }
                 }
                 Log_Error("Unexpected packet, dropping");
             }
