@@ -3,7 +3,6 @@ using System.Runtime.Serialization;
 
 namespace CLRDEV9.Config
 {
-    //TODO Create config screen to add these.
     //TODO support TCP
     [DataContract(Namespace = "http://schemas.datacontract.org/2004/07/CLRDEV9")]
     class ConfigIncomingPort

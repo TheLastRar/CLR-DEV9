@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Runtime.Serialization;
 using System.Xml;
 
@@ -17,6 +18,9 @@ namespace CLRDEV9.Config
         public ConfigDirectIP DirectConnectionSettings;
         [DataMember(EmitDefaultValue = false)]
         public ConfigSocketIP SocketConnectionSettings;
+
+        [DataMember(EmitDefaultValue = false)]
+        public HashSet<ConfigHost> Hosts;
 
         [DataMember]
         public bool HddEnable;
@@ -42,6 +46,14 @@ namespace CLRDEV9.Config
 
             DirectConnectionSettings = new ConfigDirectIP();
             SocketConnectionSettings = new ConfigSocketIP();
+            Hosts = new HashSet<ConfigHost>();
+            Hosts.Add(new ConfigHost()
+            {
+                Desc = "Set DNS to 192.0.2.1 to use this host list",
+                URL = "www.example.com",
+                IP = "0.0.0.0",
+                Enabled = false
+            });
         }
 
         public ConfigFile()
