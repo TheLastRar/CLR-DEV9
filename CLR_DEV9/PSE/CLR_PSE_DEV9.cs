@@ -16,9 +16,9 @@ namespace PSE
         [DllExport("DEV9shutdown", CallingConvention = CallingConvention.StdCall)]
         private static void nat_DEV9shutdown() { DEV9shutdown(); }
         [DllExport("DEV9setSettingsDir", CallingConvention = CallingConvention.StdCall)]
-        private static void nat_DEV9setSettingsDir(string dir) { DEV9setSettingsDir(dir); }
+        private static void nat_DEV9setSettingsDir(IntPtr dir) { DEV9setSettingsDir(dir); }
         [DllExport("DEV9setLogDir", CallingConvention = CallingConvention.StdCall)]
-        private static void nat_DEV9setLogDir(string dir) { DEV9setLogDir(dir); }
+        private static void nat_DEV9setLogDir(IntPtr dir) { DEV9setLogDir(dir); }
 
         [DllExport("DEV9read8", CallingConvention = CallingConvention.StdCall)]
         private static byte nat_DEV9read8(UInt32 addr) { return DEV9read8(addr); }
@@ -79,13 +79,13 @@ namespace PSE
         {
             Plugin.Shutdown();
         }
-        public static void DEV9setSettingsDir(string dir)
+        public static void DEV9setSettingsDir(IntPtr dir)
         {
-            Plugin.SetSettingsDir(dir);
+            Plugin.SetSettingsDir(CLR_PSE_Utils.MarshalDirectoryString(dir));
         }
-        public static void DEV9setLogDir(string dir)
+        public static void DEV9setLogDir(IntPtr dir)
         {
-            Plugin.SetLogDir(dir);
+            Plugin.SetLogDir(CLR_PSE_Utils.MarshalDirectoryString(dir));
         }
 
         public static byte DEV9read8(UInt32 addr)

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Runtime.InteropServices;
+using System.Text;
 
 namespace PSE
 {
@@ -19,6 +21,25 @@ namespace PSE
                 default:
                     return false;
             }
+        }
+        public static string MarshalDirectoryString(IntPtr ptr)
+        {
+            int length = 0;
+
+            for (
+                 ; 0 != Marshal.ReadByte(ptr+length)
+                 ; ++length)
+            { }
+
+            byte[] buffer = new byte[length];
+            Marshal.Copy(ptr, buffer, 0, buffer.Length);
+
+            string ret = Encoding.UTF8.GetString(buffer);
+
+            if (ret.Contains("�")) //Old PCSX2 (Input was not UTF8)
+                ret = Encoding.Default.GetString(buffer);
+
+            return ret;
         }
     }
 }
