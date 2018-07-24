@@ -93,6 +93,7 @@
     <Compile Include="Config\ConfigFormIncomingPorts.Designer.cs">
       <DependentUpon>ConfigFormIncomingPorts.cs</DependentUpon>
     </Compile>
+    <Compile Include="Config\ConfigHost.cs" />
     <Compile Include="Config\ConfigIncomingPort.cs" />
     <Compile Include="Config\Test\Eth\ARPTest.cs" />
     <Compile Include="Config\Test\Eth\DEV9_Test.cs" />
