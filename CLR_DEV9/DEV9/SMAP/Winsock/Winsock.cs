@@ -98,7 +98,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
 
             foreach (Config.ConfigHost host in DEV9Header.config.Hosts)
             {
-                hosts.Add(host.URL, IPAddress.Parse(host.IP).GetAddressBytes());
+                if (host.Enabled)
+                    hosts.Add(host.URL, IPAddress.Parse(host.IP).GetAddressBytes());
             }
 
             //DHCP emulated server
