@@ -116,7 +116,7 @@
     <Compile Include="DEV9\SMAP\Winsock\PacketReader\IP\IGMP.cs" />
     <Compile Include="DEV9\SMAP\Winsock\PacketReader\IP\IPOptions.cs" />
     <Compile Include="DEV9\SMAP\Winsock\PacketReader\IP\IPUnkown.cs" />
-    <Compile Include="DEV9\SMAP\Winsock\Sessions\DNSsession.cs" />
+    <Compile Include="DEV9\SMAP\Winsock\Sessions\DNSSession.cs" />
     <Compile Include="DEV9\SMAP\Winsock\Sessions\IGMPSession.cs" />
     <Compile Include="DEV9\SMAP\Winsock\Sessions\UDPSession\UDPFixedPort.cs" />
     <Compile Include="DEV9\SMAP\Winsock\Sessions\UDPSession\UDPServerSession.cs" />
@@ -198,7 +198,7 @@
     <Compile Include="PSE\CLR_PSE_DEV9.cs" />
     <Compile Include="PSE\CLR_PSE_FreezeData.cs" />
     <Compile Include="PSE\CLR_PSE_PluginLog.cs" />
-    <Compile Include="DEV9\SMAP\Winsock\Sessions\DHCPsession.cs" />
+    <Compile Include="DEV9\SMAP\Winsock\Sessions\DHCPSession.cs" />
     <Compile Include="DEV9\SMAP\Winsock\Sessions\ICMPSession.cs" />
     <Compile Include="DEV9\SMAP\Winsock\Sessions\Session.cs" />
     <Compile Include="DEV9\SMAP\Winsock\Sessions\TCPSession\TCPSession.cs" />

@@ -17,8 +17,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
     sealed class Winsock : NetAdapter
     {
         ConcurrentQueue<NetPacket> vRecBuffer = new ConcurrentQueue<NetPacket>(); //Non IP packets
-        UDP_DHCPsession dhcpServer;
-        UDP_DNSsession dnsServer;
+        UDP_DHCPSession dhcpServer;
+        UDP_DNSSession dnsServer;
         IPAddress adapterIP = IPAddress.Any;
         //List<Session> Connections = new List<Session>();
         //object sentry = new object();
@@ -84,7 +84,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             }
             else
             {
-                adapter = UDP_DHCPsession.AutoAdapter();
+                adapter = UDP_DHCPSession.AutoAdapter();
             }
 
             if (!DEV9Header.config.SocketConnectionSettings.AutoDNS1)
@@ -107,7 +107,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             dhcpKey.Protocol = (byte)IPType.UDP;
             dhcpKey.SRVPort = 67;
 
-            dhcpServer = new UDP_DHCPsession(dhcpKey, adapter, dns1, dns2, DEV9Header.config.SocketConnectionSettings.LANMode);
+            dhcpServer = new UDP_DHCPSession(dhcpKey, adapter, dns1, dns2, DEV9Header.config.SocketConnectionSettings.LANMode);
             dhcpServer.ConnectionClosedEvent += HandleConnectionClosed;
 
             dhcpServer.SourceIP = new byte[] { 255, 255, 255, 255 };
@@ -119,7 +119,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             dnsKey.Protocol = (byte)IPType.UDP;
             dnsKey.SRVPort = 53;
 
-            dnsServer = new UDP_DNSsession(dnsKey, hosts);
+            dnsServer = new UDP_DNSSession(dnsKey, hosts);
             dnsServer.ConnectionClosedEvent += HandleConnectionClosed;
             dnsServer.SourceIP = dhcpServer.PS2IP;
             dnsServer.DestIP = DefaultDHCPConfig.DHCP_IP;

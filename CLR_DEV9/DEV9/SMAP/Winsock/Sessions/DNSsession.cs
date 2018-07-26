@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 {
-    class UDP_DNSsession : Session
+    class UDP_DNSSession : Session
     {
         public class DNSState
         {
@@ -57,7 +57,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         object errSentry = new object();
         Exception lastTaskError = null;
 
-        public UDP_DNSsession(ConnectionKey parKey, Dictionary<string, byte[]> parHosts) : base(parKey, IPAddress.Any)
+        public UDP_DNSSession(ConnectionKey parKey, Dictionary<string, byte[]> parHosts) : base(parKey, IPAddress.Any)
         {
             hosts = parHosts;
         }

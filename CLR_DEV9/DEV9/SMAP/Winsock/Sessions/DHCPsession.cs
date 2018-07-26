@@ -18,7 +18,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         public static byte[] NETMASK = { 255, 255, 255, 0 };
     }
 
-    class UDP_DHCPsession : Session
+    class UDP_DHCPSession : Session
     {
 #region CurrentConfig
         public byte[] PS2IP;
@@ -39,7 +39,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         UInt16 maxMs = 576;
 
-        public UDP_DHCPsession(ConnectionKey parKey, NetworkInterface parAdapter, byte[] parDNS1, byte[] parDNS2, bool parLANMode)
+        public UDP_DHCPSession(ConnectionKey parKey, NetworkInterface parAdapter, byte[] parDNS1, byte[] parDNS2, bool parLANMode)
             : base(parKey, IPAddress.Any)
         {
             //Socket
@@ -83,7 +83,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             HandleBroadcast(PS2IP, NetMask);
         }
 
-        public UDP_DHCPsession(ConnectionKey parKey, NetworkInterface parAdapter, byte[] parIP, byte[] parNetmask, byte[] parGateway,
+        public UDP_DHCPSession(ConnectionKey parKey, NetworkInterface parAdapter, byte[] parIP, byte[] parNetmask, byte[] parGateway,
             byte[] parDNS1, byte[] parDNS2)
             : base(parKey, IPAddress.Any)
         {

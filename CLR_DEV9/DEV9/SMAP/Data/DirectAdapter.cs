@@ -15,7 +15,7 @@ namespace CLRDEV9.DEV9.SMAP.Data
         { }
 
         private bool dhcpActive = false;
-        private UDP_DHCPsession dhcp = null;
+        private UDP_DHCPSession dhcp = null;
 
         protected void InitDHCP(NetworkInterface parAdapter)
         {
@@ -47,7 +47,7 @@ namespace CLRDEV9.DEV9.SMAP.Data
                 dns2 = IPAddress.Parse(DEV9Header.config.DirectConnectionSettings.DNS2).GetAddressBytes();
             }
             //Create DHCP Session
-            dhcp = new UDP_DHCPsession(new ConnectionKey(), parAdapter, ps2IP, netMask, gateway, dns1, dns2);
+            dhcp = new UDP_DHCPSession(new ConnectionKey(), parAdapter, ps2IP, netMask, gateway, dns1, dns2);
             dhcpActive = true;
         }
 
