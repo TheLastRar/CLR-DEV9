@@ -25,7 +25,7 @@ typedef void(*ThunkVoid)(MonoException** ex);
 ThunkVoid managedClose;
 ThunkVoid managedShutdown;
 
-typedef void(*ThunkSetDir)(MonoString*, MonoException** ex);
+typedef void(*ThunkSetDir)(const char*, MonoException** ex);
 ThunkSetDir managedSetSetDir;
 ThunkSetDir managedSetLogDir;
 

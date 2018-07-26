@@ -225,7 +225,7 @@ DEV9setSettingsDir(const char* dir)
 	mono_thread_attach(mono_domain_get());
 
 	MonoException* ex;
-	managedSetSetDir(mono_string_new(mono_domain_get(), dir), &ex);
+	managedSetSetDir(dir, &ex);
 
 	mono_domain_set(mono_get_root_domain(), false);
 
@@ -244,7 +244,7 @@ DEV9setLogDir(const char* dir)
 	mono_thread_attach(mono_domain_get());
 
 	MonoException* ex;
-	managedSetLogDir(mono_string_new(mono_domain_get(), dir), &ex);
+	managedSetLogDir(dir, &ex);
 
 	mono_domain_set(mono_get_root_domain(), false);
 
