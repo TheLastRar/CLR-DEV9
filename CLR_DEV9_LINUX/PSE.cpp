@@ -373,13 +373,15 @@ void LoadCoreCLR(string pluginPath, string coreClrFolder)
 	};
 
 	char pcsx2Path[PATH_MAX];
-
-	if (readlink("/proc/self/exe", pcsx2Path, PATH_MAX) == -1)
+	size_t len = readlink("/proc/self/exe", pcsx2Path, PATH_MAX - 1);
+	if (len < 0)
 	{
 		PSELog.Write("Init CLR Failed At readlink\n");
-		dlclose(coreClrLib);
-		return /*NULL*/;
+		CloseCoreCLR();
+		return;
 	}
+
+	pcsx2Path[len] = 0;
 
 	PSELog.WriteLn("PCSX2 Path is %s", pcsx2Path);
 
