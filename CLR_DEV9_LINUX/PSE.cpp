@@ -400,6 +400,7 @@ void LoadCoreCLR(string pluginPath, string coreClrFolder)
 		PSELog.WriteLn("Init CLR Failed At coreclr_initialize - Status: 0x%08x", st);
 		runtimeCLR = NULL;
 		dlclose(coreClrLib);
+		CloseCLRFD();
 		return /*NULL*/;
 	}
 
@@ -417,7 +418,7 @@ void CloseCoreCLR()
 		dlclose(coreClrLib);
 
 		LoadExtraFD();
-		//CloseCLRFD();
+		CloseCLRFD();
 	}
 }
 
