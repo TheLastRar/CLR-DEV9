@@ -39,15 +39,17 @@ namespace CLRDEV9.Config
 
         private void Init()
         {
+            CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "Init Config Class");
             Hdd = DEV9Header.HDD_DEF;
             HddSize = 8 * 1024;
             Eth = DEV9Header.ETH_DEF;
             EthType = EthAPI.Winsock;
             EthEnable = true;
             HddEnable = false;
-
+            CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "Init ConfigIP Classes");
             DirectConnectionSettings = new ConfigDirectIP();
             SocketConnectionSettings = new ConfigSocketIP();
+            CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "Init Host Classes");
             Hosts = new HashSet<ConfigHost>();
             Hosts.Add(new ConfigHost()
             {
@@ -56,10 +58,12 @@ namespace CLRDEV9.Config
                 IP = "0.0.0.0",
                 Enabled = false
             });
+            CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "Init Done");
         }
 
         public ConfigFile()
         {
+            CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "New Config Class");
             Init();
         }
 
@@ -93,7 +97,7 @@ namespace CLRDEV9.Config
 
             string filePath = iniFolderPath + Path.DirectorySeparatorChar + iniFileName;
 
-            CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "ini path :" + filePath);
+            CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "ini path: " + filePath);
 
             DataContractSerializer ConfSerializer = new DataContractSerializer(typeof(ConfigFile));
 
@@ -121,11 +125,11 @@ namespace CLRDEV9.Config
             iniFolderPath = iniFolderPath.TrimEnd(Path.DirectorySeparatorChar);
             iniFolderPath = iniFolderPath.TrimEnd(Path.AltDirectorySeparatorChar);
 
-            CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "ini folder :" + iniFolderPath);
+            CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "ini folder: " + iniFolderPath);
 
             string filePath = iniFolderPath + Path.DirectorySeparatorChar + iniFileName;
 
-            CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "ini path :" + filePath);
+            CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "ini path: " + filePath);
 
             if (File.Exists(filePath))
             {
