@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using PSE;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Xml;
@@ -84,10 +86,15 @@ namespace CLRDEV9.Config
 
         public static void SaveConf(string iniFolderPath, string iniFileName)
         {
+            CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "Save Config");
+
             iniFolderPath = iniFolderPath.TrimEnd(Path.DirectorySeparatorChar);
             iniFolderPath = iniFolderPath.TrimEnd(Path.AltDirectorySeparatorChar);
 
             string filePath = iniFolderPath + Path.DirectorySeparatorChar + iniFileName;
+
+            CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "ini path :" + filePath);
+
             DataContractSerializer ConfSerializer = new DataContractSerializer(typeof(ConfigFile));
 
             var settings = new XmlWriterSettings()
@@ -97,29 +104,39 @@ namespace CLRDEV9.Config
             };
 
             FileStream fileWriter = new FileStream(filePath, FileMode.Create, FileAccess.ReadWrite);
+            CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "File Opened");
             using (XmlWriter xmlWriter = XmlWriter.Create(fileWriter, settings))
             {
                 ConfSerializer.WriteObject(xmlWriter, DEV9Header.config);
             }
+            CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "File Write OK");
             fileWriter.Close();
+            CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "File Closed");
         }
 
         public static void LoadConf(string iniFolderPath, string iniFileName)
         {
+            CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "Load Config");
+
             iniFolderPath = iniFolderPath.TrimEnd(Path.DirectorySeparatorChar);
             iniFolderPath = iniFolderPath.TrimEnd(Path.AltDirectorySeparatorChar);
 
+            CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "ini folder :" + iniFolderPath);
+
             string filePath = iniFolderPath + Path.DirectorySeparatorChar + iniFileName;
+
+            CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "ini path :" + filePath);
 
             if (File.Exists(filePath))
             {
+                CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "File Exists");
                 DataContractSerializer ConfSerializer = new DataContractSerializer(typeof(ConfigFile));
                 FileStream Reader = new FileStream(filePath, FileMode.Open);
-
+                CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "File Opened");
                 DEV9Header.config = (ConfigFile)ConfSerializer.ReadObject(Reader);
-
+                CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "File Read OK");
                 Reader.Close();
-
+                CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "File Closed");
                 //Update from old config
                 if (DEV9Header.config.Eth == "winsock")
                 {
@@ -127,10 +144,11 @@ namespace CLRDEV9.Config
                 }
                 return;
             }
-
+            CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "No File, Create Default");
             DEV9Header.config = new ConfigFile();
 
             SaveConf(iniFolderPath, iniFileName);
+            CLR_PSE_PluginLog.WriteLine(TraceEventType.Information, (int)DEV9LogSources.PluginInterface, "Created Default");
         }
     }
 }
