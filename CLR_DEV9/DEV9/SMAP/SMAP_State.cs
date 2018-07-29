@@ -36,6 +36,7 @@ namespace CLRDEV9.DEV9.SMAP
 
         public int Open()
         {
+            Log_Info("Open SMAP");
             return adapter.Open();
         }
         public void Close()

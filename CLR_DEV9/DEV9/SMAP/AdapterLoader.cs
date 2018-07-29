@@ -19,6 +19,7 @@ namespace CLRDEV9.DEV9.SMAP
         NetAdapter GetNetAdapter()
         {
             NetAdapter na = null;
+            LOG.WriteLine(TraceEventType.Information, (int)DEV9LogSources.NetAdapter, DEV9Header.config.Eth.ToString());
             switch (DEV9Header.config.EthType)
             {
                 case ConfigFile.EthAPI.Null:

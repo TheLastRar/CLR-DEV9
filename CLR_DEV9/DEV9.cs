@@ -83,12 +83,23 @@ namespace CLRDEV9
         {
             try
             {
+                int ret = 0;
+
                 Log_Info("Open");
                 ConfigFile.LoadConf(iniFolderPath, "CLR_DEV9.ini");
+                Log_Info("Config Loaded");
+
                 if (DEV9Header.config.Hdd.Contains("\\") || DEV9Header.config.Hdd.Contains("/"))
-                    return dev9.Open(DEV9Header.config.Hdd);
+                    ret = dev9.Open(DEV9Header.config.Hdd);
                 else
-                    return dev9.Open(iniFolderPath + "\\" + DEV9Header.config.Hdd);
+                    ret = dev9.Open(iniFolderPath + "\\" + DEV9Header.config.Hdd);
+
+                if (ret == 0)
+                    Log_Info("Open ok");
+                else
+                    CLR_PSE_PluginLog.MsgBoxErrorTrapper(new Exception("Open Failed"));
+
+                return ret;
             }
             catch (Exception e)
             {

@@ -87,6 +87,7 @@ namespace CLRDEV9.DEV9.ATA
 
         public int Open(string hddPath)
         {
+            Log_Info("Open HDD");
             CreateHDDinfo(DEV9Header.config.HddSize);
 
             //Open File
