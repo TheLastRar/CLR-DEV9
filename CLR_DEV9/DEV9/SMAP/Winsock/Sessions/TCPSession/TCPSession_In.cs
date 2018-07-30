@@ -22,8 +22,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             //When TCP connection is closed by the server
             //the server is the last to send a packet
             //so the event must be raised here
-            if (state == TCPState.CloseCompleted)
+            if (state == TCPState.CloseCompletedFlushBuffer)
             {
+                state = TCPState.CloseCompleted;
                 RaiseEventConnectionClosed();
                 return null;
             }

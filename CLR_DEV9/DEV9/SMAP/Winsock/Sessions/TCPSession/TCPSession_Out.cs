@@ -99,7 +99,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 {
                     Log_Error("RESET CLOSED CONNECTION");
                 }
-                //PS2 sent RST, clearly not expecting
+                //PS2 sent RST
+                //clearly not expecting
                 //more data
                 state = TCPState.CloseCompleted;
                 RaiseEventConnectionClosed();
@@ -492,7 +493,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         private bool CloseByPS2Stage4(TCP tcp)
         {
             //Close Part 4, Receive ACK from PS2
-            Log_Info("Compleated Close By PS2");
+            Log_Info("Completed Close By PS2");
             ErrorOnNonEmptyPacket(tcp);
 
             if (myNumberACKed.WaitOne(0))
@@ -517,14 +518,14 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         private bool CloseByRemoteStage2_ButAfter4(TCP tcp)
         {
-            Log_Info("Compleated Close By PS2");
+            Log_Info("Completed Close By PS2");
             ErrorOnNonEmptyPacket(tcp);
 
             if (myNumberACKed.WaitOne(0))
             {
                 Log_Info("ACK was for FIN");
                 client.Close();
-                state = TCPState.CloseCompleted;
+                state = TCPState.CloseCompletedFlushBuffer;
                 //Recive buffer may not be empty
             }
             return true;

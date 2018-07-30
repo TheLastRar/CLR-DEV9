@@ -529,18 +529,21 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 return -1;
         }
 
+        //Event must only be raised once per connection
         public void HandleConnectionClosed(object sender, EventArgs e)
         {
             Session s = (Session)sender;
 
             s.ConnectionClosedEvent -= HandleConnectionClosed;
             lock (sendSentry)
+            {
                 lock (recvSentry)
                 {
                     //deadConnections.Enqueue(s);
                     connections.TryRemove(s.Key, out Session dummy);
                     s.Dispose();
                 }
+            }
             Log_Info("Closed Dead Connection");
         }
 

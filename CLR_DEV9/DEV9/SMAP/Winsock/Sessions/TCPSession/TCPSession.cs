@@ -21,7 +21,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             Closing_ClosedByPS2ThenRemote_WaitingForAck,
             Closing_ClosedByRemote,
             Closing_ClosedByRemoteThenPS2_WaitingForAck,
-            CloseCompleted
+            CloseCompletedFlushBuffer, //Packets in recvBuff to send
+            CloseCompleted,
         }
         private enum NumCheckResult
         {
