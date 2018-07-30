@@ -87,8 +87,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 adapter = UDP_DHCPSession.AutoAdapter();
             }
 
-            Log_Info("Adapter Located");
-
             if (!DEV9Header.config.SocketConnectionSettings.AutoDNS1)
             {
                 dns1 = IPAddress.Parse(DEV9Header.config.SocketConnectionSettings.DNS1).GetAddressBytes();
@@ -114,8 +112,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
 
             dhcpServer.SourceIP = new byte[] { 255, 255, 255, 255 };
             dhcpServer.DestIP = DefaultDHCPConfig.DHCP_IP;
-
-            Log_Info("Auto DHCP Ready");
 
             if (!connections.TryAdd(dhcpServer.Key, dhcpServer)) { throw new Exception("Connection Add Failed"); }
             //DNS emulated server
@@ -188,13 +184,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 }
             }
 
-            Log_Info("UDPFixed ports all added");
-
             SetMAC(null);
             //if (adapter != null)
             SetMAC(adapter.GetPhysicalAddress().GetAddressBytes());
-
-            Log_Info("Winsock Open Done");
         }
 
         public override bool Blocks()

@@ -78,23 +78,23 @@ int32_t LoadAssembly()
 
 	//Debug prints
 	PSELog.WriteLn("Address of DEV9init is %p", managedInit);
-	PSELog.WriteLn("Address of DEV9open is %p", managedOpen);
-	PSELog.WriteLn("Address of DEV9close is %p", managedClose);
-	PSELog.WriteLn("Address of DEV9shutdown is %p", managedShutdown);
-	PSELog.WriteLn("Address of DEV9setSettingsDir is %p", managedSetSetDir);
-	PSELog.WriteLn("Address of DEV9setLogDir is %p", managedSetLogDir);
-	PSELog.WriteLn("Address of DEV9read8 is %p", managedRead8);
-	PSELog.WriteLn("Address of DEV9read16 is %p", managedRead16);
-	PSELog.WriteLn("Address of DEV9read32 is %p", managedRead32);
-	PSELog.WriteLn("Address of DEV9write8 is %p", managedWrite8);
-	PSELog.WriteLn("Address of DEV9write16 is %p", managedWrite16);
-	PSELog.WriteLn("Address of DEV9write32 is %p", managedWrite32);
-	PSELog.WriteLn("Address of DEV9readDMA8Mem is %p", managedReadDMA8);
-	PSELog.WriteLn("Address of DEV9writeDMA8Mem is %p", managedWriteDMA8);
-	PSELog.WriteLn("Address of DEV9async is %p", managedAsync);
-	PSELog.WriteLn("Address of DEV9irqCallback is %p", managedIrqCallback);
-	PSELog.WriteLn("Address of DEV9irqHandler is %p", managedIrqHandler);
-	PSELog.WriteLn("Address of DEV9configure is %p", managedConfig);
+	//PSELog.WriteLn("Address of DEV9open is %p", managedOpen);
+	//PSELog.WriteLn("Address of DEV9close is %p", managedClose);
+	//PSELog.WriteLn("Address of DEV9shutdown is %p", managedShutdown);
+	//PSELog.WriteLn("Address of DEV9setSettingsDir is %p", managedSetSetDir);
+	//PSELog.WriteLn("Address of DEV9setLogDir is %p", managedSetLogDir);
+	//PSELog.WriteLn("Address of DEV9read8 is %p", managedRead8);
+	//PSELog.WriteLn("Address of DEV9read16 is %p", managedRead16);
+	//PSELog.WriteLn("Address of DEV9read32 is %p", managedRead32);
+	//PSELog.WriteLn("Address of DEV9write8 is %p", managedWrite8);
+	//PSELog.WriteLn("Address of DEV9write16 is %p", managedWrite16);
+	//PSELog.WriteLn("Address of DEV9write32 is %p", managedWrite32);
+	//PSELog.WriteLn("Address of DEV9readDMA8Mem is %p", managedReadDMA8);
+	//PSELog.WriteLn("Address of DEV9writeDMA8Mem is %p", managedWriteDMA8);
+	//PSELog.WriteLn("Address of DEV9async is %p", managedAsync);
+	//PSELog.WriteLn("Address of DEV9irqCallback is %p", managedIrqCallback);
+	//PSELog.WriteLn("Address of DEV9irqHandler is %p", managedIrqHandler);
+	//PSELog.WriteLn("Address of DEV9configure is %p", managedConfig);
 
 	return 0;
 }
