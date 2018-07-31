@@ -2,6 +2,7 @@
 using PSE;
 using PSE.CLR_PSE_Callbacks;
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -89,10 +90,10 @@ namespace CLRDEV9
                 ConfigFile.LoadConf(iniFolderPath, "CLR_DEV9.ini");
                 Log_Info("Config Loaded");
 
-                if (DEV9Header.config.Hdd.Contains("\\") || DEV9Header.config.Hdd.Contains("/"))
+                if (DEV9Header.config.Hdd.Contains(Path.DirectorySeparatorChar))
                     ret = dev9.Open(DEV9Header.config.Hdd);
                 else
-                    ret = dev9.Open(iniFolderPath + "\\" + DEV9Header.config.Hdd);
+                    ret = dev9.Open(iniFolderPath + Path.DirectorySeparatorChar + DEV9Header.config.Hdd);
 
                 if (ret == 0)
                     Log_Info("Open ok");
