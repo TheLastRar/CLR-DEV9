@@ -1,4 +1,5 @@
 ﻿using PSE;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -31,6 +32,9 @@ namespace CLRDEV9.Config
         [DataMember]
         public int HddSize;
 
+        [DataMember]
+        public ConfigLogging EnableLogging;   
+
         [OnDeserializing]
         void OnDeserializing(StreamingContext context)
         {
@@ -47,6 +51,7 @@ namespace CLRDEV9.Config
             HddEnable = false;
             DirectConnectionSettings = new ConfigDirectIP();
             SocketConnectionSettings = new ConfigSocketIP();
+            EnableLogging = new ConfigLogging();
             Hosts = new HashSet<ConfigHost>();
             Hosts.Add(new ConfigHost()
             {
@@ -130,6 +135,9 @@ namespace CLRDEV9.Config
                     DEV9Header.config.Eth = DEV9Header.ETH_DEF;
                 }
                 CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.PluginInterface, "Done");
+                CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.PluginInterface, "E: " + Convert.ToString(DEV9Header.config.EnableLogging.Error));
+                CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.PluginInterface, "V: " + Convert.ToString(DEV9Header.config.EnableLogging.Verbose));
+                CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.PluginInterface, "I: " + Convert.ToString(DEV9Header.config.EnableLogging.Information));
                 return;
             }
             CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.PluginInterface, "No Config, Create Default");
