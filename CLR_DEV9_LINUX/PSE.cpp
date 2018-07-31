@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <pwd.h>
 
 #include <set>
 #include <vector>
@@ -303,8 +304,11 @@ void LoadCoreCLR(string pluginPath, string coreClrFolder)
 
 	if (coreClrFolder.length() == 0)
 	{
-		//coreClrFolder = "/home/air/git/ReadyBin.Release";
-		coreClrFolder = "/home/air/git/ReadyBin.Debug";
+		const char *homedir = getenv("HOME");
+		if ( homedir == NULL ) {
+		    homedir = getpwuid(getuid())->pw_dir;
+		}
+		coreClrFolder = string(homedir) + string("/.config/PCSX2/coreclr");
 	}
 
 	string coreClrPath = coreClrFolder + "/" + "libcoreclr.so";
