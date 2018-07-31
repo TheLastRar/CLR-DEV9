@@ -9,7 +9,7 @@ namespace CLRDEV9.Config
         [DataMember]
         public bool Error = true;
         [DataMember]
-        public bool Verbose = true;
+        public bool Verbose = false;
         [DataMember]
         public bool Information = true;
     }

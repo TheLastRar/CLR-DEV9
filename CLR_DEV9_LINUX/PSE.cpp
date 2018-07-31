@@ -304,11 +304,7 @@ void LoadCoreCLR(string pluginPath, string coreClrFolder)
 
 	if (coreClrFolder.length() == 0)
 	{
-		const char *homedir = getenv("HOME");
-		if ( homedir == NULL ) {
-		    homedir = getpwuid(getuid())->pw_dir;
-		}
-		coreClrFolder = string(homedir) + string("/.config/PCSX2/coreclr");
+		coreClrFolder = PCSX2HomeDir + "/coreclr";
 	}
 
 	string coreClrPath = coreClrFolder + "/" + "libcoreclr.so";

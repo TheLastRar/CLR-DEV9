@@ -19,6 +19,7 @@ string pluginPSEType = "PSE.CLR_PSE_DEV9";
 
 string configDir;
 string logDir;
+string PCSX2HomeDir;
 
 //MonoDomain *pluginDomain = NULL;
 //MonoAssembly *pluginAssembly = NULL;
@@ -171,6 +172,7 @@ DEV9setSettingsDir(const char* dir)
 	PSELog.Write("SetSetting\n");
 
 	configDir = dir;
+	PCSX2HomeDir = configDir.substr(0, configDir.substr(0, configDir.length()-1).find_last_of("/"));
 	//string configPath = configDir + configFileName;
 
 	//ifstream reader;
