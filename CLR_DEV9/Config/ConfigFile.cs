@@ -126,7 +126,7 @@ namespace CLRDEV9.Config
             if (File.Exists(filePath))
             {
                 DataContractSerializer ConfSerializer = new DataContractSerializer(typeof(ConfigFile));
-                FileStream Reader = new FileStream(filePath, FileMode.Open);;
+                FileStream Reader = new FileStream(filePath, FileMode.Open);
                 DEV9Header.config = (ConfigFile)ConfSerializer.ReadObject(Reader);
                 Reader.Close();
                 //Update from old config
@@ -135,9 +135,6 @@ namespace CLRDEV9.Config
                     DEV9Header.config.Eth = DEV9Header.ETH_DEF;
                 }
                 CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.PluginInterface, "Done");
-                CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.PluginInterface, "E: " + Convert.ToString(DEV9Header.config.EnableLogging.Error));
-                CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.PluginInterface, "V: " + Convert.ToString(DEV9Header.config.EnableLogging.Verbose));
-                CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.PluginInterface, "I: " + Convert.ToString(DEV9Header.config.EnableLogging.Information));
                 return;
             }
             CLR_PSE_PluginLog.WriteLine(TraceEventType.Verbose, (int)DEV9LogSources.PluginInterface, "No Config, Create Default");
