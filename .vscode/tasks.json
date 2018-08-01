@@ -1,0 +1,65 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build CLR_DEV9_CORE Debug",
+            "type": "shell",
+            "command": "msbuild",
+            "args": [
+                "CLR_DEV9.sln",
+                "/t:CLR_DEV9_CORE",
+                "/p:Configuration=\"DEBUG\"",
+                "/p:Platform=\"Any CPU\"",
+                // Ask msbuild to generate full paths for file names.
+                "/property:GenerateFullPaths=true"
+            ],
+            "group": "build",
+            "presentation": {
+                // Reveal the output only if unrecognized errors occur.
+                "reveal": "silent"
+            },
+            // Use the standard MS compiler pattern to detect errors, warnings and infos
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Build CLR_DEV9_CORE Release",
+            "type": "shell",
+            "command": "msbuild",
+            "args": [
+                "CLR_DEV9.sln",
+                "/t:CLR_DEV9_CORE",
+                "/p:Configuration=\"RELEASE\"",
+                "/p:Platform=\"Any CPU\"",
+                // Ask msbuild to generate full paths for file names.
+                "/property:GenerateFullPaths=true"
+            ],
+            "group": "build",
+            "presentation": {
+                // Reveal the output only if unrecognized errors occur.
+                "reveal": "silent"
+            },
+            // Use the standard MS compiler pattern to detect errors, warnings and infos
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Clean CLR_DEV9_CORE",
+            "type": "shell",
+            "command": "msbuild",
+            "args": [
+                "CLR_DEV9.sln",
+                "/t:CLR_DEV9_CORE:Clean",
+                // Ask msbuild to generate full paths for file names.
+                "/property:GenerateFullPaths=true"
+            ],
+            "group": "none",
+            "presentation": {
+                // Reveal the output only if unrecognized errors occur.
+                "reveal": "silent"
+            },
+            // Use the standard MS compiler pattern to detect errors, warnings and infos
+            "problemMatcher": "$msCompile"
+        },
+    ]
+}
