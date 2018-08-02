@@ -52,7 +52,7 @@ namespace CLRDEV9
 #if DEBUG
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.PluginInterface);
                 //CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.TCPSession);
-                //Info is defualt
+                //Info is default
                 CLR_PSE_PluginLog.SetFileLevel(SourceLevels.All);
                 //CLR_PSE_PluginLog.SetSourceLogLevel(SourceLevels.All, (int)DEV9LogSources.ATA);
                 //CLR_PSE_PluginLog.SetSourceLogLevel(SourceLevels.All, (int)DEV9LogSources.TCPSession);

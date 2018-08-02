@@ -137,7 +137,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 case TCPState.Closing_ClosedByRemoteThenPS2_WaitingForAck:
                     return CloseByRemoteStage2_ButAfter4(tcp);
                 case TCPState.CloseCompleted:
-                    throw new Exception("Attempt to send data on closed TCP connection");
+                    Log_Error("Attempt to send to a closed TCP connection");
+                    return false;
                 default:
                     throw new Exception("Invalid State");
             }
@@ -372,7 +373,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
             if (tcp.SequenceNumber != expectedSeqNumber - 1)
             {
-                Log_Error("[PS2]Sent Unexpected Sequence Number From Repatet SYN Packet, Got " + tcp.SequenceNumber + " Expected " + (expectedSeqNumber - 1));
+                Log_Error("[PS2]Sent Unexpected Sequence Number From Repeated SYN Packet, Got " + tcp.SequenceNumber + " Expected " + (expectedSeqNumber - 1));
                 return NumCheckResult.Bad;
             }
             return NumCheckResult.OK;
