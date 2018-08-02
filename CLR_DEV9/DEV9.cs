@@ -25,31 +25,44 @@ namespace CLRDEV9
 
         public static string Name { get { return libraryName; } }
 
-        private static void LogInit()
+        private static void LogSetup()
         {
             if (doLog)
             {
                 //some legwork to setup the logger
                 Dictionary<ushort, string> logSources = new Dictionary<ushort, string>();
                 IEnumerable<DEV9LogSources> sources = Enum.GetValues(typeof(DEV9LogSources)).Cast<DEV9LogSources>();
-
                 foreach (DEV9LogSources source in sources)
                 {
                     logSources.Add((ushort)source, source.ToString());
                 }
-
                 CLR_PSE_PluginLog.Open(logFolderPath, "DEV9_CLR.log", "CLR_DEV9", logSources);
+            }
+        }
 
-                CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.Test);
-                CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.Dev9);
-                CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.SPEED);
-                CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.SMAP);
-                CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.ATA);
-                CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.Winsock);
-                CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.NetAdapter);
-                CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.UDPSession);
-                CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.DNSPacket);
-                CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.DNSSession);
+        private static void LogInit()
+        {
+            if (doLog)
+            {
+                CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.Test, (int)DEV9LogSources.Test);
+                CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.DEV9, (int)DEV9LogSources.Dev9);
+                CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.SPEED, (int)DEV9LogSources.SPEED);
+                CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.SMAP, (int)DEV9LogSources.SMAP);
+                CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.ATA, (int)DEV9LogSources.ATA);
+                CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.Winsock, (int)DEV9LogSources.Winsock);
+                CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.NetAdapter, (int)DEV9LogSources.NetAdapter);
+                CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.UDPSession, (int)DEV9LogSources.UDPSession);
+                CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.DNSPacket, (int)DEV9LogSources.DNSPacket);
+                CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.DNSSession, (int)DEV9LogSources.DNSSession);
+                doLog = false;
+            }
+        }
+
+        public static Int32 Init()
+        {
+            try
+            {
+                LogSetup();
 #if DEBUG
                 CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.PluginInterface);
                 //CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.TCPSession);
@@ -60,14 +73,9 @@ namespace CLRDEV9
                 CLR_PSE_PluginLog.SetSourceLogLevel(SourceLevels.All, (int)DEV9LogSources.Dev9);
                 CLR_PSE_PluginLog.SetSourceLogLevel(SourceLevels.All, (int)DEV9LogSources.SMAP);
 #endif
-                doLog = false;
-            }
-        }
 
-        public static Int32 Init()
-        {
-            try
-            {
+                ConfigFile.LoadConf(iniFolderPath, "CLR_DEV9.ini");
+                Log_Info("Config Loaded");
                 LogInit();
                 Log_Info("Init");
                 dev9 = new DEV9.DEV9_State();
@@ -87,8 +95,6 @@ namespace CLRDEV9
                 int ret = 0;
 
                 Log_Info("Open");
-                ConfigFile.LoadConf(iniFolderPath, "CLR_DEV9.ini");
-                Log_Info("Config Loaded");
 
                 if (DEV9Header.config.Hdd.Contains(Path.DirectorySeparatorChar))
                     ret = dev9.Open(DEV9Header.config.Hdd);

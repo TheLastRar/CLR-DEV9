@@ -7,10 +7,24 @@ namespace CLRDEV9.Config
     class ConfigLogging
     {
         [DataMember]
-        public bool Error = true;
+        public bool Test = true;
         [DataMember]
-        public bool Verbose = false;
+        public bool DEV9 = true;
         [DataMember]
-        public bool Information = true;
+        public bool SPEED = true;
+        [DataMember]
+        public bool SMAP = true;
+        [DataMember]
+        public bool ATA = true;
+        [DataMember]
+        public bool Winsock = true;
+        [DataMember]
+        public bool NetAdapter = true;
+        [DataMember]
+        public bool UDPSession = true;
+        [DataMember]
+        public bool DNSPacket = true;
+        [DataMember]
+        public bool DNSSession = true;
     }
 }

@@ -177,11 +177,6 @@ namespace PSE
         {
             if (sources == null)
                 return;
-            if (DEV9Header.config != null)
-                if  ((!DEV9Header.config.EnableLogging.Error && eType == TraceEventType.Error) ||
-                    (!DEV9Header.config.EnableLogging.Verbose && eType == TraceEventType.Verbose) ||
-                    (!DEV9Header.config.EnableLogging.Information && eType == TraceEventType.Information))
-                    return;
             if (sources.ContainsKey(logSource))
             {
                 sources[logSource].TraceEvent(eType, logSource, str);
