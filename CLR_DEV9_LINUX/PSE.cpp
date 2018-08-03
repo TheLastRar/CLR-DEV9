@@ -7,7 +7,6 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <pwd.h>
 
 #include <set>
 #include <vector>
