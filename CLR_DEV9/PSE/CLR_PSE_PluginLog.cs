@@ -174,7 +174,8 @@ namespace PSE
 
         public static void WriteLine(TraceEventType eType, int logSource, string str)
         {
-            if (sources == null) return;
+            if (sources == null)
+                return;
             if (sources.ContainsKey(logSource))
             {
                 sources[logSource].TraceEvent(eType, logSource, str);
@@ -189,6 +190,7 @@ namespace PSE
         {
             Console.Error.WriteLine(e.Message + Environment.NewLine + e.StackTrace);
 #if NETCOREAPP2_0
+            SDL2.MessageBox.Show(SDL2.MessageBoxFlags.Error, "Fatal Error", "Encounted Exception! : " + e.Message + Environment.NewLine + e.StackTrace);
 #else
             System.Windows.Forms.MessageBox.Show("Encounted Exception! : " + e.Message + Environment.NewLine + e.StackTrace);
 #endif

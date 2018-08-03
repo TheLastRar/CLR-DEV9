@@ -303,8 +303,7 @@ void LoadCoreCLR(string pluginPath, string coreClrFolder)
 
 	if (coreClrFolder.length() == 0)
 	{
-		//coreClrFolder = "/home/air/git/ReadyBin.Release";
-		coreClrFolder = "/home/air/git/ReadyBin.Debug";
+		coreClrFolder = PCSX2HomeDir + "/coreclr";
 	}
 
 	string coreClrPath = coreClrFolder + "/" + "libcoreclr.so";

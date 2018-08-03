@@ -23,6 +23,7 @@ extern const uint32_t pluginType;
 extern const uint8_t pluginVerMajor;
 extern const uint8_t pluginVerMinor;
 extern const uint8_t pluginVerPatch;
+extern std::string PCSX2HomeDir;
 
 //helper methods
 extern coreclr_create_delegate_ptr createDelegate;

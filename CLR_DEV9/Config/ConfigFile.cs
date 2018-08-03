@@ -1,4 +1,5 @@
 ﻿using PSE;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -31,6 +32,9 @@ namespace CLRDEV9.Config
         [DataMember]
         public int HddSize;
 
+        [DataMember]
+        public ConfigLogging EnableLogging;   
+
         [OnDeserializing]
         void OnDeserializing(StreamingContext context)
         {
@@ -47,6 +51,7 @@ namespace CLRDEV9.Config
             HddEnable = false;
             DirectConnectionSettings = new ConfigDirectIP();
             SocketConnectionSettings = new ConfigSocketIP();
+            EnableLogging = new ConfigLogging();
             Hosts = new HashSet<ConfigHost>();
             Hosts.Add(new ConfigHost()
             {
@@ -121,7 +126,7 @@ namespace CLRDEV9.Config
             if (File.Exists(filePath))
             {
                 DataContractSerializer ConfSerializer = new DataContractSerializer(typeof(ConfigFile));
-                FileStream Reader = new FileStream(filePath, FileMode.Open);;
+                FileStream Reader = new FileStream(filePath, FileMode.Open);
                 DEV9Header.config = (ConfigFile)ConfSerializer.ReadObject(Reader);
                 Reader.Close();
                 //Update from old config
