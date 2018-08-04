@@ -80,6 +80,70 @@
             },
             // Use the standard MS compiler pattern to detect errors, warnings and infos
             "problemMatcher": "$msCompile"
-        }
+        },
+                {
+            "label": "Build CLR_DEV9_LINUX Debug",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}/CLR_DEV9_LINUX"
+            },
+            "command": "bash",
+            "args": [
+                "./build.sh",
+                "-debug"
+            ],
+            "group": "build",
+            "presentation": {
+                // Reveal the output only if unrecognized errors occur.
+                "reveal": "silent"
+            },
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceRoot}"
+                ],
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            }
+        },
+        {
+            "label": "Build CLR_DEV9_LINUX Release",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}/CLR_DEV9_LINUX"
+            },
+            "command": "bash",
+            "args": [
+                "./build.sh",
+                "-release"
+            ],
+            "group": "build",
+            "presentation": {
+                // Reveal the output only if unrecognized errors occur.
+                "reveal": "silent"
+            },
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceRoot}"
+                ],
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            }
+        },
     ]
 }
