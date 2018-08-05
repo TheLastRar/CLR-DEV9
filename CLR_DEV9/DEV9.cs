@@ -363,8 +363,9 @@ namespace CLRDEV9
         {
             try
             {
-                LogInit();
+                LogSetup();
                 ConfigFile.LoadConf(iniFolderPath, "CLR_DEV9.ini");
+                LogInit();
                 ConfigFile.DoConfig(iniFolderPath, "CLR_DEV9.ini");
                 ConfigFile.SaveConf(iniFolderPath, "CLR_DEV9.ini");
             }
