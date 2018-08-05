@@ -1,25 +1,44 @@
 #!/bin/bash
 
-if [ ! -d "bin" ]; then
-    mkdir bin
+if [ ! -d "obj" ]; then
+    mkdir obj
 fi
-cd bin
+cd obj
+
+buildArch=x86
+
+if [ ! -d $buildArch ]; then
+    mkdir $buildArch
+fi
+cd $buildArch
 
 buildType=Debug
 
 if [ $# -gt 0 ] && [ $1 == "-release" ]; then
-    if [ ! -d "Release" ]; then
-        mkdir Release
-    fi
     buildType=Release
-    cd Release
 else
-    if [ ! -d "Debug" ]; then
-        mkdir Debug
-    fi
-    cd Debug
     buildType=Debug
 fi
 
-cmake -DCMAKE_BUILD_TYPE=$buildType ../..
+if [ ! -d $buildType ]; then
+    mkdir $buildType
+fi
+cd $buildType
+
+cmake -DCMAKE_BUILD_TYPE=$buildType ../../..
 make
+
+cd ../../..
+
+if [ ! -d "bin" ]; then
+    mkdir bin
+fi
+if [ ! -d bin/$buildArch ]; then
+    mkdir bin/$buildArch
+fi
+if [ ! -d bin/$buildArch/$buildType ]; then
+    mkdir bin/$buildArch/$buildType
+fi
+cd $buildType
+
+cp obj/$buildArch/$buildType/libclrdev9.so bin/$buildArch/$buildType/libclrdev9.so
