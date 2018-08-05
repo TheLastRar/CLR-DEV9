@@ -4,10 +4,21 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "Dotnet Restore",
+            "type": "shell",
+            "command": "dotnet",
+            "args": [ "restore" ],
+            "group": "none",
+            "presentation": {
+                "reveal": "silent"
+            },
+        },
+        {
             "label": "Build CLR_DEV9_CORE Debug",
             "type": "shell",
-            "command": "msbuild",
+            "command": "dotnet",
             "args": [
+                "msbuild",
                 "CLR_DEV9.sln",
                 "/t:CLR_DEV9_CORE",
                 "/p:Configuration=\"DEBUG\"",
@@ -21,13 +32,15 @@
                 "reveal": "silent"
             },
             // Use the standard MS compiler pattern to detect errors, warnings and infos
-            "problemMatcher": "$msCompile"
+            "problemMatcher": "$msCompile",
+            "dependsOn":[ "Dotnet Restore" ]
         },
         {
             "label": "Build CLR_DEV9_CORE Release",
             "type": "shell",
-            "command": "msbuild",
+            "command": "dotnet",
             "args": [
+                "msbuild",
                 "CLR_DEV9.sln",
                 "/t:CLR_DEV9_CORE",
                 "/p:Configuration=\"RELEASE\"",
@@ -41,13 +54,15 @@
                 "reveal": "silent"
             },
             // Use the standard MS compiler pattern to detect errors, warnings and infos
-            "problemMatcher": "$msCompile"
+            "problemMatcher": "$msCompile",
+            "dependsOn":[ "Dotnet Restore" ]
         },
         {
             "label": "Clean CLR_DEV9_CORE Debug",
             "type": "shell",
-            "command": "msbuild",
+            "command": "dotnet",
             "args": [
+                "msbuild",
                 "CLR_DEV9.sln",
                 "/t:CLR_DEV9_CORE:Clean",
                 "/p:Configuration=\"DEBUG\"",
@@ -65,8 +80,9 @@
         {
             "label": "Clean CLR_DEV9_CORE Release",
             "type": "shell",
-            "command": "msbuild",
+            "command": "dotnet",
             "args": [
+                "msbuild",
                 "CLR_DEV9.sln",
                 "/t:CLR_DEV9_CORE:Clean",
                 "/p:Configuration=\"RELEASE\"",

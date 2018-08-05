@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if SKIP_DLLEXPORT
+using System;
 using System.Runtime.InteropServices;
 
 //In Place to Test .Net Core Port
@@ -10,3 +11,4 @@ namespace PSE
         public CallingConvention CallingConvention;
     }
 }
+#endif

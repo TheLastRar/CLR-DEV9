@@ -84,7 +84,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             if (!PcapInitIO(parDevice.StartsWith("{") ? @"\Device\NPF_" + parDevice : parDevice))
             {
                 Log_Error("Can't Open Device " + parDevice);
-#if NETCOREAPP2_0
+#if NETCOREAPP
 #else
                 System.Windows.Forms.MessageBox.Show("Can't Open Device " + parDevice);
 #endif

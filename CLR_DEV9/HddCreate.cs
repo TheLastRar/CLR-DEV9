@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
-#if NETCOREAPP2_0
+#if NETCOREAPP
 #else
 using System.Windows.Forms;
 #endif
@@ -10,7 +10,7 @@ using System.Windows.Forms;
 namespace CLRDEV9
 {
     partial class HddCreate
-#if NETCOREAPP2_0
+#if NETCOREAPP
         : IDisposable
 #else
         : Form
@@ -25,7 +25,7 @@ namespace CLRDEV9
 
         public HddCreate()
         {
-#if NETCOREAPP2_0
+#if NETCOREAPP
 #else
             InitializeComponent();
 #endif
@@ -36,7 +36,7 @@ namespace CLRDEV9
 
         }
 
-#if NETCOREAPP2_0
+#if NETCOREAPP
         public void ShowDialog()
         {
             HddCreate_Shown(this, null);
@@ -46,7 +46,7 @@ namespace CLRDEV9
 
         private void HddCreate_Shown(object sender, EventArgs e)
         {
-#if NETCOREAPP2_0
+#if NETCOREAPP
 #else
             pbFile.Maximum = neededSize;
 #endif
@@ -54,7 +54,7 @@ namespace CLRDEV9
 
             fileThread = new Thread(() => WriteImage(filePath, neededSize));
             fileThread.Start();
-#if NETCOREAPP2_0
+#if NETCOREAPP
             fileThread.Join();
 #endif
         }
@@ -108,7 +108,7 @@ namespace CLRDEV9
 
         private void SetFileProgress(int currentSize)
         {
-#if NETCOREAPP2_0
+#if NETCOREAPP
             Log_Info(currentSize + " / " + neededSize + "MiB");
 #else
             if (InvokeRequired)
@@ -128,7 +128,7 @@ namespace CLRDEV9
 
         private void SetError()
         {
-#if NETCOREAPP2_0
+#if NETCOREAPP
             Log_Error("Unable to create file");
             DEV9Header.config.HddEnable = false;
             compleated.Set();
@@ -153,7 +153,7 @@ namespace CLRDEV9
 
         private void SetClose()
         {
-#if NETCOREAPP2_0
+#if NETCOREAPP
 #else
             if (InvokeRequired)
             {
@@ -169,7 +169,7 @@ namespace CLRDEV9
 #endif
         }
 
-#if NETCOREAPP2_0
+#if NETCOREAPP
 #else
         private void HddCreate_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -197,7 +197,7 @@ namespace CLRDEV9
         /// Clean up any resources being used.
         /// </summary>
         /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-#if NETCOREAPP2_0
+#if NETCOREAPP
         public void Dispose()
         {
             compleated.Dispose();

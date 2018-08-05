@@ -125,6 +125,7 @@
     <Compile Include="DEV9\SPEED\SPEED_State.cs" />
     <Compile Include="DEV9\SPEED\SPEED_State_Regs.cs" />
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="PSE\CLR_PSE_DummyExport.cs" />
     <Compile Include="PSE\CLR_PSE_NativeLoggerWin.cs" />
     <Compile Include="Config\ConfigFile.cs" />
     <Compile Include="Config\ConfigDirectIP.cs" />
@@ -240,12 +241,12 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)packages\DllExport.1.6.0\tools\net.r_eg.DllExport.targets" Condition="Exists('$(SolutionDir)packages\DllExport.1.6.0\tools\net.r_eg.DllExport.targets')" Label="8337224c9ad9e356" />
-  <Target Name="DllExportRestorePkg" BeforeTargets="PrepareForBuild">
+  <Target Name="DllExportRestorePkg" BeforeTargets="PrepareForBuild" Condition="!$(DefineConstants.Contains(SKIP_DLLEXPORT))">
     <Warning Condition="!Exists('$(SolutionDir)DllExport.bat')" Text="We can't find 'DllExport.bat' in '$(SolutionDir)' - https://github.com/3F/DllExport" />
     <Exec Condition="('$(DllExportModImported)' != 'true' Or !Exists('$(SolutionDir)packages\DllExport.1.6.0\tools\net.r_eg.DllExport.targets')) And Exists('$(SolutionDir)DllExport.bat')" Command="cd &quot;$(SolutionDir)&quot; &amp; DllExport.bat -action Restore" />
   </Target>
   <Target Name="DllExportRPkgDynamicImport" BeforeTargets="PostBuildEvent" DependsOnTargets="GetFrameworkPaths" Condition="'$(DllExportModImported)' != 'true' And '$(DllExportRPkgDyn)' != 'false'">
-    <MSBuild BuildInParallel="true" UseResultsCache="true" Projects="$(MSBuildProjectFullPath)" Properties="DllExportRPkgDyn=true" Targets="Build" />
+    <MSBuild BuildInParallel="true" UseResultsCache="true" Projects="$(MSBuildProjectFullPath)" Properties="DllExportRPkgDyn=true" Targets="Build" Condition="!$(DefineConstants.Contains(SKIP_DLLEXPORT))" />
   </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

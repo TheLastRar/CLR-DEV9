@@ -189,7 +189,7 @@ namespace PSE
         public static void MsgBoxErrorTrapper(Exception e)
         {
             Console.Error.WriteLine(e.Message + Environment.NewLine + e.StackTrace);
-#if NETCOREAPP2_0
+#if NETCOREAPP
             SDL2.MessageBox.Show(SDL2.MessageBoxFlags.Error, "Fatal Error", "Encounted Exception! : " + e.Message + Environment.NewLine + e.StackTrace);
 #else
             System.Windows.Forms.MessageBox.Show("Encounted Exception! : " + e.Message + Environment.NewLine + e.StackTrace);
