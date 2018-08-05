@@ -73,8 +73,10 @@ Build CoreFX Managed
 
 Create a folder called `coreclr` in the parent of PCSX2's inis directory (Typically `~/.config/PCSX2/`)
 
-copy the contents of `git/coreclr/bin/Product/Linux.x86.<Debug/Release>/` into the folder you just created.
-copy all .so files in `git/corefx/bin/Product/Linux.x86.<Debug/Release>/native/` into the folder you just created.
-copy all .dll files in `git/corefx/bin/runtime/netcoreapp-Linux-<Debug/Release>-x64/` into the folder you just created.
+Copy the contents of `git/coreclr/bin/Product/Linux.x86.<Debug/Release>/` into the folder you just created.
+
+Copy all .so files in `git/corefx/bin/Product/Linux.x86.<Debug/Release>/native/` into the folder you just created.
+
+Copy all .dll files in `git/corefx/bin/runtime/netcoreapp-Linux-<Debug/Release>-x64/` into the folder you just created.
 
 The plugin should now be ready to use.
