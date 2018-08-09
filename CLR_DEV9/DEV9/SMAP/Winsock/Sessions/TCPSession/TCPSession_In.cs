@@ -38,11 +38,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             int maxSize;
             if (sendTimeStamps)
             {
-                maxSize = Math.Min(maxSegmentSize, windowSize);
+                maxSize = Math.Min(maxSegmentSize - 12, windowSize);
             }
             else
             {
-                maxSize = Math.Min(maxSegmentSize - 16, windowSize);
+                maxSize = Math.Min(maxSegmentSize, windowSize);
             }
 
             if (maxSize != 0 &&
@@ -56,7 +56,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 {
                     if (client.Available > maxSize)
                     {
-                        Log_Info("Got a lot of data");
+                        Log_Info("Got a lot of data: " + client.Available + " Using: " + maxSize);
                     }
 
                     buffer = new byte[maxSize];
