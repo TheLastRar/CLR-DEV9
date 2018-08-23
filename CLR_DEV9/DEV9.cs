@@ -21,6 +21,8 @@ namespace CLRDEV9
         private static string logFolderPath = "logs";
         private static string iniFolderPath = "inis";
         private static DEV9.DEV9_State dev9 = null;
+
+        private static readonly bool tryAvoidThrow = true;
         private static bool doLog = true;
 
         public static string Name { get { return libraryName; } }
@@ -82,9 +84,9 @@ namespace CLRDEV9
                 Log_Info("Init ok");
                 return 0;
             }
-            catch (Exception e)
+            catch (Exception e) when (Log_Fatal(e)) { throw; }
+            catch (Exception) when (tryAvoidThrow)
             {
-                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
                 return -1;
             }
         }
@@ -108,9 +110,9 @@ namespace CLRDEV9
 
                 return ret;
             }
-            catch (Exception e)
+            catch (Exception e) when (Log_Fatal(e)) { throw; }
+            catch (Exception) when (tryAvoidThrow)
             {
-                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
                 return -1;
             }
         }
@@ -120,11 +122,7 @@ namespace CLRDEV9
             {
                 dev9.Close();
             }
-            catch (Exception e)
-            {
-                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
-                throw;
-            }
+            catch (Exception e) when (Log_Fatal(e)) { throw; }
         }
         public static void Shutdown()
         {
@@ -140,11 +138,7 @@ namespace CLRDEV9
                 }
                 //Do dispose()? (of what?)
             }
-            catch (Exception e)
-            {
-                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
-                throw;
-            }
+            catch (Exception e) when (Log_Fatal(e)) { throw; }
         }
         public static void SetSettingsDir(string dir)
         {
@@ -152,11 +146,7 @@ namespace CLRDEV9
             {
                 iniFolderPath = dir;
             }
-            catch (Exception e)
-            {
-                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
-                throw;
-            }
+            catch (Exception e) when (Log_Fatal(e)) { throw; }
         }
         public static void SetLogDir(string dir)
         {
@@ -165,11 +155,7 @@ namespace CLRDEV9
                 logFolderPath = dir;
                 //LogInit();
             }
-            catch (Exception e)
-            {
-                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
-                throw;
-            }
+            catch (Exception e) when (Log_Fatal(e)) { throw; }
         }
 
         public static byte DEV9read8(uint addr)
@@ -178,11 +164,7 @@ namespace CLRDEV9
             {
                 return dev9.DEV9read8(addr);
             }
-            catch (Exception e)
-            {
-                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
-                throw;
-            }
+            catch (Exception e) when (Log_Fatal(e)) { throw; }
         }
         public static ushort DEV9read16(uint addr)
         {
@@ -190,11 +172,7 @@ namespace CLRDEV9
             {
                 return dev9.DEV9_Read16(addr);
             }
-            catch (Exception e)
-            {
-                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
-                throw;
-            }
+            catch (Exception e) when (Log_Fatal(e)) { throw; }
         }
         public static uint DEV9read32(uint addr)
         {
@@ -202,11 +180,7 @@ namespace CLRDEV9
             {
                 return dev9.DEV9_Read32(addr);
             }
-            catch (Exception e)
-            {
-                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
-                throw;
-            }
+            catch (Exception e) when (Log_Fatal(e)) { throw; }
         }
 
         public static void DEV9write8(uint addr, byte value)
@@ -215,11 +189,7 @@ namespace CLRDEV9
             {
                 dev9.DEV9_Write8(addr, value);
             }
-            catch (Exception e)
-            {
-                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
-                throw;
-            }
+            catch (Exception e) when (Log_Fatal(e)) { throw; }
         }
         public static void DEV9write16(uint addr, ushort value)
         {
@@ -227,11 +197,7 @@ namespace CLRDEV9
             {
                 dev9.DEV9_Write16(addr, value);
             }
-            catch (Exception e)
-            {
-                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
-                throw;
-            }
+            catch (Exception e) when (Log_Fatal(e)) { throw; }
         }
         public static void DEV9write32(uint addr, uint value)
         {
@@ -239,38 +205,26 @@ namespace CLRDEV9
             {
                 dev9.DEV9_Write32(addr, value);
             }
-            catch (Exception e)
-            {
-                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
-                throw;
-            }
+            catch (Exception e) when (Log_Fatal(e)) { throw; }
         }
 
         unsafe public static void DEV9readDMA8Mem(byte* memPointer, int size)
         {
             try
             {
-                System.IO.UnmanagedMemoryStream pMem = new System.IO.UnmanagedMemoryStream(memPointer, size, size, System.IO.FileAccess.Write);
+                UnmanagedMemoryStream pMem = new UnmanagedMemoryStream(memPointer, size, size, System.IO.FileAccess.Write);
                 dev9.DEV9_ReadDMA8Mem(pMem, size);
             }
-            catch (Exception e)
-            {
-                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
-                throw;
-            }
+            catch (Exception e) when (Log_Fatal(e)) { throw; }
         }
         unsafe public static void DEV9writeDMA8Mem(byte* memPointer, int size)
         {
             try
             {
-                System.IO.UnmanagedMemoryStream pMem = new System.IO.UnmanagedMemoryStream(memPointer, size, size, System.IO.FileAccess.Read);
+                UnmanagedMemoryStream pMem = new UnmanagedMemoryStream(memPointer, size, size, System.IO.FileAccess.Read);
                 dev9.DEV9_WriteDMA8Mem(pMem, size);
             }
-            catch (Exception e)
-            {
-                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
-                throw;
-            }
+            catch (Exception e) when (Log_Fatal(e)) { throw; }
         }
 
         public static void DEV9async(uint cycles)
@@ -279,11 +233,7 @@ namespace CLRDEV9
             {
                 dev9.DEV9_Async(cycles);
             }
-            catch (Exception e)
-            {
-                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
-                throw;
-            }
+            catch (Exception e) when (Log_Fatal(e)) { throw; }
         }
 
         public static void DEV9irqCallback(CLR_CyclesCallback callback)
@@ -292,11 +242,7 @@ namespace CLRDEV9
             {
                 DEV9Header.DEV9irq = callback;
             }
-            catch (Exception e)
-            {
-                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
-                throw;
-            }
+            catch (Exception e) when (Log_Fatal(e)) { throw; }
         }
         static GCHandle irqHandle;
         public static int _DEV9irqHandler()
@@ -305,11 +251,7 @@ namespace CLRDEV9
             {
                 return dev9._DEV9irqHandler();
             }
-            catch (Exception e)
-            {
-                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
-                throw;
-            }
+            catch (Exception e) when (Log_Fatal(e)) { throw; }
         }
         public static CLR_IRQHandler DEV9irqHandler()
         {
@@ -325,11 +267,7 @@ namespace CLRDEV9
                 irqHandle = GCHandle.Alloc(fp); //prevent GC
                 return fp;
             }
-            catch (Exception e)
-            {
-                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
-                throw;
-            }
+            catch (Exception e) when (Log_Fatal(e)) { throw; }
         }
 
         //freeze
@@ -353,9 +291,9 @@ namespace CLRDEV9
                     return -1;
                 }
             }
-            catch (Exception e)
+            catch (Exception e) when (Log_Fatal(e)) { throw; }
+            catch (Exception) when (tryAvoidThrow)
             {
-                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
                 return 1;
             }
         }
@@ -369,13 +307,15 @@ namespace CLRDEV9
                 ConfigFile.DoConfig(iniFolderPath, "CLR_DEV9.ini");
                 ConfigFile.SaveConf(iniFolderPath, "CLR_DEV9.ini");
             }
-            catch (Exception e)
-            {
-                CLR_PSE_PluginLog.MsgBoxErrorTrapper(e);
-                throw;
-            }
+            catch (Exception e) when (Log_Fatal(e)) { throw; }
         }
 
+        //Always return false to avoid catching exception
+        private static bool Log_Fatal(Exception ex)
+        {
+            CLR_PSE_PluginLog.MsgBoxErrorTrapper(ex);
+            return false;
+        }
         private static void Log_Error(string str)
         {
             CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.PluginInterface, str);
