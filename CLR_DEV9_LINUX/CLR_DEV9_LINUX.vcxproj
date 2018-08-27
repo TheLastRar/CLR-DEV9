@@ -92,7 +92,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
     <TargetExt>.so</TargetExt>
-    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include;$(ProjectDir)external\usr\include\mono-2.0;$(ProjectDir)external\usr\include\x86_64-linux-gnu</IncludePath>
+    <IncludePath>$(IncludePath);$(ISenseIncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <TargetExt>.so</TargetExt>
@@ -120,11 +120,11 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <TargetExt>.so</TargetExt>
-    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include;$(ProjectDir)external\usr\include\mono-2.0;$(ProjectDir)external\usr\include\x86_64-linux-gnu</IncludePath>
+    <IncludePath>$(IncludePath);$(ISenseIncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x86'">
     <TargetExt>.so</TargetExt>
-    <IncludePath>$(IncludePath);$(ISenseIncludePath);$(ProjectDir)external\usr\include;$(ProjectDir)external\usr\include\mono-2.0;$(ProjectDir)external\usr\include\x86_64-linux-gnu</IncludePath>
+    <IncludePath>$(IncludePath);$(ISenseIncludePath)</IncludePath>
   </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="DEV9.cpp" />

@@ -38,11 +38,26 @@ ThunkGetLibType managedGetLibType;
 typedef uint32_t(*ThunkGetLibVersion2)(uint32_t type, MonoException** ex);
 ThunkGetLibVersion2 managedGetLibVersion2;
 
-static char* pluginNamePtr = NULL;
+string pluginNamePtr = "";
+
+//Mono Init config
+char* pluginData;
+size_t pluginLength;
+const char* configData;
+string monoUsrLibFolder = "";
+string monoEtcFolder = "";
+//Mono Init config
 
 EXPORT_C_(const char*)
 PS2EgetLibName(void)
 {
+	bool preInit = false;
+	if (pluginDomain == NULL)
+	{
+		preInit = true;
+		LoadCoreCLR();
+	}
+	//
 	mono_thread_attach(mono_get_root_domain());
 	mono_domain_set(pluginDomain, false);
 	mono_thread_attach(mono_domain_get());
@@ -52,26 +67,34 @@ PS2EgetLibName(void)
 
 	mono_domain_set(mono_get_root_domain(), false);
 
-	if (pluginNamePtr != NULL)
-	{
-		mono_free(pluginNamePtr);
-		pluginNamePtr = NULL;
-	}
-
 	if (ex)
 	{
 		mono_print_unhandled_exception((MonoObject*)ex);
 		throw;
 	}
 
-	pluginNamePtr = mono_string_to_utf8(ret);
+	char* pNameChar = mono_string_to_utf8(ret);
+	pluginNamePtr = pNameChar;
+	mono_free(pNameChar);
 
-	return pluginNamePtr;
+	if (preInit)
+	{
+		CloseCoreCLR();
+	}
+
+	return pluginNamePtr.c_str();
 }
 
 EXPORT_C_(uint32_t)
 PS2EgetLibType(void)
 {
+	bool preInit = false;
+	if (pluginDomain == NULL)
+	{
+		preInit = true;
+		LoadCoreCLR();
+	}
+	//
 	mono_thread_attach(mono_get_root_domain());
 	mono_domain_set(pluginDomain, false);
 	mono_thread_attach(mono_domain_get());
@@ -87,12 +110,24 @@ PS2EgetLibType(void)
 		throw;
 	}
 
+	if (preInit)
+	{
+		CloseCoreCLR();
+	}
+
 	return ret;
 }
 
 EXPORT_C_(uint32_t)
 PS2EgetLibVersion2(uint32_t type)
 {
+	bool preInit = false;
+	if (pluginDomain == NULL)
+	{
+		preInit = true;
+		LoadCoreCLR();
+	}
+
 	mono_domain_set(pluginDomain, false);
 
 	MonoException* ex;
@@ -106,10 +141,30 @@ PS2EgetLibVersion2(uint32_t type)
 		throw;
 	}
 
+	if (preInit)
+	{
+		CloseCoreCLR();
+	}
+
 	return ret;
 }
 
-void LoadCoreCLR(char* pluginData, size_t pluginLength, const char* configData, string monoUsrLibFolder, string monoEtcFolder)
+void CoreCLRConfig(char* parPluginData, size_t parPluginLength, const char* parConfigData, string parMonoUsrLibFolder, string parMonoEtcFolder)
+{
+	pluginData = parPluginData;
+	pluginLength = parPluginLength;
+	configData = parConfigData;
+	if (parMonoUsrLibFolder.length() != 0)
+	{
+		monoUsrLibFolder = parMonoUsrLibFolder;
+	}
+	if (parMonoEtcFolder.length() != 0)
+	{
+		monoEtcFolder = parMonoEtcFolder;
+	}
+}
+
+void LoadCoreCLR()
 {
 	PSELog.WriteLn("Init Mono Runtime");
 
@@ -272,15 +327,9 @@ void LoadCoreCLR(char* pluginData, size_t pluginLength, const char* configData, 
 
 void CloseCoreCLR()
 {
+	PSELog.WriteLn("Close Mono Runtime");
 	if (pluginDomain != NULL)
 	{
-		if (pluginNamePtr != NULL)
-		{
-
-			mono_free(pluginNamePtr);
-			pluginNamePtr = NULL;
-		}
-
 		mono_domain_set(mono_get_root_domain(), false);
 		mono_domain_unload(pluginDomain);
 		pluginDomain = NULL;

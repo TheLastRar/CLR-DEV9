@@ -12,6 +12,9 @@ MonoClass *pluginClassDEV9 = NULL;
 
 int32_t initRet = -1;
 
+string configDir;
+string logDir;
+
 int32_t LoadAssembly()
 {
 	//PSELog.WriteLn("Init CLR");
@@ -21,7 +24,7 @@ int32_t LoadAssembly()
 		return 0;
 	}
 
-	LoadCoreCLR(&_binary_CLR_DEV9_dll_start, (&_binary_CLR_DEV9_dll_end - &_binary_CLR_DEV9_dll_start), config, "", "");
+	LoadCoreCLR();
 
 	if (pluginImage == NULL)
 	{
@@ -114,28 +117,62 @@ __attribute__((constructor))
 void initialize_plugin()
 {
 	//PSELog.WriteLn("Init Plugin");
-	initRet = LoadAssembly();
+	CoreCLRConfig(&_binary_CLR_DEV9_dll_start, (&_binary_CLR_DEV9_dll_end - &_binary_CLR_DEV9_dll_start), config, "", "");
+	//initRet = LoadAssembly();
 }
 
-__attribute__((destructor(101)))
+__attribute__((destructor))
 void destroy_plugin()
+{
+	//mono_thread_attach(mono_get_root_domain());
+	//mono_domain_set(pluginDomain, false);
+	//mono_thread_attach(mono_domain_get());
+	//CloseCoreCLR();
+}
+
+void SetSetDir()
 {
 	mono_thread_attach(mono_get_root_domain());
 	mono_domain_set(pluginDomain, false);
 	mono_thread_attach(mono_domain_get());
 
-	CloseCoreCLR();
+	MonoException* ex;
+	managedSetSetDir(configDir.c_str(), &ex);
+
+	mono_domain_set(mono_get_root_domain(), false);
+
+	if (ex)
+	{
+		mono_print_unhandled_exception((MonoObject*)ex);
+		throw;
+	}
 }
 
-EXPORT_C_(void)
-/*void*/ destroy_plugin_test()
+void SetLogDir()
 {
-	//CloseCoreCLR();
+	mono_thread_attach(mono_get_root_domain());
+	mono_domain_set(pluginDomain, false);
+	mono_thread_attach(mono_domain_get());
+
+	MonoException* ex;
+	managedSetLogDir(logDir.c_str(), &ex);
+
+	mono_domain_set(mono_get_root_domain(), false);
+
+	if (ex)
+	{
+		mono_print_unhandled_exception((MonoObject*)ex);
+		throw;
+	}
 }
 
 EXPORT_C_(int32_t)
 DEV9init(void)
 {
+	initRet = LoadAssembly();
+	SetLogDir();
+	SetSetDir();
+
 	int32_t ret = initRet;
 
 	if (ret == 0)
@@ -146,7 +183,6 @@ DEV9init(void)
 
 		MonoException* ex;
 		ret = managedInit(&ex);
-
 
 		if (ex)
 		{
@@ -215,43 +251,28 @@ DEV9shutdown()
 		mono_print_unhandled_exception((MonoObject*)ex);
 		throw;
 	}
+
+	CloseCoreCLR();
+	initRet = -1;
 }
 
 EXPORT_C_(void)
 DEV9setSettingsDir(const char* dir)
 {
-	mono_thread_attach(mono_get_root_domain());
-	mono_domain_set(pluginDomain, false);
-	mono_thread_attach(mono_domain_get());
-
-	MonoException* ex;
-	managedSetSetDir(dir, &ex);
-
-	mono_domain_set(mono_get_root_domain(), false);
-
-	if (ex)
+	configDir = dir;
+	if (pluginImage != NULL)
 	{
-		mono_print_unhandled_exception((MonoObject*)ex);
-		throw;
+		SetSetDir();
 	}
 }
 
 EXPORT_C_(void)
 DEV9setLogDir(const char* dir)
 {
-	mono_thread_attach(mono_get_root_domain());
-	mono_domain_set(pluginDomain, false);
-	mono_thread_attach(mono_domain_get());
-
-	MonoException* ex;
-	managedSetLogDir(dir, &ex);
-
-	mono_domain_set(mono_get_root_domain(), false);
-
-	if (ex)
+	logDir = dir;
+	if (pluginImage != NULL)
 	{
-		mono_print_unhandled_exception((MonoObject*)ex);
-		throw;
+		SetLogDir();
 	}
 }
 
@@ -497,10 +518,18 @@ DEV9test()
 	return 0;
 }
 
-
 EXPORT_C_(void)
 DEV9configure()
 {
+	bool preInit = false;
+	if (pluginImage == NULL)
+	{
+		preInit = true;
+		initRet = LoadAssembly();
+		SetLogDir();
+		SetSetDir();
+	}
+	//
 	if (initRet != 0)
 		throw;
 
@@ -517,5 +546,11 @@ DEV9configure()
 	{
 		mono_print_unhandled_exception((MonoObject*)ex);
 		throw;
+	}
+
+	if (preInit)
+	{
+		initRet = -1;
+		CloseCoreCLR();
 	}
 }
