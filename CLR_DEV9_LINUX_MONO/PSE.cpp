@@ -8,6 +8,9 @@
 //#include <sys/types.h>
 //#include <sys/stat.h>
 
+//#define _GNU_SOURCE
+#include <link.h>
+
 using namespace std;
 
 //Public
@@ -43,7 +46,7 @@ string pluginNamePtr = "";
 //Mono Init config
 char* pluginData;
 size_t pluginLength;
-const char* configData;
+string configData;
 string monoUsrLibFolder = "";
 string monoEtcFolder = "";
 //Mono Init config
@@ -149,7 +152,36 @@ PS2EgetLibVersion2(uint32_t type)
 	return ret;
 }
 
-void CoreCLRConfig(char* parPluginData, size_t parPluginLength, const char* parConfigData, string parMonoUsrLibFolder, string parMonoEtcFolder)
+int VisitModule(struct dl_phdr_info* info, size_t size, void* data) 
+{
+	const char** path = (const char**)data;
+
+	const char* name = info->dlpi_name;
+
+	uintptr_t base_address = info->dlpi_addr;
+	uintptr_t total_size = 0;
+	for (int i = 0; i < info->dlpi_phnum; i++) {
+		total_size += info->dlpi_phdr[i].p_memsz;
+	}
+
+	if ((base_address < (uintptr_t)VisitModule) & ((uintptr_t)VisitModule < base_address + total_size))
+	{
+		PSELog.WriteLn("Found Module");
+		PSELog.WriteLn(name);
+		*path = name;
+		return 1;
+	}
+
+	return 0;
+}
+
+const char* GetModulePath() {
+	const char* path = nullptr;
+	dl_iterate_phdr(VisitModule, (void*)&path);
+	return path;
+}
+
+void CoreCLRConfig(char* parPluginData, size_t parPluginLength, string parConfigData, string parMonoUsrLibFolder, string parMonoEtcFolder)
 {
 	pluginData = parPluginData;
 	pluginLength = parPluginLength;
@@ -178,20 +210,20 @@ void LoadCoreCLR()
 	if (mono_get_root_domain() == NULL)
 	{
 		//Inc Reference
-		dlopen("libmono-2.0.so", RTLD_NOW | RTLD_LOCAL);
+		dlopen("libmonosgen-2.0.so", RTLD_NOW | RTLD_LOCAL);
 
 		//LoadInitialFD();
 
 		//PSELog.WriteLn("Set Dirs");
 
-		if (monoUsrLibFolder.length() == 0)
-		{
-			monoUsrLibFolder = "/usr/lib/";
-		}
-		if (monoEtcFolder.length() == 0)
-		{
-			monoEtcFolder = "/etc/";
-		}
+		//if (monoUsrLibFolder.length() == 0)
+		//{
+		//	monoUsrLibFolder = "/usr/lib/";
+		//}
+		//if (monoEtcFolder.length() == 0)
+		//{
+		//	monoEtcFolder = "/etc/";
+		//}
 
 		//mono_set_dirs(monoUsrLibFolder.c_str(), monoEtcFolder.c_str());
 		mono_config_parse(NULL);
@@ -230,7 +262,7 @@ void LoadCoreCLR()
 		//PSELog.WriteLn("PCSX2 Path is %s", pcsx2Path);
 
 		char* argv[1];
-		argv[0] = pcsx2Path;//(char *)pluginPath.c_str();
+		argv[0] = pcsx2Path;
 
 		int32_t ret = mono_runtime_set_main_args(1, argv);
 		mono_domain_set_config(rootDomain, ".", "");
@@ -253,12 +285,32 @@ void LoadCoreCLR()
 
 	if (!mono_domain_set(pluginDomain, false))
 	{
-		printf("Set Domain Failed\n");
+		PSELog.WriteLn("Set Domain Failed\n");
 		throw;
 	}
 
-	mono_config_parse_memory(configData);
+	mono_config_parse_memory(configData.c_str());
 
+	//Remap native libs
+	string x86LocalLibPath = GetModulePath();
+
+	x86LocalLibPath = x86LocalLibPath.substr(0, x86LocalLibPath.find_last_of("/")) + "/mono_i386/usr/lib/";
+
+	string gdiPath = x86LocalLibPath + "libgdiplus.so";
+	string mphPath = x86LocalLibPath + "libMonoPosixHelper.so";
+
+	if (access(gdiPath.c_str(), F_OK) != -1)
+	{
+		//PSELog.WriteLn("Redirect Native Mono Libs");
+		mono_dllmap_insert(nullptr, "gdiplus",     nullptr, gdiPath.c_str(), nullptr);
+		mono_dllmap_insert(nullptr, "gdiplus.dll", nullptr, gdiPath.c_str(), nullptr);
+		mono_dllmap_insert(nullptr, "gdi32",       nullptr, gdiPath.c_str(), nullptr);
+		mono_dllmap_insert(nullptr, "gdi32.dll",   nullptr, gdiPath.c_str(), nullptr);
+
+		mono_dllmap_insert(nullptr, "MonoPosixHelper", nullptr, mphPath.c_str(), nullptr);
+	}
+
+	//Load Plugin
 	//PSELog.WriteLn("Load Image");
 	MonoImageOpenStatus status;
 	pluginImage = mono_image_open_from_data_full(pluginData, pluginLength, true, &status, false);
@@ -307,7 +359,7 @@ void LoadCoreCLR()
 	meth = mono_class_get_method_from_name(pseClass, "PS2EgetLibVersion2", 1);
 	managedGetLibVersion2 = (ThunkGetLibVersion2)mono_method_get_unmanaged_thunk(meth);
 
-	//PSELog.WriteLn("Get helpers");
+	PSELog.WriteLn("Get helpers");
 
 	meth = mono_class_get_method_from_name(pseClass_mono, "CyclesCallbackFromFunctionPointer", 1);
 	CyclesCallbackFromFunctionPointer = (ThunkGetDelegate)mono_method_get_unmanaged_thunk(meth);
@@ -322,7 +374,7 @@ void LoadCoreCLR()
 		return;
 	}
 
-	//PSELog.WriteLn("Init CLR Done");
+	PSELog.WriteLn("Init CLR Done");
 }
 
 void CloseCoreCLR()

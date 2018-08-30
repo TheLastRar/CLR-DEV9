@@ -8,7 +8,8 @@
 extern char _binary_CLR_DEV9_dll_start;
 extern char _binary_CLR_DEV9_dll_end;
 
-//Use void mono_dllmap_insert (MonoImage *assembly, const char *dll, const char *func, const char *tdll, const char *tfunc) instead?
+//Is a char* because strings will init
+//after constuctors are called
 const char* config = " \
 <configuration> \
 	<dllmap dll=\"wpcap\" target=\"libpcap.so.0.8\" /> \
