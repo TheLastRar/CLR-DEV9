@@ -359,7 +359,7 @@ void LoadCoreCLR()
 	meth = mono_class_get_method_from_name(pseClass, "PS2EgetLibVersion2", 1);
 	managedGetLibVersion2 = (ThunkGetLibVersion2)mono_method_get_unmanaged_thunk(meth);
 
-	PSELog.WriteLn("Get helpers");
+	//PSELog.WriteLn("Get helpers");
 
 	meth = mono_class_get_method_from_name(pseClass_mono, "CyclesCallbackFromFunctionPointer", 1);
 	CyclesCallbackFromFunctionPointer = (ThunkGetDelegate)mono_method_get_unmanaged_thunk(meth);
@@ -374,7 +374,7 @@ void LoadCoreCLR()
 		return;
 	}
 
-	PSELog.WriteLn("Init CLR Done");
+	//PSELog.WriteLn("Init CLR Done");
 }
 
 void CloseCoreCLR()
