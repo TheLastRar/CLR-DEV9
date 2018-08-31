@@ -85,7 +85,15 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 if (recived == 0)
                 {
                     //Server Closed Socket
-                    client.Shutdown(SocketShutdown.Receive);
+                    //This probable isn't needed, but only mono
+                    //has issues with it, probable will be fixed
+                    //once mono imports the CoreFX version of
+                    //System.Net.Sockets
+                    try
+                    {
+                        client.Shutdown(SocketShutdown.Receive);
+                    }
+                    catch { }
 
                     switch (state)
                     {
