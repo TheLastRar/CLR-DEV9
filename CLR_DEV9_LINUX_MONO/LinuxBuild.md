@@ -1,7 +1,5 @@
 ## Building CLR_DEV9 on Linux (Mono)
 
-The following instructions assume that CLR-DEV9
-
 ## Plugin Files
 
 There are VSCode tasks that automate building the plugins, however if you don't want to install VSCode you can refer to instructions for building without VSCode.
