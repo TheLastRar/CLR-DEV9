@@ -64,10 +64,10 @@ Create a rootfs for CoreFX
 `sudo ./cross/build-rootfs.sh x86`
 
 Build CoreFX Native
-./build-native.sh -debug -buildArch=x86 -- cross
+`./build-native.sh -debug -buildArch=x86 -- cross`
 
 Build CoreFX Managed
-./build-managed.sh -BuildTests=false
+`./build-managed.sh -BuildTests=false`
 
 ### Combine CoreCLR & CoreFX
 
