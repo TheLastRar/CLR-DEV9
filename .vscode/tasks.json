@@ -97,7 +97,85 @@
             // Use the standard MS compiler pattern to detect errors, warnings and infos
             "problemMatcher": "$msCompile"
         },
-                {
+        {
+            "label": "Build CLR_DEV9 Debug",
+            "type": "shell",
+            "command": "msbuild",
+            "args": [
+                "CLR_DEV9.sln",
+                "/t:CLR_DEV9_CORE",
+                "/p:Configuration=\"DEBUG\"",
+                "/p:Platform=\"Any CPU\"",
+                // Ask msbuild to generate full paths for file names.
+                "/property:GenerateFullPaths=true"
+            ],
+            "group": "build",
+            "presentation": {
+                // Reveal the output only if unrecognized errors occur.
+                "reveal": "silent"
+            },
+            // Use the standard MS compiler pattern to detect errors, warnings and infos
+            "problemMatcher": "$msCompile",
+        },
+        {
+            "label": "Build CLR_DEV9 Release",
+            "type": "shell",
+            "command": "msbuild",
+            "args": [
+                "CLR_DEV9.sln",
+                "/t:CLR_DEV9_CORE",
+                "/p:Configuration=\"RELEASE\"",
+                "/p:Platform=\"Any CPU\"",
+                // Ask msbuild to generate full paths for file names.
+                "/property:GenerateFullPaths=true"
+            ],
+            "group": "build",
+            "presentation": {
+                // Reveal the output only if unrecognized errors occur.
+                "reveal": "silent"
+            },
+            // Use the standard MS compiler pattern to detect errors, warnings and infos
+            "problemMatcher": "$msCompile",
+        },
+        {
+            "label": "Clean CLR_DEV9 Debug",
+            "type": "shell",
+            "command": "msbuild",
+            "args": [
+                "CLR_DEV9.sln",
+                "/t:CLR_DEV9_CORE:Clean",
+                "/p:Configuration=\"DEBUG\"",
+                // Ask msbuild to generate full paths for file names.
+                "/property:GenerateFullPaths=true"
+            ],
+            "group": "none",
+            "presentation": {
+                // Reveal the output only if unrecognized errors occur.
+                "reveal": "silent"
+            },
+            // Use the standard MS compiler pattern to detect errors, warnings and infos
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Clean CLR_DEV9_CORE Release",
+            "type": "shell",
+            "command": "msbuild",
+            "args": [
+                "CLR_DEV9.sln",
+                "/t:CLR_DEV9_CORE:Clean",
+                "/p:Configuration=\"RELEASE\"",
+                // Ask msbuild to generate full paths for file names.
+                "/property:GenerateFullPaths=true"
+            ],
+            "group": "none",
+            "presentation": {
+                // Reveal the output only if unrecognized errors occur.
+                "reveal": "silent"
+            },
+            // Use the standard MS compiler pattern to detect errors, warnings and infos
+            "problemMatcher": "$msCompile"
+        },
+        {
             "label": "Build CLR_DEV9_LINUX Debug",
             "type": "shell",
             "options": {
@@ -160,6 +238,72 @@
                     "message": 5
                 }
             }
+        },
+        {
+            "label": "Build CLR_DEV9_LINUX_MONO Debug",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}/CLR_DEV9_LINUX_MONO"
+            },
+            "command": "bash",
+            "args": [
+                "./build.sh",
+                "-debug"
+            ],
+            "group": "build",
+            "presentation": {
+                // Reveal the output only if unrecognized errors occur.
+                "reveal": "silent"
+            },
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceRoot}"
+                ],
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            },
+            "dependsOn":[ "Build CLR_DEV9 Debug" ]
+        },
+        {
+            "label": "Build CLR_DEV9_LINUX_MONO Release",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}/CLR_DEV9_LINUX_MONO"
+            },
+            "command": "bash",
+            "args": [
+                "./build.sh",
+                "-release"
+            ],
+            "group": "build",
+            "presentation": {
+                // Reveal the output only if unrecognized errors occur.
+                "reveal": "silent"
+            },
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceRoot}"
+                ],
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            },
+            "dependsOn":[ "Build CLR_DEV9 Release" ]
         },
     ]
 }

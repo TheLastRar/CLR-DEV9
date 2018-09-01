@@ -166,8 +166,8 @@ int VisitModule(struct dl_phdr_info* info, size_t size, void* data)
 
 	if ((base_address < (uintptr_t)VisitModule) & ((uintptr_t)VisitModule < base_address + total_size))
 	{
-		PSELog.WriteLn("Found Module");
-		PSELog.WriteLn(name);
+		//PSELog.WriteLn("Found Self");
+		//PSELog.WriteLn(name);
 		*path = name;
 		return 1;
 	}

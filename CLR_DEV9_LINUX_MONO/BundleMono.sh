@@ -65,5 +65,5 @@ rm "data.tar.xz"
 # Cleanup
 RemoveAllPackage $LIBMONOSGEN $LIBMGDIPLUS $LIBMONOCOMMON
 
-rm "$PLUGIN_MONO/etc" -r
-rm "$PLUGIN_MONO/usr/share" -r
+rm "etc" -r
+rm "usr/share" -r
