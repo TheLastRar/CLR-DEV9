@@ -1,5 +1,5 @@
 #!/bin/bash
-
+ 
 RemovePackage() 
 { 
 	if [ "$1" != "" ]; then

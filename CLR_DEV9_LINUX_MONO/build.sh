@@ -1,5 +1,5 @@
 #!/bin/bash
-
+ 
 ./BundleMono.sh ./
 
 buildType=Debug
