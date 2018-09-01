@@ -103,9 +103,10 @@
             "command": "msbuild",
             "args": [
                 "CLR_DEV9.sln",
-                "/t:CLR_DEV9_CORE",
+                "/t:CLR_DEV9",
                 "/p:Configuration=\"DEBUG\"",
                 "/p:Platform=\"Any CPU\"",
+                "/p:DefineConstants=SKIP_DLLEXPORT",
                 // Ask msbuild to generate full paths for file names.
                 "/property:GenerateFullPaths=true"
             ],
@@ -126,6 +127,7 @@
                 "/t:CLR_DEV9_CORE",
                 "/p:Configuration=\"RELEASE\"",
                 "/p:Platform=\"Any CPU\"",
+                "/p:DefineConstants=SKIP_DLLEXPORT",
                 // Ask msbuild to generate full paths for file names.
                 "/property:GenerateFullPaths=true"
             ],
@@ -143,7 +145,7 @@
             "command": "msbuild",
             "args": [
                 "CLR_DEV9.sln",
-                "/t:CLR_DEV9_CORE:Clean",
+                "/t:CLR_DEV9:Clean",
                 "/p:Configuration=\"DEBUG\"",
                 // Ask msbuild to generate full paths for file names.
                 "/property:GenerateFullPaths=true"
@@ -157,12 +159,12 @@
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "Clean CLR_DEV9_CORE Release",
+            "label": "Clean CLR_DEV9 Release",
             "type": "shell",
             "command": "msbuild",
             "args": [
                 "CLR_DEV9.sln",
-                "/t:CLR_DEV9_CORE:Clean",
+                "/t:CLR_DEV9:Clean",
                 "/p:Configuration=\"RELEASE\"",
                 // Ask msbuild to generate full paths for file names.
                 "/property:GenerateFullPaths=true"
