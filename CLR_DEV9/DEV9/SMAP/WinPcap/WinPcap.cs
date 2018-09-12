@@ -207,7 +207,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             {
                 byte[] host_mac_pkt = new byte[pkt.size];
                 Array.Copy(pkt.buffer, host_mac_pkt, pkt.size);
-                //here we send a boadcast with both host_mac and ps2_mac
+                //here we send a packet to both host_mac and broadcast_mac
                 //is destination address broadcast?
                 if (Utils.memcmp(GetDestMAC_Eth(host_mac_pkt), 0, broadcastMAC, 0, 6))
                 {
