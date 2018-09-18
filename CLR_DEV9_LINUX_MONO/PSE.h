@@ -57,6 +57,6 @@ struct PluginLog
 };
 extern PluginLog PSELog;
 
-void CoreCLRConfig(char* pluginData, size_t pluginLength, std::string configData, std::string monoUsrLibFolder, std::string monoEtcFolder);
+void CoreCLRConfig(char* pluginData, size_t pluginLength, const char* configData, std::string monoUsrLibFolder, std::string monoEtcFolder);
 void LoadCoreCLR();
 void CloseCoreCLR();

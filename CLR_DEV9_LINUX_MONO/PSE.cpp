@@ -44,9 +44,9 @@ ThunkGetLibVersion2 managedGetLibVersion2;
 string pluginNamePtr = "";
 
 //Mono Init config
-char* pluginData;
+const char* pluginData;
 size_t pluginLength;
-string configData;
+const char* configData;
 string monoUsrLibFolder = "";
 string monoEtcFolder = "";
 //Mono Init config
@@ -181,7 +181,7 @@ const char* GetModulePath() {
 	return path;
 }
 
-void CoreCLRConfig(char* parPluginData, size_t parPluginLength, string parConfigData, string parMonoUsrLibFolder, string parMonoEtcFolder)
+void CoreCLRConfig(char* parPluginData, size_t parPluginLength, const char* parConfigData, string parMonoUsrLibFolder, string parMonoEtcFolder)
 {
 	pluginData = parPluginData;
 	pluginLength = parPluginLength;
@@ -289,7 +289,7 @@ void LoadCoreCLR()
 		throw;
 	}
 
-	mono_config_parse_memory(configData.c_str());
+	mono_config_parse_memory(configData);
 
 	//Remap native libs
 	string x86LocalLibPath = GetModulePath();
@@ -313,7 +313,7 @@ void LoadCoreCLR()
 	//Load Plugin
 	//PSELog.WriteLn("Load Image");
 	MonoImageOpenStatus status;
-	pluginImage = mono_image_open_from_data_full(pluginData, pluginLength, true, &status, false);
+	pluginImage = mono_image_open_from_data_full((char*)pluginData, pluginLength, true, &status, false);
 
 	if (!pluginImage | (status != MONO_IMAGE_OK))
 	{

@@ -10,10 +10,10 @@ extern char _binary_CLR_DEV9_dll_end;
 
 //Is a char* because strings will init
 //after constuctors are called
-const char* config = " \
-<configuration> \
-	<dllmap dll=\"wpcap\" target=\"libpcap.so.0.8\" /> \
-<configuration/> \
+const char* config = "\
+<configuration> \n\
+	<dllmap dll=\"wpcap\" target=\"libpcap.so.0.8\" /> \n\
+<configuration/> \n\
 ";
 
 typedef uint32_t(*ThunkInit)(MonoException** ex);
