@@ -124,7 +124,7 @@
             "command": "msbuild",
             "args": [
                 "CLR_DEV9.sln",
-                "/t:CLR_DEV9_CORE",
+                "/t:CLR_DEV9",
                 "/p:Configuration=\"RELEASE\"",
                 "/p:Platform=\"Any CPU\"",
                 "/p:DefineConstants=SKIP_DLLEXPORT",
