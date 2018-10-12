@@ -12,7 +12,7 @@ add_library(${PROJECT_NAME} SHARED
 
 set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "-m32" LINK_FLAGS "-m32 -Wl,-rpath,'$'ORIGIN/mono_i386/usr/lib")
 
-find_library(LIB_MONO NAMES monosgen-2.0 PATHS "/home/air/git/CLR-DEV9/CLR_DEV9_LINUX_MONO/mono_i386/usr/lib" NO_DEFAULT_PATH)
+find_library(LIB_MONO NAMES monosgen-2.0 PATHS "${CMAKE_CURRENT_SOURCE_DIR}/mono_i386/usr/lib" NO_DEFAULT_PATH)
 
 target_link_libraries(${PROJECT_NAME}
 			${LIB_MONO}
