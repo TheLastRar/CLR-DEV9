@@ -21,9 +21,10 @@ cp ../CLR_DEV9/bin/$buildType/CLR_DEV9.dll CLR_DEV9.dll
 if [ ! -d "obj" ]; then
     mkdir obj
 fi
-cd obj
 
-objcopy --input binary --output elf32-i386 --binary-architecture i386 ../CLR_DEV9.dll CLR_DEV9.o
+objcopy --input binary --output elf32-i386 --binary-architecture i386 CLR_DEV9.dll obj/CLR_DEV9.o
+
+cd obj
 
 if [ ! -d $buildArch ]; then
     mkdir $buildArch
