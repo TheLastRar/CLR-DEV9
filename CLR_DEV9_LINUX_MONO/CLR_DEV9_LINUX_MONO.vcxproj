@@ -227,7 +227,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <Link>
       <AdditionalOptions>-m32 -Wl,-rpath,"$"ORIGIN/mono_i386/usr/lib</AdditionalOptions>
-      <AdditionalLibraryDirectories>$(RemoteProjectDir)/mono_i386/usr/lib;/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>mono_i386/usr/lib;/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LibraryDependencies>monosgen-2.0;m;rt;dl;pthread</LibraryDependencies>
       <AdditionalDependencies>$(RemoteProjectDir)/obj/CLR_DEV9.o;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
@@ -253,7 +253,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x86'">
     <Link>
       <AdditionalOptions>-m32 -Wl,-rpath,"$"ORIGIN/mono_i386/usr/lib</AdditionalOptions>
-      <AdditionalLibraryDirectories>$(RemoteProjectDir)/mono_i386/usr/lib;/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>mono_i386/usr/lib;/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LibraryDependencies>monosgen-2.0;m;rt;dl;pthread</LibraryDependencies>
       <AdditionalDependencies>$(RemoteProjectDir)/obj/CLR_DEV9.o;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
@@ -279,7 +279,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
     <Link>
       <AdditionalOptions>-m32 -Wl,-rpath,"$"ORIGIN/mono_i386/usr/lib</AdditionalOptions>
-      <AdditionalLibraryDirectories>$(RemoteProjectDir)/mono_i386/usr/lib;/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>mono_i386/usr/lib;/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LibraryDependencies>monosgen-2.0;m;rt;dl;pthread</LibraryDependencies>
       <AdditionalDependencies>$(RemoteProjectDir)/obj/CLR_DEV9.o;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
