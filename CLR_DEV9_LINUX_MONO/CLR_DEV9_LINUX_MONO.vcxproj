@@ -242,13 +242,19 @@
     </RemotePostBuildEvent>
     <PreBuildEvent>
       <Command>copy "$(SolutionDir)CLR_DEV9\bin\$(Configuration)\x86\CLR_DEV9.dll" "$(ProjectDir)CLR_DEV9.dll" /Y</Command>
+      <AdditionalSourcesToCopyMapping>BundleMono.sh</AdditionalSourcesToCopyMapping>
     </PreBuildEvent>
     <RemotePreLinkEvent>
-      <Command>$(RemoteProjectDir)/BundleMono.sh $(RemoteProjectDir) | chmod +x $(RemoteProjectDir)/BundleMono.sh | objcopy --input binary --output elf32-i386 --binary-architecture i386 CLR_DEV9.dll $(RemoteProjectDir)/obj/CLR_DEV9.o</Command>
+      <Command>$(RemoteProjectDir)/BundleMono.sh $(RemoteProjectDir) | objcopy --input binary --output elf32-i386 --binary-architecture i386 CLR_DEV9.dll $(RemoteProjectDir)/obj/CLR_DEV9.o</Command>
       <Message>Download Mono, Convert CLR_DEV9 to object file</Message>
     </RemotePreLinkEvent>
     <RemotePreBuildEvent />
     <RemotePreBuildEvent />
+    <RemotePreBuildEvent>
+      <Command>chmod +x $(RemoteProjectDir)/BundleMono.sh</Command>
+      <AdditionalSourcesToCopyMapping>
+      </AdditionalSourcesToCopyMapping>
+    </RemotePreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x86'">
     <Link>
@@ -268,13 +274,19 @@
     </RemotePostBuildEvent>
     <PreBuildEvent>
       <Command>copy "$(SolutionDir)CLR_DEV9\bin\$(Configuration)\x86\CLR_DEV9.dll" "$(ProjectDir)CLR_DEV9.dll" /Y</Command>
+      <AdditionalSourcesToCopyMapping>BundleMono.sh</AdditionalSourcesToCopyMapping>
     </PreBuildEvent>
     <RemotePreLinkEvent>
-      <Command>$(RemoteProjectDir)/BundleMono.sh $(RemoteProjectDir) | chmod +x $(RemoteProjectDir)/BundleMono.sh | objcopy --input binary --output elf32-i386 --binary-architecture i386 CLR_DEV9.dll $(RemoteProjectDir)/obj/CLR_DEV9.o</Command>
+      <Command>$(RemoteProjectDir)/BundleMono.sh $(RemoteProjectDir) | objcopy --input binary --output elf32-i386 --binary-architecture i386 CLR_DEV9.dll $(RemoteProjectDir)/obj/CLR_DEV9.o</Command>
       <Message>Download Mono, Convert CLR_DEV9 to object file</Message>
     </RemotePreLinkEvent>
     <RemotePreBuildEvent />
     <RemotePreBuildEvent />
+    <RemotePreBuildEvent>
+      <Command>chmod +x $(RemoteProjectDir)/BundleMono.sh</Command>
+      <AdditionalSourcesToCopyMapping>
+      </AdditionalSourcesToCopyMapping>
+    </RemotePreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
     <Link>
@@ -294,13 +306,19 @@
     </RemotePostBuildEvent>
     <PreBuildEvent>
       <Command>copy "$(SolutionDir)CLR_DEV9\bin\$(Configuration)\x86\CLR_DEV9.dll" "$(ProjectDir)CLR_DEV9.dll" /Y</Command>
+      <AdditionalSourcesToCopyMapping>BundleMono.sh</AdditionalSourcesToCopyMapping>
     </PreBuildEvent>
     <RemotePreLinkEvent>
-      <Command>$(RemoteProjectDir)/BundleMono.sh $(RemoteProjectDir) | chmod +x $(RemoteProjectDir)/BundleMono.sh | objcopy --input binary --output elf32-i386 --binary-architecture i386 CLR_DEV9.dll $(RemoteProjectDir)/obj/CLR_DEV9.o</Command>
+      <Command>$(RemoteProjectDir)/BundleMono.sh $(RemoteProjectDir) | objcopy --input binary --output elf32-i386 --binary-architecture i386 CLR_DEV9.dll $(RemoteProjectDir)/obj/CLR_DEV9.o</Command>
       <Message>Download Mono, Convert CLR_DEV9 to object file</Message>
     </RemotePreLinkEvent>
     <RemotePreBuildEvent />
     <RemotePreBuildEvent />
+    <RemotePreBuildEvent>
+      <Command>chmod +x $(RemoteProjectDir)/BundleMono.sh</Command>
+      <AdditionalSourcesToCopyMapping>
+      </AdditionalSourcesToCopyMapping>
+    </RemotePreBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
