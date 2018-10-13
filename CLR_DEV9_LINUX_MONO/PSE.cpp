@@ -206,6 +206,10 @@ void LoadCoreCLR()
 		return;
 	}
 
+	//Local lib dir
+	string x86LocalLibPath = GetModulePath();
+	x86LocalLibPath = x86LocalLibPath.substr(0, x86LocalLibPath.find_last_of("/")) + "/mono_i386/usr/lib/";
+
 	//Check if mono is already active
 	if (mono_get_root_domain() == NULL)
 	{
@@ -215,17 +219,17 @@ void LoadCoreCLR()
 		//LoadInitialFD();
 
 		//PSELog.WriteLn("Set Dirs");
+		if (monoUsrLibFolder.length() == 0)
+		{
+			monoUsrLibFolder = x86LocalLibPath;//"/usr/lib/";
+		}
+		if (monoEtcFolder.length() == 0)
+		{
+			//Do we need local copy of etc?
+			monoEtcFolder = "/etc/";
+		}
 
-		//if (monoUsrLibFolder.length() == 0)
-		//{
-		//	monoUsrLibFolder = "/usr/lib/";
-		//}
-		//if (monoEtcFolder.length() == 0)
-		//{
-		//	monoEtcFolder = "/etc/";
-		//}
-
-		//mono_set_dirs(monoUsrLibFolder.c_str(), monoEtcFolder.c_str());
+		mono_set_dirs(monoUsrLibFolder.c_str(), monoEtcFolder.c_str());
 		mono_config_parse(NULL);
 		mono_set_signal_chaining(true);
 
@@ -248,7 +252,6 @@ void LoadCoreCLR()
 		}
 
 		//PSELog.WriteLn("Set Main Args()");
-
 		char pcsx2Path[PATH_MAX];
 		size_t len = readlink("/proc/self/exe", pcsx2Path, PATH_MAX - 1);
 		if (len < 0)
@@ -292,10 +295,6 @@ void LoadCoreCLR()
 	mono_config_parse_memory(configData);
 
 	//Remap native libs
-	string x86LocalLibPath = GetModulePath();
-
-	x86LocalLibPath = x86LocalLibPath.substr(0, x86LocalLibPath.find_last_of("/")) + "/mono_i386/usr/lib/";
-
 	string gdiPath = x86LocalLibPath + "libgdiplus.so";
 	string mphPath = x86LocalLibPath + "libMonoPosixHelper.so";
 
@@ -310,19 +309,20 @@ void LoadCoreCLR()
 		mono_dllmap_insert(nullptr, "MonoPosixHelper", nullptr, mphPath.c_str(), nullptr);
 	}
 
+	MonoImageOpenStatus status;
+
 	//Load Plugin
 	//PSELog.WriteLn("Load Image");
-	MonoImageOpenStatus status;
 	pluginImage = mono_image_open_from_data_full((char*)pluginData, pluginLength, true, &status, false);
 
 	if (!pluginImage | (status != MONO_IMAGE_OK))
 	{
 		PSELog.WriteLn("Init Mono Failed At PluginImage");
 		CloseCoreCLR();
+		return;
 	}
 
 	//PSELog.WriteLn("Load Assembly");
-
 	MonoAssembly* pluginAssembly = mono_assembly_load_from_full(pluginImage, "", &status, false);
 	if (!pluginAssembly | (status != MONO_IMAGE_OK))
 	{
