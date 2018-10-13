@@ -76,6 +76,8 @@ namespace CLRDEV9.DEV9.SMAP.Tap
         }
         //gets a packet.rv :true success
 
+        //TODO, check for oversized packets in Linux VM
+        //If Tap gets ported to Linux
         public override bool Recv(ref NetPacket pkt)
         {
             if (base.Recv(ref pkt)) { return true; }

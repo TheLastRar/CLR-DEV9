@@ -11,6 +11,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
     partial class WinPcapAdapter
     {
         const int PCAP_ERRBUF_SIZE = 256;
+        const int PCAP_NETMASK_UNKNOWN = unchecked((int)0xffffffff);
 
         #region 'PInvoke mess'
         //TODO, support libPcap
@@ -26,20 +27,36 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             //Pcap
             [DllImport("wpcap")]
             public static extern IntPtr pcap_lib_version();
+            //
             [DllImport("wpcap", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
             public static extern IntPtr pcap_open_live(string device, int snaplen, int promisc, int to_ms, StringBuilder errbuf);
             [DllImport("wpcap")]
-            public static extern int pcap_datalink(IntPtr p);
-            [DllImport("wpcap")]
-            public static extern IntPtr pcap_datalink_val_to_name(int dlt);
-            [DllImport("wpcap", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
-            public static extern int pcap_setnonblock(IntPtr p, int nonblock, [MarshalAs(UnmanagedType.LPStr)] StringBuilder errbuf);
+            public static extern int pcap_close(IntPtr p);
+            //
             [DllImport("wpcap")]
             public static extern int pcap_next_ex(IntPtr p, out IntPtr ptr_pkt_header, out IntPtr ptr_pkt_data);
             [DllImport("wpcap")]
             public static extern int pcap_sendpacket(IntPtr p, byte[] buf, int size);
+            //
+            [DllImport("wpcap", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
+            public static extern int pcap_getnonblock(IntPtr p, [MarshalAs(UnmanagedType.LPStr)] StringBuilder errbuf);
+            [DllImport("wpcap", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
+            public static extern int pcap_setnonblock(IntPtr p, int nonblock, [MarshalAs(UnmanagedType.LPStr)] StringBuilder errbuf);
+            //
+            [DllImport("wpcap", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
+            public static extern int pcap_compile(IntPtr p, ref bpf_program ptr_bpf_program, string str, int optimize, int netmask);
             [DllImport("wpcap")]
-            public static extern int pcap_close(IntPtr p);
+            public static extern void pcap_freecode(ref bpf_program ptr_bpf_program);
+            [DllImport("wpcap")]
+            public static extern int pcap_setfilter(IntPtr p, ref bpf_program ptr_bpf_program);
+            [DllImport("wpcap", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
+            public static extern string pcap_geterr(IntPtr p);
+            //
+            [DllImport("wpcap")]
+            public static extern int pcap_datalink(IntPtr p);
+            [DllImport("wpcap")]
+            public static extern IntPtr pcap_datalink_val_to_name(int dlt);
+            //
             [DllImport("wpcap", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
             public static extern int pcap_findalldevs(ref IntPtr alldevsp, StringBuilder errbuf);
             [DllImport("wpcap", CharSet = CharSet.Ansi)]
@@ -150,6 +167,13 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
 
                 public void Reset() { curIndex = -1; }
             }
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct bpf_program
+        {
+            uint bf_len;
+            private IntPtr bf_insns; //I don't need this
         }
 
         static bool PcapAvailable()
@@ -309,6 +333,31 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
 
             //Don't bother with pcap logs yet
 
+            if (switched)
+            {
+                //Setup Filter
+                string filter_mac = "{0:x2}:{1:x2}:{2:x2}:{3:x2}:{4:x2}:{5:x2}";
+                string filter = "(ether broadcast or ether multicast or ether dst {0}) and not ether src {0}";
+
+                filter_mac = string.Format(filter_mac, ps2MAC[0], ps2MAC[1], ps2MAC[2], ps2MAC[3], ps2MAC[4], ps2MAC[5]);
+                filter = string.Format(filter, filter_mac);
+
+                bpf_program program = new bpf_program();
+                if (NativeMethods.pcap_compile(adHandle, ref program, filter, 1, PCAP_NETMASK_UNKNOWN) == -1)
+                {
+                    Log_Error("Error calling pcap_compile: " + NativeMethods.pcap_geterr(adHandle));
+                    return false;
+                }
+
+                if (NativeMethods.pcap_setfilter(adHandle, ref program) == -1)
+                {
+                    Log_Error("Error setting filter: " + NativeMethods.pcap_geterr(adHandle));
+                    return false;
+                }
+
+                NativeMethods.pcap_freecode(ref program);
+            }
+
             pcapRunning = true;
 
             return true;
@@ -329,6 +378,15 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             if ((res = NativeMethods.pcap_next_ex(adHandle, out headerPtr, out pkt_dataPtr)) > 0)
             {
                 header = (pcap_pkthdr)Marshal.PtrToStructure(headerPtr, typeof(pcap_pkthdr));
+
+                //Oversized packets (Outbreak when running on Linux)
+                //Drop packets
+                //TODO, fragment packets instead?
+                if (header.len > max_len)
+                {
+                    Log_Error("Dropped jumbo frame of size: " + header.len);
+                    return 0;
+                }
                 Marshal.Copy(pkt_dataPtr, data, 0, Math.Min((int)header.len, max_len));
                 return (int)header.len;
             }

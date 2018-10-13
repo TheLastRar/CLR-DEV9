@@ -78,6 +78,13 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
                 throw new NullReferenceException("Failed to GetAdapter");
             }
             hostMAC = hostAdapter.GetPhysicalAddress().GetAddressBytes();
+            //PcapInitIO needs correct MAC
+            SetMAC(null);
+            byte[] wMAC = (byte[])ps2MAC.Clone();
+            //wMAC[3] = hostMAC[3];
+            wMAC[5] = hostMAC[4];
+            wMAC[4] = hostMAC[5];
+            SetMAC(wMAC);
 
             //If parDevice starts with "{", assume device is given by GUID (as it would be under windows)
             //else, use the string as is (wine, linux)
@@ -95,13 +102,6 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             {
                 InitDHCP(hostAdapter);
             }
-
-            SetMAC(null);
-            byte[] wMAC = (byte[])ps2MAC.Clone();
-            //wMAC[3] = hostMAC[3];
-            wMAC[5] = hostMAC[4];
-            wMAC[4] = hostMAC[5];
-            SetMAC(wMAC);
         }
 
         public override bool Blocks()

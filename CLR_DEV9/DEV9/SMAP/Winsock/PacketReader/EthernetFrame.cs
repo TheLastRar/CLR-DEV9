@@ -98,6 +98,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader
                     break;
                 case (UInt16)EtherFrameType.VLAN_TAGGED_FRAME:
                     //Error.WriteLine("VLAN-tagged frame (IEEE 802.1Q)");
+                    //Also check if VLAN-tagged frames trigger oversized 
+                    //warnings
                     throw new NotImplementedException();
                 //break;
                 default:
