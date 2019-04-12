@@ -13,9 +13,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         UdpClient client;
 
-        UInt16 port;
+        readonly UInt16 port;
 
-        object connectionSentry = new object();
+        readonly object connectionSentry = new object();
         List<Session> connections = new List<Session>();
 
         public UDPFixedPort(ConnectionKey parKey, IPAddress parAdapterIP, UInt16 parPort)

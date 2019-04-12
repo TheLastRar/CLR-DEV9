@@ -25,10 +25,11 @@ namespace CLRDEV9.DEV9.SMAP
             for (rxbi = 0; rxbi < (DEV9Header.SMAP_BD_SIZE / 8); rxbi++)
             {
                 SMAP_bd pbd;
-                pbd = new SMAP_bd(dev9.dev9R, (int)((DEV9Header.SMAP_BD_RX_BASE & 0xffff) + (SMAP_bd.GetSize() * rxbi)));
-
-                pbd.CtrlStat = (UInt16)DEV9Header.SMAP_BD_RX_EMPTY;
-                pbd.Length = 0;
+                pbd = new SMAP_bd(dev9.dev9R, (int)((DEV9Header.SMAP_BD_RX_BASE & 0xffff) + (SMAP_bd.GetSize() * rxbi)))
+                {
+                    CtrlStat = (UInt16)DEV9Header.SMAP_BD_RX_EMPTY,
+                    Length = 0
+                };
             }
 
             adapter = new AdapterLoader(this, dev9);

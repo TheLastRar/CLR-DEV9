@@ -449,17 +449,19 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                         //break;
                 }
             }
-            DHCP retPay = new DHCP();
-            retPay.OP = 2;
-            retPay.HardwareType = hType;
-            retPay.HardwareAddressLength = hLen;
-            retPay.TransactionID = xID;
+            DHCP retPay = new DHCP
+            {
+                OP = 2,
+                HardwareType = hType,
+                HardwareAddressLength = hLen,
+                TransactionID = xID,
 
-            retPay.YourIP = PS2IP;//IPaddress.GetAddressBytes();
-            retPay.ServerIP = DefaultDHCPConfig.DHCP_IP;
+                YourIP = PS2IP,//IPaddress.GetAddressBytes();
+                ServerIP = DefaultDHCPConfig.DHCP_IP,
 
-            retPay.ClientHardwareAddress = cMac;
-            retPay.MagicCookie = cookie;
+                ClientHardwareAddress = cMac,
+                MagicCookie = cookie
+            };
 
             if (msg == 1 || msg == 3) //Fill out Requests
             {
@@ -546,9 +548,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             retPay.Options.Add(new DHCPopEND());
 
             byte[] udpPayload = retPay.GetBytes((UInt16)(maxMs - (8 + 20)));
-            UDP retudp = new UDP(udpPayload);
-            retudp.SourcePort = 67;
-            retudp.DestinationPort = 68;
+            UDP retudp = new UDP(udpPayload)
+            {
+                SourcePort = 67,
+                DestinationPort = 68
+            };
             recvBuff.Enqueue(retudp);
             return true;
         }

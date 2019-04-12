@@ -15,9 +15,9 @@ namespace CLRDEV9.DEV9.SMAP.Tap
         [StructLayout(LayoutKind.Sequential)]
         struct Version
         {
-            UInt32 major;
-            UInt32 minor;
-            UInt32 debug;
+            public UInt32 major;
+            public UInt32 minor;
+            public UInt32 debug;
         }
 
 #region 'PInvoke mess'
@@ -52,12 +52,10 @@ namespace CLRDEV9.DEV9.SMAP.Tap
         //Set the connection status
         bool TAPSetStatus(SafeFileHandle handle, bool status)
         {
-            UInt32 len = 0;
-
             IntPtr nullPtr = IntPtr.Zero;
             return NativeMethods.DeviceIoControl(handle, TAP_IOCTL_SET_MEDIA_STATUS,
                 ref status, (UInt32)Marshal.SizeOf(status),
-                out status, (UInt32)Marshal.SizeOf(status), out len, nullPtr);
+                out status, (UInt32)Marshal.SizeOf(status), out UInt32 len, nullPtr);
         }
 
         //Open the TAP adapter and set the connection to enabled :)

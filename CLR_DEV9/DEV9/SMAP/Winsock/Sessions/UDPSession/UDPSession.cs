@@ -15,9 +15,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         UInt16 srcPort = 0;
         UInt16 destPort = 0;
         //Broadcast
-        bool isBroadcast = false;
+        readonly bool isBroadcast = false;
         bool isMulticast = false;
-        bool isFixedPort = false;
+        readonly bool isFixedPort = false;
         //EndBroadcast
 
         Stopwatch deathClock = new Stopwatch();
@@ -88,9 +88,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     return null;
                 }
 
-                UDP iRet = new UDP(recived);
-                iRet.DestinationPort = srcPort;
-                iRet.SourcePort = destPort;
+                UDP iRet = new UDP(recived)
+                {
+                    DestinationPort = srcPort,
+                    SourcePort = destPort
+                };
 
                 if (isMulticast)
                 {
