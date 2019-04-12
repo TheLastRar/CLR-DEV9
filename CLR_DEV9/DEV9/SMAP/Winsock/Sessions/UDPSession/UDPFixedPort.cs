@@ -42,7 +42,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 try
                 {
                     recived = client.Receive(ref remoteIPEndPoint);
-                    Log_Verb("Got Data");
+                    Log_Verb("Got Data via Fixed Port");
                 }
                 catch (SocketException err)
                 {
@@ -121,6 +121,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         private void HandleChildConnectionClosed(object sender, EventArgs e)
         {
+            //Log_Verb("Closed Dead Fixed Child Connection");
             Session s = (Session)sender;
             s.ConnectionClosedEvent -= HandleChildConnectionClosed;
             lock (connectionSentry)
