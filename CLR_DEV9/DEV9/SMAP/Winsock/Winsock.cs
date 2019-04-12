@@ -466,7 +466,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 Log_Info("Creating New UDP Connection with Dest Port " + udp.DestinationPort);
                 UDPSession s;
                 if (udp.SourcePort == udp.DestinationPort || //Used for LAN games that assume the destination port
-                    Utils.memcmp(ipPkt.DestinationIP, 0, dhcpServer.Broadcast, 0, 4)) //Broadcast packets
+                    Utils.memcmp(ipPkt.DestinationIP, 0, dhcpServer.Broadcast, 0, 4) ||
+                    Utils.memcmp(ipPkt.DestinationIP, 0, dhcpServer.LimitedBroadcast, 0, 4)) //Broadcast packets
                 {
                     //Limit of one udpclient per local port
                     //need to reuse the udpclient
@@ -500,11 +501,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
 
                         fixedUDPPorts.Add(udp.SourcePort, fPort);
                     }
-                    s = fPort.NewClientSession(Key, Utils.memcmp(ipPkt.DestinationIP, 0, dhcpServer.Broadcast, 0, 4));
+                    s = fPort.NewClientSession(Key, Utils.memcmp(ipPkt.DestinationIP, 0, dhcpServer.Broadcast, 0, 4) |
+                                                    Utils.memcmp(ipPkt.DestinationIP, 0, dhcpServer.LimitedBroadcast, 0, 4));
                 }
                 else
                 {
-                    s = new UDPSession(Key, adapterIP, dhcpServer.Broadcast);
+                    s = new UDPSession(Key, adapterIP);
                 }
                 s.ConnectionClosedEvent += HandleConnectionClosed;
                 s.DestIP = ipPkt.DestinationIP;

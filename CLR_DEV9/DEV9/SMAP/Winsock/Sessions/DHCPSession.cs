@@ -28,6 +28,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         private byte[] DNS1;
         private byte[] DNS2;
         public byte[] Broadcast;
+        //Treat Limited Broadcast as directed broadcast
+        public byte[] LimitedBroadcast = new byte[] { 255, 255, 255, 255 };
 #endregion
 
         ConcurrentQueue<UDP> recvBuff = new ConcurrentQueue<UDP>();
@@ -340,8 +342,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         public override IPPayload Recv()
         {
-            UDP ret;
-            if (recvBuff.TryDequeue(out ret))
+            if (recvBuff.TryDequeue(out UDP ret))
                 return ret;
             return null;
         }

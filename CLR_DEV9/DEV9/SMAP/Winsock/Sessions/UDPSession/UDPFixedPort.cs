@@ -46,7 +46,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 }
                 catch (SocketException err)
                 {
-                    Log_Error("UDP Recv Error: " + err.Message);
+                    Log_Error("Fixed Port UDP Recv Error: " + err.Message);
                     Log_Error("Error Code: " + err.ErrorCode);
                     RaiseEventConnectionClosed();
                     return null;

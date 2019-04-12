@@ -23,7 +23,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         Stopwatch deathClock = new Stopwatch();
         const double MAX_IDLE = 72;
 
-        public UDPSession(ConnectionKey parKey, IPAddress parAdapterIP, byte[] parBroadcastIP)
+        public UDPSession(ConnectionKey parKey, IPAddress parAdapterIP)
             : base(parKey, parAdapterIP)
         {
             lock (deathClock)
@@ -58,6 +58,14 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             }
             if (isFixedPort)
             {
+                lock (deathClock)
+                {
+                    if (deathClock.Elapsed.TotalSeconds > MAX_IDLE)
+                    {
+                        client.Close();
+                        RaiseEventConnectionClosed();
+                    }
+                }
                 return null;
             }
 
