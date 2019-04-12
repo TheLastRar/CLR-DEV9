@@ -87,6 +87,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 adapter = UDP_DHCPSession.AutoAdapter();
             }
 
+            if (adapter == null)
+            {
+                throw new NullReferenceException("Auto Selection Failed, Check You Connection or Manually Specify Adapter");
+            }
+
             if (!DEV9Header.config.SocketConnectionSettings.AutoDNS1)
             {
                 dns1 = IPAddress.Parse(DEV9Header.config.SocketConnectionSettings.DNS1).GetAddressBytes();
@@ -185,7 +190,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             }
 
             SetMAC(null);
-            //if (adapter != null)
             SetMAC(adapter.GetPhysicalAddress().GetAddressBytes());
         }
 
