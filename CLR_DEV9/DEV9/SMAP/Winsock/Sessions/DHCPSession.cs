@@ -484,7 +484,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                                 break;
                             case 3:
                                 Log_Verb("Sending Router");
-                                retPay.Options.Add(new DHCPopRouter(new List<byte[]>() { Gateway }));
+                                if (Gateway != null)
+                                {
+                                    retPay.Options.Add(new DHCPopRouter(new List<byte[]>() { Gateway }));
+                                }
                                 break;
                             case 6:
                                 Log_Verb("Sending DNS");
