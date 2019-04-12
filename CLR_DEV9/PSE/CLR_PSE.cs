@@ -1,5 +1,11 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+#if SKIP_DLLEXPORT
+using Export = System.Runtime.InteropServices.NativeCallableAttribute;
+#else
+using Export = PSE.DllExportAttribute;
+#endif
 using Plugin = CLRDEV9.CLR_DEV9;
 
 namespace PSE
@@ -18,18 +24,18 @@ namespace PSE
 
     public class CLR_PSE
     {
-        #region NativeExport
-        [DllExport("PS2EgetLibName", CallingConvention = CallingConvention.StdCall)]
+#region NativeExport
+        [Export("PS2EgetLibName", CallingConvention = CallingConvention.StdCall)]
         [return: MarshalAs(UnmanagedType.LPStr)]
         private static string nat_PS2EgetLibName() { return PS2EgetLibName(); }
-        [DllExport("PS2EgetLibType", CallingConvention = CallingConvention.StdCall)]
+        [Export("PS2EgetLibType", CallingConvention = CallingConvention.StdCall)]
         private static CLR_PSE_Type nat_PS2EgetLibType() { return PS2EgetLibType(); }
-        [DllExport("PS2EgetLibVersion2", CallingConvention = CallingConvention.StdCall)]
+        [Export("PS2EgetLibVersion2", CallingConvention = CallingConvention.StdCall)]
         private static int nat_PS2EgetLibVersion2(CLR_PSE_Type type) { return PS2EgetLibVersion2(type); }
         //Windows only
-        [DllExport("PS2EsetEmuVersion", CallingConvention = CallingConvention.StdCall)]
+        [Export("PS2EsetEmuVersion", CallingConvention = CallingConvention.StdCall)]
         private static void nat_PS2EsetEmuVersion(IntPtr name, int version) { PS2EsetEmuVersion(name, version); }
-        #endregion
+#endregion
 
         //EMU Version (Windows only)
         private static string emuName = "";
