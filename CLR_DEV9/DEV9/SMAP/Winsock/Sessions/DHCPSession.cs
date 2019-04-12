@@ -265,9 +265,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         {
             IPAddress IPaddress = null;
             List<IPAddress> DNS_IP = new List<IPAddress>();
-
             NetworkInterface[] Interfaces = NetworkInterface.GetAllNetworkInterfaces();
 
+            bool hasGateway = false;
             bool FoundAdapter = false;
 
             foreach (NetworkInterface adapter in Interfaces)
@@ -303,9 +303,23 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                             }
                         }
                     }
-                    if (DNS_IP.Count == 0)
+
+                    GatewayIPAddressInformationCollection GatewayInfoCollection = properties.GatewayAddresses;
+
+                    foreach (GatewayIPAddressInformation GatewayInfo in GatewayInfoCollection)
+                    {
+                        if (GatewayInfo.Address.AddressFamily == AddressFamily.InterNetwork)
+                        {
+                            hasGateway = true;
+                            break;
+                        }
+                    }
+
+                    if (DNS_IP.Count == 0 | hasGateway == false)
                     {
                         //adapter not suitable
+                        hasGateway = false;
+                        DNS_IP.Clear();
                         FoundAdapter = false;
                     }
                 }
