@@ -229,7 +229,7 @@ void LoadCoreCLR()
 			monoEtcFolder = "/etc/";
 		}
 
-		mono_set_dirs(monoUsrLibFolder.c_str(), monoEtcFolder.c_str());
+		//mono_set_dirs(monoUsrLibFolder.c_str(), monoEtcFolder.c_str());
 		mono_config_parse(NULL);
 		mono_set_signal_chaining(true);
 
