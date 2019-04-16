@@ -6,7 +6,7 @@
 #include <unistd.h>
 //#include <fcntl.h>
 //#include <sys/types.h>
-//#include <sys/stat.h>
+#include <sys/stat.h>
 
 //#define _GNU_SOURCE
 #include <link.h>
@@ -210,6 +210,13 @@ void LoadCoreCLR()
 	string x86LocalLibPath = GetModulePath();
 	x86LocalLibPath = x86LocalLibPath.substr(0, x86LocalLibPath.find_last_of("/")) + "/mono_i386/usr/lib/";
 
+	//Is Local lib dir present?
+	bool localLibsFound = false;
+	struct stat st;
+	if (stat(x86LocalLibPath.c_str(), &st) == 0)
+		if (st.st_mode & S_IFDIR != 0)
+			localLibsFound = true;
+
 	//Check if mono is already active
 	if (mono_get_root_domain() == NULL)
 	{
@@ -219,9 +226,13 @@ void LoadCoreCLR()
 		//LoadInitialFD();
 
 		//PSELog.WriteLn("Set Dirs");
+
 		if (monoUsrLibFolder.length() == 0)
 		{
-			monoUsrLibFolder = x86LocalLibPath;//"/usr/lib/";
+			if (localLibsFound)
+				monoUsrLibFolder = x86LocalLibPath;
+			else
+				monoUsrLibFolder = "/usr/lib/";
 		}
 		if (monoEtcFolder.length() == 0)
 		{
@@ -294,19 +305,22 @@ void LoadCoreCLR()
 
 	mono_config_parse_memory(configData);
 
-	//Remap native libs
-	string gdiPath = x86LocalLibPath + "libgdiplus.so";
-	string mphPath = x86LocalLibPath + "libMonoPosixHelper.so";
-
-	if (access(gdiPath.c_str(), F_OK) != -1)
+	if (localLibsFound)
 	{
-		//PSELog.WriteLn("Redirect Native Mono Libs");
-		mono_dllmap_insert(nullptr, "gdiplus",     nullptr, gdiPath.c_str(), nullptr);
-		mono_dllmap_insert(nullptr, "gdiplus.dll", nullptr, gdiPath.c_str(), nullptr);
-		mono_dllmap_insert(nullptr, "gdi32",       nullptr, gdiPath.c_str(), nullptr);
-		mono_dllmap_insert(nullptr, "gdi32.dll",   nullptr, gdiPath.c_str(), nullptr);
+		//Remap native libs
+		string gdiPath = x86LocalLibPath + "libgdiplus.so";
+		string mphPath = x86LocalLibPath + "libMonoPosixHelper.so";
 
-		mono_dllmap_insert(nullptr, "MonoPosixHelper", nullptr, mphPath.c_str(), nullptr);
+		if (access(gdiPath.c_str(), F_OK) != -1)
+		{
+			//PSELog.WriteLn("Redirect Native Mono Libs");
+			mono_dllmap_insert(nullptr, "gdiplus", nullptr, gdiPath.c_str(), nullptr);
+			mono_dllmap_insert(nullptr, "gdiplus.dll", nullptr, gdiPath.c_str(), nullptr);
+			mono_dllmap_insert(nullptr, "gdi32", nullptr, gdiPath.c_str(), nullptr);
+			mono_dllmap_insert(nullptr, "gdi32.dll", nullptr, gdiPath.c_str(), nullptr);
+
+			mono_dllmap_insert(nullptr, "MonoPosixHelper", nullptr, mphPath.c_str(), nullptr);
+		}
 	}
 
 	MonoImageOpenStatus status;
