@@ -62,7 +62,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 {
                     if (deathClock.Elapsed.TotalSeconds > MAX_IDLE)
                     {
-                        client.Close();
+                        Dispose();
                         RaiseEventConnectionClosed();
                     }
                 }
@@ -118,7 +118,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             {
                 if (deathClock.Elapsed.TotalSeconds > MAX_IDLE)
                 {
-                    client.Close();
+                    Dispose();
                     RaiseEventConnectionClosed();
                 }
             }
