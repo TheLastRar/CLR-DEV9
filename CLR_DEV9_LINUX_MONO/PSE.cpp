@@ -225,6 +225,9 @@ void LoadCoreCLR()
 
 		//LoadInitialFD();
 
+		//Set EnvVariable
+		putenv("MONO_THREADS_SUSPEND=preemptive");
+
 		//PSELog.WriteLn("Set Dirs");
 
 		if (monoUsrLibFolder.length() == 0)
