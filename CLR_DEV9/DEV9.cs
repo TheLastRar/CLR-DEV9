@@ -23,41 +23,34 @@ namespace CLRDEV9
         private static DEV9.DEV9_State dev9 = null;
 
         private static readonly bool tryAvoidThrow = true;
-        private static bool doLog = true;
+        private static bool hasInit = false;
 
         public static string Name { get { return libraryName; } }
 
         private static void LogSetup()
         {
-            if (doLog)
+            //some legwork to setup the logger
+            Dictionary<ushort, string> logSources = new Dictionary<ushort, string>();
+            IEnumerable<DEV9LogSources> sources = Enum.GetValues(typeof(DEV9LogSources)).Cast<DEV9LogSources>();
+            foreach (DEV9LogSources source in sources)
             {
-                //some legwork to setup the logger
-                Dictionary<ushort, string> logSources = new Dictionary<ushort, string>();
-                IEnumerable<DEV9LogSources> sources = Enum.GetValues(typeof(DEV9LogSources)).Cast<DEV9LogSources>();
-                foreach (DEV9LogSources source in sources)
-                {
-                    logSources.Add((ushort)source, source.ToString());
-                }
-                CLR_PSE_PluginLog.Open(logFolderPath, "DEV9_CLR.log", "CLR_DEV9", logSources);
+                logSources.Add((ushort)source, source.ToString());
             }
+            CLR_PSE_PluginLog.Open(logFolderPath, "DEV9_CLR.log", "CLR_DEV9", logSources);
         }
 
         private static void LogInit()
         {
-            if (doLog)
-            {
-                CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.Test, (int)DEV9LogSources.Test);
-                CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.DEV9, (int)DEV9LogSources.Dev9);
-                CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.SPEED, (int)DEV9LogSources.SPEED);
-                CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.SMAP, (int)DEV9LogSources.SMAP);
-                CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.ATA, (int)DEV9LogSources.ATA);
-                CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.Winsock, (int)DEV9LogSources.Winsock);
-                CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.NetAdapter, (int)DEV9LogSources.NetAdapter);
-                CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.UDPSession, (int)DEV9LogSources.UDPSession);
-                CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.DNSPacket, (int)DEV9LogSources.DNSPacket);
-                CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.DNSSession, (int)DEV9LogSources.DNSSession);
-                doLog = false;
-            }
+            CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.Test, (int)DEV9LogSources.Test);
+            CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.DEV9, (int)DEV9LogSources.Dev9);
+            CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.SPEED, (int)DEV9LogSources.SPEED);
+            CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.SMAP, (int)DEV9LogSources.SMAP);
+            CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.ATA, (int)DEV9LogSources.ATA);
+            CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.Winsock, (int)DEV9LogSources.Winsock);
+            CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.NetAdapter, (int)DEV9LogSources.NetAdapter);
+            CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.UDPSession, (int)DEV9LogSources.UDPSession);
+            CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.DNSPacket, (int)DEV9LogSources.DNSPacket);
+            CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.DNSSession, (int)DEV9LogSources.DNSSession);
         }
 
         public static Int32 Init()
@@ -82,6 +75,8 @@ namespace CLRDEV9
                 Log_Info("Init");
                 dev9 = new DEV9.DEV9_State();
                 Log_Info("Init ok");
+
+                hasInit = true;
                 return 0;
             }
             catch (Exception e) when (Log_Fatal(e)) { throw; }
@@ -137,6 +132,7 @@ namespace CLRDEV9
                     irqHandle.Free(); //allow garbage collection
                 }
                 //Do dispose()? (of what?)
+                hasInit = false;
             }
             catch (Exception e) when (Log_Fatal(e)) { throw; }
         }
@@ -301,11 +297,17 @@ namespace CLRDEV9
         {
             try
             {
-                LogSetup();
+                //Config can be called without init
+                //logging is setup in init()
+                //So we need to check if logging is
+                //active, incase of errors dealing
+                //with plugin config
+                if (!hasInit) LogSetup();
                 ConfigFile.LoadConf(iniFolderPath, "CLR_DEV9.ini");
-                LogInit();
+                if (!hasInit) LogInit();
                 ConfigFile.DoConfig(iniFolderPath, "CLR_DEV9.ini");
                 ConfigFile.SaveConf(iniFolderPath, "CLR_DEV9.ini");
+                if (!hasInit) CLR_PSE_PluginLog.Close();
             }
             catch (Exception e) when (Log_Fatal(e)) { throw; }
         }
