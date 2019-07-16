@@ -226,7 +226,7 @@ void LoadCoreCLR()
 		//LoadInitialFD();
 
 		//Set EnvVariable
-		putenv("MONO_THREADS_SUSPEND=preemptive");
+		setenv("MONO_THREADS_SUSPEND", "preemptive", true);
 
 		//PSELog.WriteLn("Set Dirs");
 
