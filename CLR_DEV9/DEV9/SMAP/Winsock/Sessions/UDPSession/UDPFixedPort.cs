@@ -13,7 +13,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         UdpClient client;
 
-        readonly UInt16 port;
+        public UInt16 Port { get; }
 
         readonly object connectionSentry = new object();
         List<Session> connections = new List<Session>();
@@ -21,8 +21,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         public UDPFixedPort(ConnectionKey parKey, IPAddress parAdapterIP, UInt16 parPort)
             : base(parKey, parAdapterIP)
         {
-            port = parPort;
-            client = new UdpClient(new IPEndPoint(adapterIP, port));
+            Port = parPort;
+            client = new UdpClient(new IPEndPoint(adapterIP, Port));
             client.EnableBroadcast = true;
         }
 
@@ -53,7 +53,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 }
 
                 UDP iRet = new UDP(recived);
-                iRet.DestinationPort = port;
+                iRet.DestinationPort = Port;
 
                 DestIP = remoteIPEndPoint.Address.GetAddressBytes(); //assumes ipv4
                 iRet.SourcePort = (UInt16)remoteIPEndPoint.Port;

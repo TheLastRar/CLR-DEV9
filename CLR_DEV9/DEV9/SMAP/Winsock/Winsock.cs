@@ -27,12 +27,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
 
         ConcurrentDictionary<ConnectionKey, Session> connections = new ConcurrentDictionary<ConnectionKey, Session>();
 
-        Dictionary<ushort, UDPFixedPort> fixedUDPPorts = new Dictionary<ushort, UDPFixedPort>();
+        ConcurrentDictionary<ushort, UDPFixedPort> fixedUDPPorts = new ConcurrentDictionary<ushort, UDPFixedPort>();
 
         static public List<string[]> GetAdapters()
         {
             //Add Auto
-            List<string[]> names = new List<string[]> { new string[] { "Auto", "Autoselected adapter", "Auto" }};
+            List<string[]> names = new List<string[]> { new string[] { "Auto", "Autoselected adapter", "Auto" } };
 
             NetworkInterface[] interfaces = NetworkInterface.GetAllNetworkInterfaces();
 
@@ -170,18 +170,17 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     };
 
                     UDPFixedPort fPort = new UDPFixedPort(fKey, adapterIP, port.Port);
-                    fPort.ConnectionClosedEvent += HandleConnectionClosed;
+                    fPort.ConnectionClosedEvent += HandleFixedPortClosed;
 
                     fPort.DestIP = new byte[] { 0, 0, 0, 0 };
                     fPort.SourceIP = dhcpServer.PS2IP;
 
-                    if (!connections.TryAdd(fPort.Key, fPort))
+                    if (!connections.TryAdd(fPort.Key, fPort) |
+                        !fixedUDPPorts.TryAdd(port.Port, fPort))
                     {
                         fPort.Dispose();
                         throw new Exception("Connection Add Failed");
                     }
-
-                    fixedUDPPorts.Add(port.Port, fPort);
 
                     s = fPort.NewListenSession(Key);
                 }
@@ -303,7 +302,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                                 byte[] gateway;
                                 //lock (sentry)
                                 //{
-                                    gateway = dhcpServer.Gateway;
+                                gateway = dhcpServer.Gateway;
                                 //}
                                 //if (Utils.memcmp(arpPkt.TargetProtocolAddress, 0, gateway, 0, 4))
                                 if (!Utils.memcmp(arpPkt.TargetProtocolAddress, 0, dhcpServer.PS2IP, 0, 4))
@@ -512,18 +511,17 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                         Log_Info("Creating New UDPFixedPort with Port " + udp.SourcePort);
 
                         fPort = new UDPFixedPort(fKey, adapterIP, udp.SourcePort);
-                        fPort.ConnectionClosedEvent += HandleConnectionClosed;
+                        fPort.ConnectionClosedEvent += HandleFixedPortClosed;
 
                         fPort.DestIP = new byte[] { 0, 0, 0, 0 };
                         fPort.SourceIP = dhcpServer.PS2IP;
 
-                        if (!connections.TryAdd(fKey, fPort))
+                        if (!connections.TryAdd(fKey, fPort) |
+                            !fixedUDPPorts.TryAdd(udp.SourcePort, fPort))
                         {
                             fPort.Dispose();
                             throw new Exception("Connection Add Failed");
                         }
-
-                        fixedUDPPorts.Add(udp.SourcePort, fPort);
                     }
                     s = fPort.NewClientSession(Key, Utils.memcmp(ipPkt.DestinationIP, 0, dhcpServer.Broadcast, 0, 4) |
                                                     Utils.memcmp(ipPkt.DestinationIP, 0, dhcpServer.LimitedBroadcast, 0, 4));
@@ -561,12 +559,29 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             {
                 lock (recvSentry)
                 {
-                    //deadConnections.Enqueue(s);
                     connections.TryRemove(s.Key, out Session dummy);
                     s.Dispose();
                 }
             }
             Log_Info("Closed Dead Connection");
+        }
+
+        //Event must only be raised once per fixed port
+        public void HandleFixedPortClosed(object sender, EventArgs e)
+        {
+            UDPFixedPort s = (UDPFixedPort)sender;
+
+            s.ConnectionClosedEvent -= HandleFixedPortClosed;
+            lock (sendSentry)
+            {
+                lock (recvSentry)
+                {
+                    connections.TryRemove(s.Key, out Session dummy);
+                    fixedUDPPorts.TryRemove(s.Port, out UDPFixedPort dummy2);
+                    s.Dispose();
+                }
+            }
+            Log_Info("Closed Dead Fixed Port");
         }
 
         public override void Close()
@@ -584,20 +599,20 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
             {
                 //lock (sentry)
                 lock (sendSentry)
-                    lock(recvSentry)
+                    lock (recvSentry)
+                    {
+                        Log_Verb("Closing " + connections.Count + " Connections");
+                        foreach (ConnectionKey key in connections.Keys) //ToDo better multi-connection stuff
                         {
-                            Log_Verb("Closing " + connections.Count + " Connections");
-                            foreach (ConnectionKey key in connections.Keys) //ToDo better multi-connection stuff
-                            {
-                                connections[key].Dispose();
-                            }
-                            while (vRecBuffer.TryDequeue(out NetPacket p)) { }
-                            connections.Clear();
-                            fixedUDPPorts.Clear();
-
-                            dhcpServer.Dispose();
-                            dnsServer.Dispose();
+                            connections[key].Dispose();
                         }
+                        while (vRecBuffer.TryDequeue(out NetPacket p)) { }
+                        connections.Clear();
+                        fixedUDPPorts.Clear();
+
+                        dhcpServer.Dispose();
+                        dnsServer.Dispose();
+                    }
             }
         }
 
