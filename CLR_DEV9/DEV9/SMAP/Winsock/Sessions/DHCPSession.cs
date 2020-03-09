@@ -20,7 +20,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
     class UDP_DHCPSession : Session
     {
-#region CurrentConfig
+        #region CurrentConfig
         public byte[] PS2IP;
         private byte[] NetMask;
         public byte[] Gateway;
@@ -30,7 +30,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         public byte[] Broadcast;
         //Treat Limited Broadcast as directed broadcast
         public byte[] LimitedBroadcast = new byte[] { 255, 255, 255, 255 };
-#endregion
+        #endregion
 
         ConcurrentQueue<UDP> recvBuff = new ConcurrentQueue<UDP>();
         byte hType;
@@ -96,7 +96,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             HandleGateway(parAdapter, parGateway);
             HandleDNS(parAdapter, parDNS1, parDNS2);
             HandleBroadcast(PS2IP, NetMask);
-#region ICS
+            #region ICS
             //Special case for ICS
             if (Gateway == null & PSE.CLR_PSE_Utils.IsWindows())
             {
@@ -139,7 +139,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     }
                 }
             }
-#endregion
+            #endregion
         }
 
         private void HandleNetMask(NetworkInterface parAdapter, byte[] parNetMask)
@@ -248,6 +248,15 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                         DNS2 = DNS_IP[0].GetAddressBytes();
                     }
                 }
+            }
+            //Some games will remove DNS2 if its ip is 0.0.0.0 (Midnight Club 3)
+            //But we later check if we have the same amount of DNS servers
+            //returned as we have sent, remove such DNS servers to pass the
+            //later DNS count check
+            //TODO, check if applies to DNS1
+            if (Utils.memcmp(DNS2, 0, new byte[] { 0, 0, 0, 0 }, 0, 4))
+            {
+                DNS2 = null;
             }
         }
 
