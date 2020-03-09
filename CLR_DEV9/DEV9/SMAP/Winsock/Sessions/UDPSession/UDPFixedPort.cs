@@ -81,7 +81,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         {
             lock (connectionSentry)
             {
-                foreach (Session s in connections)
+                Session[] connectionsCopy = connections.ToArray();
+                foreach (Session s in connectionsCopy)
                 {
                     s.Reset();
                 }
