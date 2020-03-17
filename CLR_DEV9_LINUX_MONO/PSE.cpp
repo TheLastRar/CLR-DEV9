@@ -221,9 +221,11 @@ void LoadCoreCLR()
 	if (mono_get_root_domain() == NULL)
 	{
 		//Inc Reference
-		dlopen("libmonosgen-2.0.so", RTLD_NOW | RTLD_LOCAL);
+		dlopen("libmonosgen-2.0.so", RTLD_NOW | RTLD_GLOBAL);
 
-		//LoadInitialFD();
+		////LoadInitialFD();
+
+		//TODO PCSX2 is hanging on exit without MONO_THREADS_SUSPEND=preemptive
 
 		//Set EnvVariable
 		setenv("MONO_THREADS_SUSPEND", "preemptive", true);
