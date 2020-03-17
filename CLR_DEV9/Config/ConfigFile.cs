@@ -32,7 +32,10 @@ namespace CLRDEV9.Config
         public int HddSize;
 
         [DataMember]
-        public ConfigLogging EnableLogging;   
+        public ConfigLogging EnableLogging;
+
+        [DataMember]
+        public ConfigLogging EnableTracing;
 
         [OnDeserializing]
         void OnDeserializing(StreamingContext context)
@@ -51,6 +54,8 @@ namespace CLRDEV9.Config
             DirectConnectionSettings = new ConfigDirectIP();
             SocketConnectionSettings = new ConfigSocketIP();
             EnableLogging = new ConfigLogging();
+            EnableTracing = new ConfigLogging();
+            EnableTracing.SetAllFalse();
             Hosts = new HashSet<ConfigHost>();
             Hosts.Add(new ConfigHost()
             {
