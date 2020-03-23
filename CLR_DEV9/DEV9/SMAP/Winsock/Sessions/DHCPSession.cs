@@ -254,7 +254,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             //returned as we have sent, remove such DNS servers to pass the
             //later DNS count check
             //TODO, check if applies to DNS1
-            if (Utils.memcmp(DNS2, 0, new byte[] { 0, 0, 0, 0 }, 0, 4))
+            if (DNS2 != null && Utils.memcmp(DNS2, 0, new byte[] { 0, 0, 0, 0 }, 0, 4))
             {
                 DNS2 = null;
             }
