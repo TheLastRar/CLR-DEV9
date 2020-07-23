@@ -136,8 +136,22 @@ namespace CLRDEV9.Config
             {
                 DataContractSerializer ConfSerializer = new DataContractSerializer(typeof(ConfigFile));
                 FileStream Reader = new FileStream(filePath, FileMode.Open);
-                DEV9Header.config = (ConfigFile)ConfSerializer.ReadObject(Reader);
-                Reader.Close();
+                try
+                {
+                    DEV9Header.config = (ConfigFile)ConfSerializer.ReadObject(Reader);
+                    Reader.Close();
+                }
+                catch (System.Exception e)
+                {
+                    Reader.Close();
+
+                    CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.PluginInterface, e.Message + System.Environment.NewLine + e.StackTrace);
+                    CLR_PSE_PluginLog.WriteLine(TraceEventType.Error, (int)DEV9LogSources.PluginInterface, "Failed to Load Config File, Replace With Default");
+                    //Invalid config, overwrite
+                    DEV9Header.config = new ConfigFile();
+                    SaveConf(iniFolderPath, iniFileName);
+                    return;
+                }
                 //Update from old config
                 if (DEV9Header.config.Eth == "winsock")
                 {
