@@ -35,7 +35,10 @@ namespace CLRDEV9.Config
         public ConfigLogging EnableLogging;
 
         [DataMember]
-        public ConfigLogging EnableTracing;
+        public ConfigLogLevel LogLevelConsole;
+
+        [DataMember]
+        public ConfigLogLevel LogLevelFile;
 
         [OnDeserializing]
         void OnDeserializing(StreamingContext context)
@@ -53,9 +56,11 @@ namespace CLRDEV9.Config
             HddEnable = false;
             DirectConnectionSettings = new ConfigDirectIP();
             SocketConnectionSettings = new ConfigSocketIP();
+
             EnableLogging = new ConfigLogging();
-            EnableTracing = new ConfigLogging();
-            EnableTracing.SetAllFalse();
+            LogLevelConsole = ConfigLogLevel.Information;
+            LogLevelFile = ConfigLogLevel.Information;
+
             Hosts = new HashSet<ConfigHost>();
             Hosts.Add(new ConfigHost()
             {

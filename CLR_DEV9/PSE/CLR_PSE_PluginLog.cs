@@ -59,15 +59,13 @@ namespace PSE
             }
         }
         //Change filter of Listerners (effects all connected sources)
-        public static void SetStdOutLevel(SourceLevels eLevel)
+        public static void SetStdLogLevel(SourceLevels eLevel)
         {
-            if (stdOut != null)
-                stdOut.Filter = new EventTypeFilter(eLevel);
-        }
-        public static void SetStdErrLevel(SourceLevels eLevel)
-        {
-            if (stdErr != null)
-                stdErr.Filter = new EventTypeFilter(eLevel);
+            if (stdOut != null & stdErr != null)
+            {
+                stdOut.Filter = new EventTypeFilter(eLevel & ~SourceLevels.Error);
+                stdErr.Filter = new EventTypeFilter(eLevel & SourceLevels.Error);
+            }
         }
         public static void SetFileLevel(SourceLevels eLevel)
         {

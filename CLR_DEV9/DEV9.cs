@@ -41,28 +41,35 @@ namespace CLRDEV9
 
         private static void LogInit()
         {
-            //Log to info to console
-            CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.Test, (int)DEV9LogSources.Test);
-            CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.DEV9, (int)DEV9LogSources.Dev9);
-            CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.SPEED, (int)DEV9LogSources.SPEED);
-            CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.SMAP, (int)DEV9LogSources.SMAP);
-            CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.ATA, (int)DEV9LogSources.ATA);
-            CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.Winsock, (int)DEV9LogSources.Winsock);
-            CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.NetAdapter, (int)DEV9LogSources.NetAdapter);
-            CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.UDPSession, (int)DEV9LogSources.UDPSession);
-            CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.DNSPacket, (int)DEV9LogSources.DNSPacket);
-            CLR_PSE_PluginLog.SetSourceUseStdOut(DEV9Header.config.EnableLogging.DNSSession, (int)DEV9LogSources.DNSSession);
-            //Log Trace to file
-            CLR_PSE_PluginLog.SetSourceLogLevel(DEV9Header.config.EnableTracing.Test ? SourceLevels.Verbose : SourceLevels.Information, (int)DEV9LogSources.Test);
-            CLR_PSE_PluginLog.SetSourceLogLevel(DEV9Header.config.EnableTracing.DEV9 ? SourceLevels.Verbose : SourceLevels.Information, (int)DEV9LogSources.Dev9);
-            CLR_PSE_PluginLog.SetSourceLogLevel(DEV9Header.config.EnableTracing.SPEED ? SourceLevels.Verbose : SourceLevels.Information, (int)DEV9LogSources.SPEED);
-            CLR_PSE_PluginLog.SetSourceLogLevel(DEV9Header.config.EnableTracing.SMAP ? SourceLevels.Verbose : SourceLevels.Information, (int)DEV9LogSources.SMAP);
-            CLR_PSE_PluginLog.SetSourceLogLevel(DEV9Header.config.EnableTracing.ATA ? SourceLevels.Verbose : SourceLevels.Information, (int)DEV9LogSources.ATA);
-            CLR_PSE_PluginLog.SetSourceLogLevel(DEV9Header.config.EnableTracing.Winsock ? SourceLevels.Verbose : SourceLevels.Information, (int)DEV9LogSources.Winsock);
-            CLR_PSE_PluginLog.SetSourceLogLevel(DEV9Header.config.EnableTracing.NetAdapter ? SourceLevels.Verbose : SourceLevels.Information, (int)DEV9LogSources.NetAdapter);
-            CLR_PSE_PluginLog.SetSourceLogLevel(DEV9Header.config.EnableTracing.UDPSession ? SourceLevels.Verbose : SourceLevels.Information, (int)DEV9LogSources.UDPSession);
-            CLR_PSE_PluginLog.SetSourceLogLevel(DEV9Header.config.EnableTracing.DNSPacket ? SourceLevels.Verbose : SourceLevels.Information, (int)DEV9LogSources.DNSPacket);
-            CLR_PSE_PluginLog.SetSourceLogLevel(DEV9Header.config.EnableTracing.DNSSession ? SourceLevels.Verbose : SourceLevels.Information, (int)DEV9LogSources.DNSSession);
+            //Not all log sources are configuable
+            //As such, not all log sources are listed here
+
+            //Set all configurable sources to show on console
+            CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.Test);
+            CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.Dev9);
+            CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.SPEED);
+            CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.SMAP);
+            CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.ATA);
+            CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.Winsock);
+            CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.NetAdapter);
+            CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.UDPSession);
+            CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.DNSPacket);
+            CLR_PSE_PluginLog.SetSourceUseStdOut(true, (int)DEV9LogSources.DNSSession);
+            //All sources go to the log file by default
+
+            CLR_PSE_PluginLog.SetStdLogLevel(ConfigLogging.ToSourceLevel(DEV9Header.config.LogLevelConsole));
+            CLR_PSE_PluginLog.SetFileLevel(ConfigLogging.ToSourceLevel(DEV9Header.config.LogLevelFile));
+
+            CLR_PSE_PluginLog.SetSourceLogLevel(ConfigLogging.ToSourceLevel(DEV9Header.config.EnableLogging.Test), (int)DEV9LogSources.Test);
+            CLR_PSE_PluginLog.SetSourceLogLevel(ConfigLogging.ToSourceLevel(DEV9Header.config.EnableLogging.DEV9), (int)DEV9LogSources.Dev9);
+            CLR_PSE_PluginLog.SetSourceLogLevel(ConfigLogging.ToSourceLevel(DEV9Header.config.EnableLogging.SPEED), (int)DEV9LogSources.SPEED);
+            CLR_PSE_PluginLog.SetSourceLogLevel(ConfigLogging.ToSourceLevel(DEV9Header.config.EnableLogging.SMAP), (int)DEV9LogSources.SMAP);
+            CLR_PSE_PluginLog.SetSourceLogLevel(ConfigLogging.ToSourceLevel(DEV9Header.config.EnableLogging.ATA), (int)DEV9LogSources.ATA);
+            CLR_PSE_PluginLog.SetSourceLogLevel(ConfigLogging.ToSourceLevel(DEV9Header.config.EnableLogging.Winsock), (int)DEV9LogSources.Winsock);
+            CLR_PSE_PluginLog.SetSourceLogLevel(ConfigLogging.ToSourceLevel(DEV9Header.config.EnableLogging.NetAdapter), (int)DEV9LogSources.NetAdapter);
+            CLR_PSE_PluginLog.SetSourceLogLevel(ConfigLogging.ToSourceLevel(DEV9Header.config.EnableLogging.UDPSession), (int)DEV9LogSources.UDPSession);
+            CLR_PSE_PluginLog.SetSourceLogLevel(ConfigLogging.ToSourceLevel(DEV9Header.config.EnableLogging.DNSPacket), (int)DEV9LogSources.DNSPacket);
+            CLR_PSE_PluginLog.SetSourceLogLevel(ConfigLogging.ToSourceLevel(DEV9Header.config.EnableLogging.DNSSession), (int)DEV9LogSources.DNSSession);
         }
 
         public static Int32 Init()

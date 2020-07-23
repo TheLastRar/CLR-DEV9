@@ -1,46 +1,79 @@
 using System;
 using System.Net;
 using System.Runtime.Serialization;
+using System.Diagnostics;
 
 namespace CLRDEV9.Config
 {
+    enum ConfigLogLevel
+    {
+        Off = 0,
+        Error = 1,
+        Information = 2,
+        Verbose = 3,
+        //Support old config files
+        @true = 2,
+        @false = 1,
+    };
+
+
     [DataContract(Namespace = "http://schemas.datacontract.org/2004/07/CLRDEV9")]
     class ConfigLogging
     {
         //TODO, rest of the log sources
         [DataMember]
-        public bool Test = true;
+        public ConfigLogLevel Test = ConfigLogLevel.Information;
         [DataMember]
-        public bool DEV9 = true;
+        public ConfigLogLevel DEV9 = ConfigLogLevel.Information;
         [DataMember]
-        public bool SPEED = true;
+        public ConfigLogLevel SPEED = ConfigLogLevel.Information;
         [DataMember]
-        public bool SMAP = true;
+        public ConfigLogLevel SMAP = ConfigLogLevel.Information;
         [DataMember]
-        public bool ATA = true;
+        public ConfigLogLevel ATA = ConfigLogLevel.Information;
         [DataMember]
-        public bool Winsock = true;
+        public ConfigLogLevel Winsock = ConfigLogLevel.Information;
         [DataMember]
-        public bool NetAdapter = true;
+        public ConfigLogLevel NetAdapter = ConfigLogLevel.Information;
         [DataMember]
-        public bool UDPSession = true;
+        public ConfigLogLevel UDPSession = ConfigLogLevel.Information;
         [DataMember]
-        public bool DNSPacket = true;
+        public ConfigLogLevel DNSPacket = ConfigLogLevel.Information;
         [DataMember]
-        public bool DNSSession = true;
+        public ConfigLogLevel DNSSession = ConfigLogLevel.Information;
 
-        public void SetAllFalse()
+        public static SourceLevels ToSourceLevel(ConfigLogLevel cll)
         {
-            Test = false;
-            DEV9 = false;
-            SPEED = false;
-            SMAP = false;
-            ATA = false;
-            Winsock = false;
-            NetAdapter = false;
-            UDPSession = false;
-            DNSPacket = false;
-            DNSSession = false;
+            switch (cll)
+            {
+                case ConfigLogLevel.Off:
+                    return SourceLevels.Off;
+                case ConfigLogLevel.Error:
+                    return SourceLevels.Error;
+                case ConfigLogLevel.Information:
+                    return SourceLevels.Information;
+                case ConfigLogLevel.Verbose:
+                    return SourceLevels.Verbose;
+                default:
+                    throw new Exception("Error Unkown Log Level");
+            }
         }
+
+        //public static ConfigLogLevel ToConfigLogLevel(SourceLevels sl)
+        //{
+        //    switch (sl)
+        //    {
+        //        case SourceLevels.Off:
+        //            return ConfigLogLevel.Off;
+        //        case SourceLevels.Error:
+        //            return ConfigLogLevel.Error;
+        //        case SourceLevels.Information:
+        //            return ConfigLogLevel.Information;
+        //        case SourceLevels.Verbose:
+        //            return ConfigLogLevel.Verbose;
+        //        default:
+        //            throw new Exception("Error Unkown Log Level");
+        //    }
+        //}
     }
 }
