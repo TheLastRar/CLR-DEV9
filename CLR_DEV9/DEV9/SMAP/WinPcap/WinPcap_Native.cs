@@ -29,7 +29,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             public static extern IntPtr pcap_lib_version();
             //
             [DllImport("wpcap", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
-            public static extern IntPtr pcap_open_live(string device, int snaplen, int promisc, int to_ms, StringBuilder errbuf);
+            public static extern IntPtr pcap_open_live(string device, int snaplen, int promisc, int to_ms, [MarshalAs(UnmanagedType.LPStr)] StringBuilder errbuf);
             [DllImport("wpcap")]
             public static extern int pcap_close(IntPtr p);
             //
@@ -58,7 +58,7 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             public static extern IntPtr pcap_datalink_val_to_name(int dlt);
             //
             [DllImport("wpcap", CharSet = CharSet.Ansi, BestFitMapping = false, ThrowOnUnmappableChar = true)]
-            public static extern int pcap_findalldevs(ref IntPtr alldevsp, StringBuilder errbuf);
+            public static extern int pcap_findalldevs(ref IntPtr alldevsp, [MarshalAs(UnmanagedType.LPStr)] StringBuilder errbuf);
             [DllImport("wpcap", CharSet = CharSet.Ansi)]
             public static extern void pcap_freealldevs(IntPtr alldevsp);
         }
