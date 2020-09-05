@@ -51,22 +51,24 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             }
         }
 
+        byte[] localhostIP;
         Dictionary<string, byte[]> hosts;
         ConcurrentQueue<UDP> _recvBuff = new ConcurrentQueue<UDP>();
 
         object errSentry = new object();
         Exception lastTaskError = null;
 
-        public UDP_DNSSession(ConnectionKey parKey, Dictionary<string, byte[]> parHosts) : base(parKey, IPAddress.Any)
+        public UDP_DNSSession(ConnectionKey parKey, Dictionary<string, byte[]> parHosts, byte[] parLocalhostIP) : base(parKey, IPAddress.Any)
         {
             hosts = parHosts;
+            localhostIP = parLocalhostIP;
         }
 
         public override IPPayload Recv()
         {
             UDP udp;
 
-            lock(errSentry)
+            lock (errSentry)
             {
                 if (lastTaskError != null)
                     throw lastTaskError;
@@ -121,7 +123,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
                 foreach (string req in reqs)
                 {
-                    if (CheckHost(req,state))
+                    if (CheckHost(req, state))
                         continue;
                     Task<bool> res = GetHost(req, state);
                 }
@@ -185,7 +187,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             {
                 if (answers.ContainsKey(req))
                 {
-                    DNSResponseEntry ans = new DNSResponseEntry(req, 1, 1, answers[req], 10800);
+                    byte[] retIP = answers[req];
+                    if (Utils.memcmp(retIP, 0, new byte[] { 127, 0, 0, 1 }, 0, 4))
+                        retIP = localhostIP;
+
+                    DNSResponseEntry ans = new DNSResponseEntry(req, 1, 1, retIP, 10800);
                     retPay.Answers.Add(ans);
                 }
                 else

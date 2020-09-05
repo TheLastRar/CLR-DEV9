@@ -129,7 +129,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 SRVPort = 53
             };
 
-            dnsServer = new UDP_DNSSession(dnsKey, hosts);
+            IPAddress localhost = (from ip in adapter.GetIPProperties().UnicastAddresses
+                                   where ip.Address.AddressFamily == AddressFamily.InterNetwork
+                                   select ip.Address).SingleOrDefault();
+
+            dnsServer = new UDP_DNSSession(dnsKey, hosts, localhost.GetAddressBytes());
             dnsServer.ConnectionClosedEvent += HandleConnectionClosed;
             dnsServer.SourceIP = dhcpServer.PS2IP;
             dnsServer.DestIP = DefaultDHCPConfig.DHCP_IP;
