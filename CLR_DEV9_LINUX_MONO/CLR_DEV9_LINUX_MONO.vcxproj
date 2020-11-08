@@ -142,8 +142,9 @@
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <Link>
-      <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
+      <LibraryDependencies>monosgen-2.0;m;rt;dl;pthread</LibraryDependencies>
       <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(RemoteProjectDir)/obj/CLR_DEV9.o;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ClCompile>
       <PositionIndependentCode>true</PositionIndependentCode>
@@ -153,11 +154,15 @@
       <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/i386-linux-gnu/pcsx2/$(TargetFileName)</Command>
       <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
     </RemotePostBuildEvent>
+    <PreBuildEvent>
+      <Command>copy "$(SolutionDir)CLR_DEV9\bin\$(Configuration)\x86\CLR_DEV9.dll" "$(ProjectDir)CLR_DEV9.dll" /Y</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|ARM'">
     <Link>
-      <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
+      <LibraryDependencies>monosgen-2.0;m;rt;dl;pthread</LibraryDependencies>
       <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(RemoteProjectDir)/obj/CLR_DEV9.o;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ClCompile>
       <PositionIndependentCode>true</PositionIndependentCode>
@@ -167,11 +172,15 @@
       <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/i386-linux-gnu/pcsx2/$(TargetFileName)</Command>
       <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
     </RemotePostBuildEvent>
+    <PreBuildEvent>
+      <Command>copy "$(SolutionDir)CLR_DEV9\bin\$(Configuration)\x86\CLR_DEV9.dll" "$(ProjectDir)CLR_DEV9.dll" /Y</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <Link>
-      <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
+      <LibraryDependencies>monosgen-2.0;m;rt;dl;pthread</LibraryDependencies>
       <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(RemoteProjectDir)/obj/CLR_DEV9.o;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ClCompile>
       <PositionIndependentCode>true</PositionIndependentCode>
@@ -181,48 +190,75 @@
       <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/i386-linux-gnu/pcsx2/$(TargetFileName)</Command>
       <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
     </RemotePostBuildEvent>
+    <PreBuildEvent>
+      <Command>copy "$(SolutionDir)CLR_DEV9\bin\$(Configuration)\x86\CLR_DEV9.dll" "$(ProjectDir)CLR_DEV9.dll" /Y</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Link>
-      <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
+      <LibraryDependencies>monosgen-2.0;m;rt;dl;pthread</LibraryDependencies>
       <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(RemoteProjectDir)/obj/CLR_DEV9.o;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ClCompile>
       <PositionIndependentCode>true</PositionIndependentCode>
       <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <RemotePostBuildEvent>
-      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/i386-linux-gnu/pcsx2/$(TargetFileName)</Command>
+      <Command>tar -zcvf $(RemoteOutDir)$(TargetName).$(ConfigurationName).tar.gz -C $(RemoteOutDir) $(TargetFileName) &amp;&amp; cp $(RemoteTargetPath) /usr/lib/pcsx2/$(TargetFileName)</Command>
       <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
     </RemotePostBuildEvent>
+    <PreBuildEvent>
+      <Command>copy "$(SolutionDir)CLR_DEV9\bin\$(Configuration)\x86\CLR_DEV9.dll" "$(ProjectDir)CLR_DEV9.dll" /Y</Command>
+    </PreBuildEvent>
+    <RemotePreLinkEvent>
+      <Command>objcopy --input binary --output elf64-x86-64 --binary-architecture i386:x86-64 CLR_DEV9.dll $(RemoteProjectDir)/obj/CLR_DEV9.o</Command>
+      <Message>Convert CLR_DEV9 to object file</Message>
+    </RemotePreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='TestApps|x64'">
     <Link>
-      <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
+      <LibraryDependencies>monosgen-2.0;m;rt;dl;pthread</LibraryDependencies>
       <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(RemoteProjectDir)/obj/CLR_DEV9.o;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ClCompile>
       <PositionIndependentCode>true</PositionIndependentCode>
       <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <RemotePostBuildEvent>
-      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/i386-linux-gnu/pcsx2/$(TargetFileName)</Command>
+      <Command>tar -zcvf $(RemoteOutDir)$(TargetName).$(ConfigurationName).tar.gz -C $(RemoteOutDir) $(TargetFileName) &amp;&amp; cp $(RemoteTargetPath) /usr/lib/pcsx2/$(TargetFileName)</Command>
       <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
     </RemotePostBuildEvent>
+    <PreBuildEvent>
+      <Command>copy "$(SolutionDir)CLR_DEV9\bin\$(Configuration)\x86\CLR_DEV9.dll" "$(ProjectDir)CLR_DEV9.dll" /Y</Command>
+    </PreBuildEvent>
+    <RemotePreLinkEvent>
+      <Command>objcopy --input binary --output elf64-x86-64 --binary-architecture i386:x86-64 CLR_DEV9.dll $(RemoteProjectDir)/obj/CLR_DEV9.o</Command>
+      <Message>Convert CLR_DEV9 to object file</Message>
+    </RemotePreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
-      <LibraryDependencies>mono-2.0;m;rt;dl;pthread</LibraryDependencies>
+      <LibraryDependencies>monosgen-2.0;m;rt;dl;pthread</LibraryDependencies>
       <AdditionalLibraryDirectories>/usr/lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(RemoteProjectDir)/obj/CLR_DEV9.o;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ClCompile>
       <PositionIndependentCode>true</PositionIndependentCode>
       <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <RemotePostBuildEvent>
-      <Command>cp $(RemoteOutDir)$(TargetFileName) /usr/lib/i386-linux-gnu/pcsx2/$(TargetFileName)</Command>
+      <Command>tar -zcvf $(RemoteOutDir)$(TargetName).$(ConfigurationName).tar.gz -C $(RemoteOutDir) $(TargetFileName) &amp;&amp; cp $(RemoteTargetPath) /usr/lib/pcsx2/$(TargetFileName)</Command>
       <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
     </RemotePostBuildEvent>
+    <PreBuildEvent>
+      <Command>copy "$(SolutionDir)CLR_DEV9\bin\$(Configuration)\x86\CLR_DEV9.dll" "$(ProjectDir)CLR_DEV9.dll" /Y</Command>
+    </PreBuildEvent>
+    <RemotePreLinkEvent>
+      <Command>objcopy --input binary --output elf64-x86-64 --binary-architecture i386:x86-64 CLR_DEV9.dll $(RemoteProjectDir)/obj/CLR_DEV9.o</Command>
+      <Message>Convert CLR_DEV9 to object file</Message>
+    </RemotePreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <Link>
@@ -237,7 +273,7 @@
       <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <RemotePostBuildEvent>
-      <Command>tar -zcvf $(RemoteOutDir)$(TargetName).$(ConfigurationName).tar.gz mono_i386 -C $(RemoteOutDir) $(TargetFileName) | cp $(RemoteOutDir)$(TargetFileName) /usr/lib/games/PCSX2/$(TargetFileName)</Command>
+      <Command>tar -zcvf $(RemoteOutDir)$(TargetName).$(ConfigurationName).tar.gz mono_i386 -C $(RemoteOutDir) $(TargetFileName) &amp;&amp; cp $(RemoteTargetPath) /usr/lib/games/PCSX2/$(TargetFileName)</Command>
       <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
     </RemotePostBuildEvent>
     <PreBuildEvent>
@@ -269,7 +305,7 @@
       <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <RemotePostBuildEvent>
-      <Command>tar -zcvf $(RemoteOutDir)$(TargetName).$(ConfigurationName).tar.gz mono_i386 -C $(RemoteOutDir) $(TargetFileName) | cp $(RemoteTargetPath) /usr/lib/games/PCSX2/$(TargetFileName)</Command>
+      <Command>tar -zcvf $(RemoteOutDir)$(TargetName).$(ConfigurationName).tar.gz mono_i386 -C $(RemoteOutDir) $(TargetFileName) &amp;&amp; cp $(RemoteTargetPath) /usr/lib/games/PCSX2/$(TargetFileName)</Command>
       <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
     </RemotePostBuildEvent>
     <PreBuildEvent>
@@ -301,7 +337,7 @@
       <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <RemotePostBuildEvent>
-      <Command>tar -zcvf $(RemoteOutDir)$(TargetName).$(ConfigurationName).tar.gz mono_i386 -C $(RemoteOutDir) $(TargetFileName) | cp $(RemoteTargetPath) /usr/lib/games/PCSX2/$(TargetFileName)</Command>
+      <Command>tar -zcvf $(RemoteOutDir)$(TargetName).$(ConfigurationName).tar.gz mono_i386 -C $(RemoteOutDir) $(TargetFileName) &amp;&amp; cp $(RemoteTargetPath) /usr/lib/games/PCSX2/$(TargetFileName)</Command>
       <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
     </RemotePostBuildEvent>
     <PreBuildEvent>
