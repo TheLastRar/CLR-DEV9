@@ -14,6 +14,7 @@ const char* config = "\
 <configuration> \n\
 	<dllmap dll=\"wpcap\" target=\"libpcap.so.0.8\" /> \n\
 	<dllmap dll=\"libgtk-x11-2.0\" target=\"libgtk-3.so\" /> \n\
+	<dllmap dll=\"libgdk-x11-2.0\" target=\"libgdk-3.so\" /> \n\
 <configuration/> \n\
 ";
 
