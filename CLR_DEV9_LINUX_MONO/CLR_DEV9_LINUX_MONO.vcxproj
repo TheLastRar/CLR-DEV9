@@ -273,7 +273,7 @@
       <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <RemotePostBuildEvent>
-      <Command>tar -zcvf $(RemoteOutDir)$(TargetName).$(ConfigurationName).tar.gz mono_i386 -C $(RemoteOutDir) $(TargetFileName) &amp;&amp; cp $(RemoteTargetPath) /usr/lib/games/PCSX2/$(TargetFileName)</Command>
+      <Command>tar -zcvf $(RemoteOutDir)$(TargetName).$(ConfigurationName).tar.gz mono_i386 -C $(RemoteOutDir) $(TargetFileName) &amp;&amp; cp $(RemoteTargetPath) /var/lib/flatpak/app/net.pcsx2.PCSX2/x86_64/stable/active/files/lib32/pcsx2/$(TargetFileName)</Command>
       <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
     </RemotePostBuildEvent>
     <PreBuildEvent>
@@ -305,7 +305,7 @@
       <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <RemotePostBuildEvent>
-      <Command>tar -zcvf $(RemoteOutDir)$(TargetName).$(ConfigurationName).tar.gz mono_i386 -C $(RemoteOutDir) $(TargetFileName) &amp;&amp; cp $(RemoteTargetPath) /usr/lib/games/PCSX2/$(TargetFileName)</Command>
+      <Command>tar -zcvf $(RemoteOutDir)$(TargetName).$(ConfigurationName).tar.gz mono_i386 -C $(RemoteOutDir) $(TargetFileName) &amp;&amp; cp $(RemoteTargetPath) /var/lib/flatpak/app/net.pcsx2.PCSX2/x86_64/stable/active/files/lib32/pcsx2/$(TargetFileName)</Command>
       <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
     </RemotePostBuildEvent>
     <PreBuildEvent>
@@ -337,7 +337,7 @@
       <AdditionalIncludeDirectories>/usr/include/mono-2.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <RemotePostBuildEvent>
-      <Command>tar -zcvf $(RemoteOutDir)$(TargetName).$(ConfigurationName).tar.gz mono_i386 -C $(RemoteOutDir) $(TargetFileName) &amp;&amp; cp $(RemoteTargetPath) /usr/lib/games/PCSX2/$(TargetFileName)</Command>
+      <Command>tar -zcvf $(RemoteOutDir)$(TargetName).$(ConfigurationName).tar.gz mono_i386 -C $(RemoteOutDir) $(TargetFileName) &amp;&amp; cp $(RemoteTargetPath) /var/lib/flatpak/app/net.pcsx2.PCSX2/x86_64/stable/active/files/lib32/pcsx2/$(TargetFileName)</Command>
       <Message>Copy plugin to PCSX2 dir, Make sure to take ownership of directory</Message>
     </RemotePostBuildEvent>
     <PreBuildEvent>

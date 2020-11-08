@@ -97,11 +97,11 @@ namespace PSE
             {
                 Close();
 
-                if (File.Exists(logFolderPath + Path.DirectorySeparatorChar + logFileName))
+                if (File.Exists(Path.Combine(logFolderPath, logFileName)))
                 {
                     try
                     {
-                        File.Delete(logFolderPath + Path.DirectorySeparatorChar + logFileName);
+                        File.Delete(Path.Combine(logFolderPath, logFileName));
                     }
                     catch
                     {

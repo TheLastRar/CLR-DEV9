@@ -316,6 +316,7 @@ namespace CLRDEV9
         }
         public static void Configure()
         {
+            bool logNeedsInit = !hasInit;
             try
             {
                 //Config can be called without init
@@ -323,14 +324,18 @@ namespace CLRDEV9
                 //So we need to check if logging is
                 //active, incase of errors dealing
                 //with plugin config
-                if (!hasInit) LogSetup();
+                if (logNeedsInit) LogSetup();
                 ConfigFile.LoadConf(iniFolderPath, "CLR_DEV9.ini");
-                if (!hasInit) LogInit();
+                if (logNeedsInit) LogInit();
                 ConfigFile.DoConfig(iniFolderPath, "CLR_DEV9.ini");
                 ConfigFile.SaveConf(iniFolderPath, "CLR_DEV9.ini");
-                if (!hasInit) CLR_PSE_PluginLog.Close();
             }
-            catch (Exception e) when (Log_Fatal(e)) { throw; }
+            catch (Exception e) when (Log_Fatal(e)) { }
+            finally
+            {
+                try { if (logNeedsInit) CLR_PSE_PluginLog.Close(); }
+                catch { }
+            }
         }
 
         //Always return false to avoid catching exception
