@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.Serialization;
+using System.Security.Principal;
 using System.Xml;
 
 namespace CLRDEV9.Config
@@ -104,7 +105,7 @@ namespace CLRDEV9.Config
             iniFolderPath = iniFolderPath.TrimEnd(Path.DirectorySeparatorChar);
             iniFolderPath = iniFolderPath.TrimEnd(Path.AltDirectorySeparatorChar);
 
-            string filePath = iniFolderPath + Path.DirectorySeparatorChar + iniFileName;
+            string filePath = Path.Combine(iniFolderPath, iniFileName);
 
             DataContractSerializer ConfSerializer = new DataContractSerializer(typeof(ConfigFile));
 
@@ -130,7 +131,7 @@ namespace CLRDEV9.Config
             iniFolderPath = iniFolderPath.TrimEnd(Path.DirectorySeparatorChar);
             iniFolderPath = iniFolderPath.TrimEnd(Path.AltDirectorySeparatorChar);
 
-            string filePath = iniFolderPath + Path.DirectorySeparatorChar + iniFileName;
+            string filePath = Path.Combine(iniFolderPath, iniFileName);
 
             if (File.Exists(filePath))
             {
