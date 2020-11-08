@@ -232,41 +232,6 @@ void LoadCoreCLR()
 		//Inc Reference
 		dlopen("libmonosgen-2.0.so", RTLD_NOW | RTLD_GLOBAL);
 
-
-
-		//Flatpak Hackfix (libmono-native.so)
-		//libgssapi_krb5.so->libkrb5.so->libk5crypto.so->libkrb5support.so
-		dlopen("libkeyutils.so.1", RTLD_NOW | RTLD_GLOBAL);
-		//libgssapi_krb5.so->libkrb5.so->libk5crypto.so
-		dlopen("libkrb5support.so", RTLD_NOW | RTLD_GLOBAL);
-		//libgssapi_krb5.so->libkrb5.so
-		dlopen("libk5crypto.so", RTLD_NOW | RTLD_GLOBAL);
-		//libgssapi_krb5.so
-		dlopen("libkrb5.so", RTLD_NOW | RTLD_GLOBAL);
-		//libmono-native.so
-		dlopen("libgssapi_krb5.so", RTLD_NOW | RTLD_GLOBAL);
-		//////LoadInitialFD();
-
-		////Flatpak Hackfix (libgdiplus.so)
-		dlopen("libjpeg.so", RTLD_NOW | RTLD_GLOBAL);
-		//dlopen("libgdiplus.so", RTLD_NOW | RTLD_GLOBAL);
-		dlopen("libmono-native.so", RTLD_NOW | RTLD_GLOBAL);
-		dlopen("libMonoPosixHelper.so", RTLD_NOW | RTLD_GLOBAL);
-		//void* h = dlopen("libmono-native.so", RTLD_NOW | RTLD_GLOBAL);
-		void* h = dlopen("libgdiplus.so", RTLD_NOW | RTLD_GLOBAL);
-		if (h)
-		{
-
-		}
-		else
-		{
-			PSELog.WriteLn(dlerror());
-		}
-
-		//glib debug
-		//dlopen("libgtk-3.0.so", RTLD_NOW | RTLD_GLOBAL);
-
-
 		//TODO PCSX2 is hanging on exit without MONO_THREADS_SUSPEND=preemptive
 
 		//Set EnvVariable
