@@ -207,15 +207,24 @@ void LoadCoreCLR()
 	}
 
 	//Local lib dir
-	string x86LocalLibPath = GetModulePath();
-	x86LocalLibPath = x86LocalLibPath.substr(0, x86LocalLibPath.find_last_of("/")) + "/mono_i386/usr/lib/";
+	string modulePath = GetModulePath();
 
+	string x86LocalLibPath;
+	string x86LocalEtcPath;
+	x86LocalLibPath = modulePath.substr(0, modulePath.find_last_of("/")) + "/mono_i386/usr/lib/";
+	x86LocalEtcPath = modulePath.substr(0, modulePath.find_last_of("/")) + "/mono_i386/etc/";
 	//Is Local lib dir present?
 	bool localLibsFound = false;
+	bool localEtcFound = false;
+
 	struct stat st;
 	if (stat(x86LocalLibPath.c_str(), &st) == 0)
 		if (st.st_mode & S_IFDIR != 0)
 			localLibsFound = true;
+
+	if (stat(x86LocalEtcPath.c_str(), &st) == 0)
+		if (st.st_mode & S_IFDIR != 0)
+			localEtcFound = true;
 
 	//Check if mono is already active
 	if (mono_get_root_domain() == NULL)
@@ -242,7 +251,10 @@ void LoadCoreCLR()
 		if (monoEtcFolder.length() == 0)
 		{
 			//Do we need local copy of etc?
-			monoEtcFolder = "/etc/";
+			if (localEtcFound)
+				monoEtcFolder = x86LocalEtcPath;
+			else
+				monoEtcFolder = "/etc/";
 		}
 
 		mono_set_dirs(monoUsrLibFolder.c_str(), monoEtcFolder.c_str());
