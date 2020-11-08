@@ -13,6 +13,7 @@ extern char _binary_CLR_DEV9_dll_end;
 const char* config = "\
 <configuration> \n\
 	<dllmap dll=\"wpcap\" target=\"libpcap.so.0.8\" /> \n\
+	<dllmap dll=\"libgtk-x11-2.0\" target=\"libgtk-3.so\" /> \n\
 <configuration/> \n\
 ";
 
