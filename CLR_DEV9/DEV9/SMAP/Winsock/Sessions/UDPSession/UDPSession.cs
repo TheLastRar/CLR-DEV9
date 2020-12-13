@@ -69,7 +69,20 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 return null;
             }
 
-            if (client.Available != 0)
+            bool hasData;
+
+            //client may be disposed when we try to check
+            //available data on a rejected connection
+            try
+            {
+                hasData = client.Available != 0;
+            } 
+            catch (ObjectDisposedException) 
+            {
+                hasData = false; 
+            }
+
+            if (hasData)
             {
                 IPEndPoint remoteIPEndPoint;
                 //this isn't a filter
@@ -143,6 +156,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             return false;
         }
 
+        bool hasRetryed = false;
         public override bool Send(IPPayload payload)
         {
             lock (deathClock)
@@ -207,9 +221,33 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             {
                 client.Send(udp.GetPayload(), udp.GetPayload().Length, new IPEndPoint(new IPAddress(DestIP), destPort));
             }
-            else
+            else if (isFixedPort)
             {
                 client.Send(udp.GetPayload(), udp.GetPayload().Length);
+            }
+            else
+            {
+                try
+                {
+                    client.Send(udp.GetPayload(), udp.GetPayload().Length);
+                }
+                catch (SocketException err)
+                {
+                    if (!hasRetryed)
+                    {
+                        Log_Error("UDP Recv Error: " + err.Message);
+                        Log_Error("Error Code: " + err.ErrorCode);
+                        Log_Error("Hiding further errors from this connection");
+                        hasRetryed = true;
+                    }
+                    client.Close();
+                    //recreate UDP client
+                    IPAddress address = new IPAddress(DestIP);
+                    client = new UdpClient(new IPEndPoint(adapterIP, 0));
+                    client.Connect(address, destPort);
+                    //And retry sending
+                    client.Send(udp.GetPayload(), udp.GetPayload().Length);
+                }
             }
 
             if (srcPort == 0)
