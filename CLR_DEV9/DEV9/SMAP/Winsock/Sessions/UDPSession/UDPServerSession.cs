@@ -23,35 +23,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
         public override IPPayload Recv()
         {
-            if (listener.Available != 0)
-            {
-                IPEndPoint remoteIPEndPoint;
-                remoteIPEndPoint = new IPEndPoint(IPAddress.Any, 0);
-
-                byte[] recived = null;
-                try
-                {
-                    recived = listener.Receive(ref remoteIPEndPoint);
-                    Log_Verb("Listener Got Data");
-                }
-                catch (SocketException err)
-                {
-                    Log_Error("UDP Recv Error: " + err.Message);
-                    Log_Error("Error Code: " + err.ErrorCode);
-                    RaiseEventConnectionClosed();
-                    return null;
-                }
-
-                UDP iRet = new UDP(recived);
-
-                //Get sender IP and port
-                iRet.DestinationPort = port;
-                iRet.SourcePort = (UInt16)remoteIPEndPoint.Port;
-                DestIP = remoteIPEndPoint.Address.GetAddressBytes(); //assumes ipv4
-
-                //Return data
-                return iRet;
-            }
             return null;
         }
 
