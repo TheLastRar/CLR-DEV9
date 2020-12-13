@@ -307,14 +307,11 @@ namespace CLRDEV9.DEV9.SPEED
                         Log_Verb("SPD_R_XFR_CTRL For DMA Disabled");
 
                     if ((value & 0b1111_1111_0111_1000) != 0)
-                        Log_Error("SPD_R_DMA_CTRL Unkown value written" + value.ToString("X"));
+                        Log_Error("SPD_R_XFR_CTRL Unkown value written" + value.ToString("X"));
                     
                     break;
                 case SPEED_Header.SPD_R_DBUF_STAT:
                     Log_Verb("SPD_R_38 16bit write " + value.ToString("X"));
-
-                    if ((value & SPEED_Header.SPD_DBUF_RESET_SOMETHING) != 0)
-                        Log_Verb("SPD_R_DBUF_STAT Reset Something");
 
                     if ((value & SPEED_Header.SPD_DBUF_RESET_FIFO) != 0)
                     {

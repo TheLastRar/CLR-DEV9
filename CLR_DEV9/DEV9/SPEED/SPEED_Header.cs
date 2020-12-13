@@ -33,8 +33,6 @@ namespace CLRDEV9.DEV9.SPEED
 
         public const uint SPD_R_XFR_CTRL = (SPD_REGBASE + 0x32); //ATA only?
         public const UInt16 SPD_XFR_WRITE = (1 << 0);
-        //Unk (write?)
-        //Unk (write?)
         public const UInt16 SPD_XFR_DMAEN = (1 << 1);
         public const uint SPD_R_DBUF_STAT = (SPD_REGBASE + 0x38);
         //Read

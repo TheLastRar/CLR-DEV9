@@ -51,7 +51,10 @@ namespace CLRDEV9.DEV9.SMAP
 
             //Check if there is space on RXBD
             if (dev9.Dev9Ru8((int)DEV9Header.SMAP_R_RXFIFO_FRAME_CNT) == 64)
+            {
+                Log_Error("Delay recive, RXBD Full");
                 return false;
+            }
 
             //Check if there is space on fifo
             int rd_ptr = (int)dev9.Dev9Ru32((int)DEV9Header.SMAP_R_RXFIFO_RD_PTR);
@@ -62,7 +65,10 @@ namespace CLRDEV9.DEV9.SMAP
                 space = (dev9.rxFifo.Length);
 
             if (space < 1514)
+            {
+                Log_Error("Delay recive, RXFIFO Full");
                 return false;
+            }
 
             //int soff = (int)((DEV9Header.SMAP_BD_RX_BASE & 0xffff) + dev9.rxbdi * SMAP_bd.GetSize());
             //SMAP_bd pbd = new SMAP_bd(dev9.dev9R, soff);
@@ -111,10 +117,8 @@ namespace CLRDEV9.DEV9.SMAP
                 //Fill the BD with info !
                 pbd.Length = (ushort)pk.size;
                 pbd.Pointer = (ushort)(0x4000 + pstart); //?
-                unchecked //Allow -int to uint
-                {
-                    pbd.CtrlStat &= (ushort)~DEV9Header.SMAP_BD_RX_EMPTY;
-                }
+                //unchecked to allow -int to uint
+                pbd.CtrlStat &= unchecked((ushort)~DEV9Header.SMAP_BD_RX_EMPTY);
 
                 //increase frame count
                 lock (counterSentry)
