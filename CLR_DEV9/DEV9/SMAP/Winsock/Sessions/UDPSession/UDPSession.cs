@@ -21,7 +21,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         //EndBroadcast
 
         Stopwatch deathClock = new Stopwatch();
-        const double MAX_IDLE = 72;
+        const double MAX_IDLE = 120; //See RFC 4787 Section 4.3
 
         public UDPSession(ConnectionKey parKey, IPAddress parAdapterIP)
             : base(parKey, parAdapterIP)
