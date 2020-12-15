@@ -187,17 +187,19 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     isMulticast = true;
                 }
 
+                client = new UdpClient();
+                client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                client.Client.Bind(new IPEndPoint(adapterIP, 0));
+
                 //needs testing
                 if (isMulticast)
                 {
                     Log_Info("Is Multicast");
-                    client = new UdpClient(new IPEndPoint(adapterIP, 0));
                     //client.JoinMulticastGroup(address);
                 }
                 else
                 {
                     IPAddress address = new IPAddress(DestIP);
-                    client = new UdpClient(new IPEndPoint(adapterIP, 0));
                     client.Connect(address, destPort);
                 }
                 if (srcPort != 0)
@@ -227,6 +229,10 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             }
             else
             {
+                //As fair as I know,
+                //this won't throw a 10061 Connection refused or 10054 Connection reset
+                //under any probable event on windows (As much as I've tried)
+                //Yet it can throw 10061 on linux
                 try
                 {
                     client.Send(udp.GetPayload(), udp.GetPayload().Length);
@@ -235,7 +241,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 {
                     if (!hasRetryed)
                     {
-                        Log_Error("UDP Recv Error: " + err.Message);
+                        Log_Error("UDP Send Error: " + err.Message);
                         Log_Error("Error Code: " + err.ErrorCode);
                         Log_Error("Hiding further errors from this connection");
                         hasRetryed = true;
@@ -243,7 +249,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     client.Close();
                     //recreate UDP client
                     IPAddress address = new IPAddress(DestIP);
-                    client = new UdpClient(new IPEndPoint(adapterIP, 0));
+                    client = new UdpClient();
+                    client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                    client.Client.Bind(new IPEndPoint(adapterIP, 0));
                     client.Connect(address, destPort);
                     //And retry sending
                     client.Send(udp.GetPayload(), udp.GetPayload().Length);

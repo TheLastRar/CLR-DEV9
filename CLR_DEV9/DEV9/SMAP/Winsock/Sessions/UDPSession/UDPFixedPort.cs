@@ -22,7 +22,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             : base(parKey, parAdapterIP)
         {
             Port = parPort;
-            client = new UdpClient(new IPEndPoint(adapterIP, Port));
+            client = new UdpClient();
+
+            client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            client.Client.Bind(new IPEndPoint(adapterIP, Port));
+
             client.EnableBroadcast = true;
         }
 
