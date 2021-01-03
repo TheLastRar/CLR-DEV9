@@ -1,4 +1,6 @@
-﻿using CLRDEV9.DEV9.ATA;
+﻿#define ALLOW_WIDE_EEPROM
+
+using CLRDEV9.DEV9.ATA;
 using CLRDEV9.DEV9.FLASH;
 using CLRDEV9.DEV9.SMAP;
 using CLRDEV9.DEV9.SPEED;
@@ -142,9 +144,12 @@ namespace CLRDEV9.DEV9
                                 eepromBit = 0;
                             }
                         }
-                        else hard = 0;
+                        else
+                            hard = 0;
                     }
-                    else hard = 0;
+                    else
+                        hard = 0;
+
                     Log_Verb("SPD_R_PIO_DATA 8bit read " + hard.ToString("X"));
                     return hard;
 
@@ -191,6 +196,40 @@ namespace CLRDEV9.DEV9
             //OTHER
             switch (addr)
             {
+#if ALLOW_WIDE_EEPROM
+                case DEV9Header.SPD_R_PIO_DATA:
+
+                    /*if(dev9.eeprom_dir!=1)
+                    {
+                        hard=0;
+                        break;
+                    }*/
+                    //DEV9_LOG("DEV9read8");
+
+                    if (eepromState == DEV9Header.EEPROM_TDATA)
+                    {
+                        if (eepromCommand == 2) //read
+                        {
+                            if (eepromBit == 0xFF)
+                                hard = 0;
+                            else
+                                hard = (UInt16)(((eeprom[eepromAddress] << eepromBit) & 0x8000) >> 11);
+                            eepromBit++;
+                            if (eepromBit == 16)
+                            {
+                                eepromAddress++;
+                                eepromBit = 0;
+                            }
+                        }
+                        else hard = 0;
+                    }
+                    else
+                        hard = 0;
+
+                    Log_Error("SPD_R_PIO_DATA 16bit read " + hard.ToString("X"));
+                    return hard;
+#endif
+
                 case DEV9Header.DEV9_R_REV:
                     //hard = 0x0030; // expansion bay
                     hard = 0x0032; // expansion bay
@@ -376,6 +415,75 @@ namespace CLRDEV9.DEV9
             }
             switch (addr)
             {
+#if ALLOW_WIDE_EEPROM
+                case DEV9Header.SPD_R_PIO_DIR:
+                    Log_Verb("SPD_R_PIO_DIR 16bit write " + value.ToString("X"));
+                    if ((value & 0xc0) != 0xc0)
+                        return;
+
+                    if ((value & 0x30) == 0x20)
+                    {
+                        eepromState = 0;
+                    }
+                    eepromDir = (byte)((value >> 4) & 3);
+
+                    return;
+
+                case DEV9Header.SPD_R_PIO_DATA:
+                    Log_Verb("SPD_R_PIO_DATA 16bit write " + value.ToString("X"));
+
+                    if ((value & 0xc0) != 0xc0)
+                        return;
+
+                    switch (eepromState)
+                    {
+                        case DEV9Header.EEPROM_READY:
+                            eepromCommand = 0;
+                            eepromState++;
+                            break;
+                        case DEV9Header.EEPROM_OPCD0:
+                            eepromCommand = (byte)((value >> 4) & 2);
+                            eepromState++;
+                            eepromBit = 0xFF;
+                            break;
+                        case DEV9Header.EEPROM_OPCD1:
+                            eepromCommand |= (byte)((value >> 5) & 1);
+                            eepromState++;
+                            break;
+                        case DEV9Header.EEPROM_ADDR0:
+                        case DEV9Header.EEPROM_ADDR1:
+                        case DEV9Header.EEPROM_ADDR2:
+                        case DEV9Header.EEPROM_ADDR3:
+                        case DEV9Header.EEPROM_ADDR4:
+                        case DEV9Header.EEPROM_ADDR5:
+                            eepromAddress = (byte)
+                                ((eepromAddress & (63 ^ (1 << (eepromState - DEV9Header.EEPROM_ADDR0)))) |
+                                ((value >> (eepromState - DEV9Header.EEPROM_ADDR0)) & (0x20 >> (eepromState - DEV9Header.EEPROM_ADDR0))));
+                            eepromState++;
+                            break;
+                        case DEV9Header.EEPROM_TDATA:
+                            {
+                                if (eepromCommand == 1) //write
+                                {
+                                    eeprom[eepromAddress] = (byte)
+                                        ((eeprom[eepromAddress] & (63 ^ (1 << eepromBit))) |
+                                        ((value >> eepromBit) & (0x8000 >> eepromBit)));
+                                    eepromBit++;
+                                    if (eepromBit == 16)
+                                    {
+                                        eepromAddress++;
+                                        eepromBit = 0;
+                                    }
+                                }
+                            }
+                            break;
+                        default:
+                            Log_Error("Unkown EEPROM COMMAND");
+                            break;
+                    }
+                    return;
+#endif
+
                 default:
                     Dev9Wu16((int)addr, value);
                     Log_Error("*Unknown 16bit write at address " + addr.ToString("X8") + " value " + value.ToString("X"));
