@@ -63,6 +63,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     if (deathClock.Elapsed.TotalSeconds > MAX_IDLE)
                     {
                         Dispose();
+                        Log_Info("UDPFixed Max Idle Reached");
                         RaiseEventConnectionClosed();
                     }
                 }
@@ -132,6 +133,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 if (deathClock.Elapsed.TotalSeconds > MAX_IDLE)
                 {
                     Dispose();
+                    Log_Info("UDP Max Idle Reached");
                     RaiseEventConnectionClosed();
                 }
             }

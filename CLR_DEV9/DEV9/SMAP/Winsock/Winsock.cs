@@ -567,7 +567,16 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     s.Dispose();
                 }
             }
-            Log_Info("Closed Dead Connection");
+            switch (s.Key.Protocol)
+            {
+                case (byte)IPType.UDP:
+                case (byte)IPType.TCP:
+                    Log_Info($"Closed Dead {(IPType)s.Key.Protocol} Connection to {s.Key.SRVPort}");
+                    break;
+                default:
+                    Log_Info($"Closed Dead {(IPType)s.Key.Protocol} Connection");
+                    break;
+            }
         }
 
         //Event must only be raised once per fixed port
@@ -585,7 +594,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                     s.Dispose();
                 }
             }
-            Log_Info("Closed Dead Fixed Port");
+            Log_Info($"Closed Dead {(IPType)s.Key.Protocol} Fixed Port to {s.Key.PS2Port}");
         }
 
         public override void Close()
