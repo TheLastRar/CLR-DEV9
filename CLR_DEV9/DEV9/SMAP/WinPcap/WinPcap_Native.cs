@@ -21,6 +21,9 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             //Windows
             [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
             public static extern IntPtr LoadLibrary(string lpFileName);
+            [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
+            [return: MarshalAs(UnmanagedType.Bool)]
+            public static extern bool SetDllDirectory(string lpFileName);
             [DllImport("kernel32", SetLastError = true)]
             [return: MarshalAs(UnmanagedType.Bool)]
             public static extern bool FreeLibrary(IntPtr hModule);
@@ -63,6 +66,12 @@ namespace CLRDEV9.DEV9.SMAP.WinPcap
             public static extern void pcap_freealldevs(IntPtr alldevsp);
         }
         #endregion
+
+        static WinPcapAdapter()
+        {
+            if (PSE.CLR_PSE_Utils.IsWindows())
+                NativeMethods.SetDllDirectory(@"C:\Windows\System32\Npcap");
+        }
 
         [StructLayout(LayoutKind.Sequential)]
         struct pcap_pkthdr
