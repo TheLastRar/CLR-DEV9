@@ -80,7 +80,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 HandleGateway(parAdapter, DefaultDHCPConfig.GATEWAY_IP);
             }
             //Set DNS
-            HandleDNS(parAdapter, parDNS1, parDNS2);
+            HandleDNS(parAdapter, parDNS1, parDNS2, true);
             //Broadcast Address
             HandleBroadcast(PS2IP, NetMask);
         }
@@ -94,7 +94,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
 
             HandleNetMask(parAdapter, parNetmask);
             HandleGateway(parAdapter, parGateway);
-            HandleDNS(parAdapter, parDNS1, parDNS2);
+            HandleDNS(parAdapter, parDNS1, parDNS2, false);
             HandleBroadcast(PS2IP, NetMask);
             #region ICS
             //Special case for ICS
@@ -185,7 +185,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             }
         }
 
-        private void HandleDNS(NetworkInterface parAdapter, byte[] parDNS1, byte[] parDNS2)
+        private void HandleDNS(NetworkInterface parAdapter, byte[] parDNS1, byte[] parDNS2, bool winsock)
         {
             List<IPAddress> DNS_IP = new List<IPAddress>();
             if (parAdapter != null)
@@ -195,7 +195,18 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 {
                     if (!(DNSaddress.AddressFamily == AddressFamily.InterNetworkV6))
                     {
-                        DNS_IP.Add(DNSaddress);
+                        //systemd DNS
+                        if (Utils.memcmp(DNSaddress.GetAddressBytes(), 0, new byte[] { 127, 0, 0, 53 }, 0, 4))
+                        {
+                            Log_Error("Systemd DNS not supported");
+                            if (winsock)
+                            {
+                                Log_Error("Using internal DNS instead");
+                                DNS_IP.Add(new IPAddress(DefaultDHCPConfig.DHCP_IP));
+                            }
+                        }
+                        else
+                            DNS_IP.Add(DNSaddress);
                     }
                 }
             }
