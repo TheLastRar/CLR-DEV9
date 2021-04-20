@@ -187,10 +187,10 @@ namespace CLRDEV9.DEV9.SMAP
 
                         dev9.Dev9Wu32((int)DEV9Header.SMAP_R_RXFIFO_RD_PTR, (UInt32)((rd_ptr + 4) & 16383));
 
-                        if (dev9.bdSwap != 0)
-                        {
-                            rv = (rv << 24) | (rv >> 24) | ((rv >> 8) & 0xFF00) | ((rv << 8) & 0xFF0000);
-                        }
+                        //if (dev9.bdSwap != 0)
+                        //{
+                        //    rv = (rv << 24) | (rv >> 24) | ((rv >> 8) & 0xFF00) | ((rv << 8) & 0xFF0000);
+                        //}
 
                         Log_Verb("SMAP_R_RXFIFO_DATA 32bit read " + rv.ToString("X"));
                         return (uint)rv;

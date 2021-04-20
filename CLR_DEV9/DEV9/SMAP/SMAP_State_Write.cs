@@ -447,8 +447,8 @@ namespace CLRDEV9.DEV9.SMAP
             switch (addr)
             {
                 case DEV9Header.SMAP_R_TXFIFO_DATA:
-                    if (dev9.bdSwap != 0)
-                        value = (value << 24) | (value >> 24) | ((value >> 8) & 0xFF00) | ((value << 8) & 0xFF0000);
+                    //if (dev9.bdSwap != 0)
+                    //    value = (value << 24) | (value >> 24) | ((value >> 8) & 0xFF00) | ((value << 8) & 0xFF0000);
 
                     Log_Verb("SMAP_R_TXFIFO_DATA 32bit write " + value.ToString("X"));
                     Log_Verb("SMAP_R_TXFIFO_WR_PTR is " + dev9.Dev9Ru32((int)DEV9Header.SMAP_R_TXFIFO_WR_PTR).ToString("X"));
