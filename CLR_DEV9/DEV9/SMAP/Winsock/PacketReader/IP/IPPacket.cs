@@ -13,7 +13,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.IP
         public byte Class //Equal to Precedence for TOS
         {
             //DSCP vs TOS
-            //Default (xxx000)
+            //Default (xxx000), Low Effort (xxx010)
             //0 = Routine
             //Assured Forwarding (xxx000, xxx010, xxx100, xxx110)
             //1 = Priority
