@@ -89,6 +89,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader
             switch (proto) //Note, Diffrent Edian
             {
                 case (UInt16)EtherFrameType.NULL:
+                case (UInt16)EtherFrameType.RESET:
                     break;
                 case (UInt16)EtherFrameType.IPv4:
                     _pl = new IP.IPPacket(this);
