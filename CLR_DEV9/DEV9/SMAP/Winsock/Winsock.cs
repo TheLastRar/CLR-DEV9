@@ -278,6 +278,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 switch (ef.Protocol)
                 {
                     case (int)EtherFrameType.NULL:
+                    case (int)EtherFrameType.RESET:
                         //Adapter Reset
 
                         //lock (sentry)
