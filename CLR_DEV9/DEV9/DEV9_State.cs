@@ -226,7 +226,7 @@ namespace CLRDEV9.DEV9
                     else
                         hard = 0;
 
-                    Log_Error("SPD_R_PIO_DATA 16bit read " + hard.ToString("X"));
+                    Log_Verb("SPD_R_PIO_DATA 16bit read " + hard.ToString("X"));
                     return hard;
 #endif
 
