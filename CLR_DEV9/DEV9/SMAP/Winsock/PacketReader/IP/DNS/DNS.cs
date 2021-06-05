@@ -180,7 +180,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DNS
                 {
                     str += entry.Data[y] + ":";
                 }
-                Log_Info("Auth" + i + " Data " + str.Substring(0, str.Length - 1));
+                Log_Info("Auth" + i + " Data " + str.TrimEnd(':'));
                 Log_Info("Auth" + i + " Length " + entry.Length);
                 offset += entry.Length;
                 Authorities.Add(entry);
@@ -197,7 +197,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DNS
                 {
                     str += entry.Data[y] + ":";
                 }
-                Log_Info("Add" + i + " Data " + str.Substring(0, str.Length - 1));
+                Log_Info("Add" + i + " Data " + str.TrimEnd(':'));
                 Log_Info("Add" + i + " Length " + entry.Length);
                 offset += entry.Length;
                 Additional.Add(entry);

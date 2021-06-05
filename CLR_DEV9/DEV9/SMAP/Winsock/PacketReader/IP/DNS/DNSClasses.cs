@@ -41,20 +41,22 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.PacketReader.DNS
                     NetLib.ReadUInt16(addrB, ref tmp, out addr);
                     tmp = addr;
                     ReadDNSString(buffer, ref tmp, out o);
-
-                    value += o + ".";
-                    offset -= 1;
-                    break;
+                    value += o;
+                    //Ends with the pointer, no null char
+                    return;
                 }
                 else
                 {
                     offset += 1;
                     NetLib.ReadCString(buffer, ref offset, len, out o);
+                    offset -= 1; //No null char
+                    value += o;
+
+                    if (buffer[offset] != 0)
+                        value += ".";
                 }
-                offset -= 1;
-                value += o + ".";
             }
-            value = value.Substring(0, value.Length - 1);
+            //null char
             offset += 1;
         }
         private void WriteDNSString(byte[] buffer, ref int offset, string value)
