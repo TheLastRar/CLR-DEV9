@@ -109,12 +109,6 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     SourcePort = destPort
                 };
 
-                //if (isMulticast)
-                //{
-                //    //Log_Error(remoteIPEndPoint.ToString());
-                //    DestIP = remoteIPEndPoint.Address.GetAddressBytes(); //assumes ipv4
-                //    iRet.SourcePort = (UInt16)remoteIPEndPoint.Port;
-                //}
                 lock (deathClock)
                 {
                     deathClock.Restart();
@@ -211,17 +205,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
                 client.Client.Bind(new IPEndPoint(adapterIP, 0));
 
-                ////needs testing
-                //if (isMulticast)
-                //{
-                //    Log_Info("Is Multicast");
-                //    //client.JoinMulticastGroup(address);
-                //}
-                //else
-                //{
                 IPAddress address = new IPAddress(DestIP);
                 client.Connect(address, destPort);
-                //}
+
                 if (srcPort != 0)
                 {
                     open = true;
