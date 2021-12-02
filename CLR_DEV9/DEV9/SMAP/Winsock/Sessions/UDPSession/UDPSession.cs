@@ -20,6 +20,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         readonly bool isFixedPort = false;
         //EndBroadcast
 
+        //UDP Retry on fail
+        bool hasRetryed = false;
+        object retrySentry = new object();
+        //
+
         Stopwatch deathClock = new Stopwatch();
         const double MAX_IDLE = 120; //See RFC 4787 Section 4.3
 
@@ -71,58 +76,55 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 return null;
             }
 
-            bool hasData;
-
             //client may be disposed when we try to check
             //available data on a rejected connection
-            try
+            //but, UDPClient.Available will instead throw
+            //a null reference exception instead
+            //So instead we will use a lock rather than
+            //a try/catch
+            lock (retrySentry)
             {
-                hasData = client.Available != 0;
-            } 
-            catch (ObjectDisposedException) 
-            {
-                hasData = false; 
+                if (client.Available != 0)
+                {
+                    IPEndPoint remoteIPEndPoint;
+                    //this isn't a filter
+                    remoteIPEndPoint = new IPEndPoint(IPAddress.Any, 0);
+                    byte[] recived = null;
+                    try
+                    {
+                        recived = client.Receive(ref remoteIPEndPoint);
+                        Log_Verb("Got Data");
+                    }
+                    catch (SocketException err)
+                    {
+                        Log_Error("UDP Recv Error: " + err.Message);
+                        Log_Error("Error Code: " + err.ErrorCode);
+                        RaiseEventConnectionClosed();
+                        return null;
+                    }
+
+                    UDP iRet = new UDP(recived)
+                    {
+                        DestinationPort = srcPort,
+                        SourcePort = destPort
+                    };
+
+                    lock (deathClock)
+                    {
+                        deathClock.Restart();
+                    }
+
+                    if (destPort == 53)
+                    {
+                        Log_Info("DNS Packet Sent From " + remoteIPEndPoint.Address);
+                        Log_Info("Contents");
+                        PacketReader.DNS.DNS pDNS = new PacketReader.DNS.DNS(recived);
+                    }
+
+                    return iRet;
+                }
             }
 
-            if (hasData)
-            {
-                IPEndPoint remoteIPEndPoint;
-                //this isn't a filter
-                remoteIPEndPoint = new IPEndPoint(IPAddress.Any, 0);
-                byte[] recived = null;
-                try
-                {
-                    recived = client.Receive(ref remoteIPEndPoint);
-                    Log_Verb("Got Data");
-                }
-                catch (SocketException err)
-                {
-                    Log_Error("UDP Recv Error: " + err.Message);
-                    Log_Error("Error Code: " + err.ErrorCode);
-                    RaiseEventConnectionClosed();
-                    return null;
-                }
-
-                UDP iRet = new UDP(recived)
-                {
-                    DestinationPort = srcPort,
-                    SourcePort = destPort
-                };
-
-                lock (deathClock)
-                {
-                    deathClock.Restart();
-                }
-
-                if (destPort == 53)
-                {
-                    Log_Info("DNS Packet Sent From " + remoteIPEndPoint.Address);
-                    Log_Info("Contents");
-                    PacketReader.DNS.DNS pDNS = new PacketReader.DNS.DNS(recived);
-                }
-
-                return iRet;
-            }
             lock (deathClock)
             {
                 if (deathClock.Elapsed.TotalSeconds > MAX_IDLE)
@@ -169,7 +171,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             return false;
         }
 
-        bool hasRetryed = false;
+
         public override bool Send(IPPayload payload)
         {
             lock (deathClock)
@@ -249,18 +251,26 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     {
                         Log_Error("UDP Send Error: " + err.Message);
                         Log_Error("Error Code: " + err.ErrorCode);
+                    }
+                    lock (retrySentry)
+                    {
+                        client.Close();
+                        //recreate UDP client
+                        IPAddress address = new IPAddress(DestIP);
+                        client = new UdpClient();
+                        client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                        client.Client.Bind(new IPEndPoint(adapterIP, 0));
+                        client.Connect(address, destPort);
+                    }
+                    //And retry sending
+                    client.Send(udp.GetPayload(), udp.GetPayload().Length);
+
+                    if (!hasRetryed)
+                    {
+                        Log_Error("Retryed send");
                         Log_Error("Hiding further errors from this connection");
                         hasRetryed = true;
                     }
-                    client.Close();
-                    //recreate UDP client
-                    IPAddress address = new IPAddress(DestIP);
-                    client = new UdpClient();
-                    client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
-                    client.Client.Bind(new IPEndPoint(adapterIP, 0));
-                    client.Connect(address, destPort);
-                    //And retry sending
-                    client.Send(udp.GetPayload(), udp.GetPayload().Length);
                 }
             }
 
