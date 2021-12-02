@@ -565,7 +565,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             reterr.RST = true;
             PushRecvBuff(reterr);
 
-            state = TCPState.CloseCompleted;
+            state = TCPState.CloseCompletedFlushBuffer;
         }
     }
 }
