@@ -493,7 +493,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                 UDPSession s;
                 if (udp.SourcePort == udp.DestinationPort || //Used for LAN games that assume the destination port
                     Utils.memcmp(ipPkt.DestinationIP, 0, dhcpServer.Broadcast, 0, 4) ||
-                    Utils.memcmp(ipPkt.DestinationIP, 0, dhcpServer.LimitedBroadcast, 0, 4)) //Broadcast packets
+                    Utils.memcmp(ipPkt.DestinationIP, 0, dhcpServer.LimitedBroadcast, 0, 4) || //Broadcast packets
+                    (ipPkt.DestinationIP[0] & 0xF0) == 0xE0) //Multicast address start with 0b1110
                 {
                     //Limit of one udpclient per local port
                     //need to reuse the udpclient
@@ -529,7 +530,8 @@ namespace CLRDEV9.DEV9.SMAP.Winsock
                         }
                     }
                     s = fPort.NewClientSession(Key, Utils.memcmp(ipPkt.DestinationIP, 0, dhcpServer.Broadcast, 0, 4) |
-                                                    Utils.memcmp(ipPkt.DestinationIP, 0, dhcpServer.LimitedBroadcast, 0, 4));
+                                                    Utils.memcmp(ipPkt.DestinationIP, 0, dhcpServer.LimitedBroadcast, 0, 4),
+                                                    (ipPkt.DestinationIP[0] & 0xF0) == 0xE0);
                 }
                 else
                 {

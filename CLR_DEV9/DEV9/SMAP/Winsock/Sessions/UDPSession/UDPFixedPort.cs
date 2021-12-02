@@ -99,9 +99,9 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             client.Close();
         }
 
-        public UDPSession NewClientSession(ConnectionKey parNewKey, bool parIsBrodcast)
+        public UDPSession NewClientSession(ConnectionKey parNewKey, bool parIsBrodcast, bool parIsMulticast)
         {
-            UDPSession udp = new UDPSession(parNewKey, adapterIP, parIsBrodcast, client);
+            UDPSession udp = new UDPSession(parNewKey, adapterIP, parIsBrodcast, parIsMulticast, client);
             udp.ConnectionClosedEvent += HandleChildConnectionClosed;
 
             lock (connectionSentry)

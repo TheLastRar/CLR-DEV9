@@ -32,7 +32,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             }
         }
 
-        public UDPSession(ConnectionKey parKey, IPAddress parAdapterIP, bool parIsBroadcast, UdpClient parClient)
+        public UDPSession(ConnectionKey parKey, IPAddress parAdapterIP, bool parIsBroadcast, bool parIsMulticast, UdpClient parClient)
             : base(parKey, parAdapterIP)
         {
             isFixedPort = true;
@@ -41,6 +41,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
             srcPort = parKey.PS2Port;
             destPort = parKey.SRVPort;
             isBroadcast = parIsBroadcast;
+            isMulticast = parIsMulticast;
 
             lock (deathClock)
             {
@@ -108,12 +109,12 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     SourcePort = destPort
                 };
 
-                if (isMulticast)
-                {
-                    Log_Error(remoteIPEndPoint.ToString());
-                    DestIP = remoteIPEndPoint.Address.GetAddressBytes(); //assumes ipv4
-                    iRet.SourcePort = (UInt16)remoteIPEndPoint.Port;
-                }
+                //if (isMulticast)
+                //{
+                //    //Log_Error(remoteIPEndPoint.ToString());
+                //    DestIP = remoteIPEndPoint.Address.GetAddressBytes(); //assumes ipv4
+                //    iRet.SourcePort = (UInt16)remoteIPEndPoint.Port;
+                //}
                 lock (deathClock)
                 {
                     deathClock.Restart();
@@ -144,9 +145,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         {
             if (!open)
             {
+                Log_Error("WillRecive() called on closed port");
                 return false;
             }
             if (isBroadcast ||
+                isMulticast ||
                 Utils.memcmp(parDestIP, 0, DestIP, 0, 4))
             {
                 lock (deathClock)
@@ -155,6 +158,20 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 }
                 return true;
             }
+            Log_Error("WillRecive() Connection not broadcast and from unexpected IP");
+            //Log IPs
+            string str = "";
+            for (int y = 0; y < DestIP.Length; y++)
+            {
+                str += DestIP[y] + ":";
+            }
+            Log_Error("Connecton Expected: " + str.TrimEnd(':'));
+            str = "";
+            for (int y = 0; y < parDestIP.Length; y++)
+            {
+                str += parDestIP[y] + ":";
+            }
+            Log_Error("Connecton Got: " + str.TrimEnd(':'));
             return false;
         }
 
@@ -187,23 +204,24 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 if ((DestIP[0] & 0xF0) == 0xE0)
                 {
                     isMulticast = true;
+                    Log_Error("Multicast from non fixed port");
                 }
 
                 client = new UdpClient();
                 client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
                 client.Client.Bind(new IPEndPoint(adapterIP, 0));
 
-                //needs testing
-                if (isMulticast)
-                {
-                    Log_Info("Is Multicast");
-                    //client.JoinMulticastGroup(address);
-                }
-                else
-                {
-                    IPAddress address = new IPAddress(DestIP);
-                    client.Connect(address, destPort);
-                }
+                ////needs testing
+                //if (isMulticast)
+                //{
+                //    Log_Info("Is Multicast");
+                //    //client.JoinMulticastGroup(address);
+                //}
+                //else
+                //{
+                IPAddress address = new IPAddress(DestIP);
+                client.Connect(address, destPort);
+                //}
                 if (srcPort != 0)
                 {
                     open = true;
