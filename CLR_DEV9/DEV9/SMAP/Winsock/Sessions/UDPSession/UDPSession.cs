@@ -21,7 +21,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
         //EndBroadcast
 
         //UDP Retry on fail
-        bool hasRetryed = false;
+        bool hasRetried = false;
         object retrySentry = new object();
         //
 
@@ -247,7 +247,7 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                 }
                 catch (SocketException err)
                 {
-                    if (!hasRetryed)
+                    if (!hasRetried)
                     {
                         Log_Error("UDP Send Error: " + err.Message);
                         Log_Error("Error Code: " + err.ErrorCode);
@@ -265,11 +265,11 @@ namespace CLRDEV9.DEV9.SMAP.Winsock.Sessions
                     //And retry sending
                     client.Send(udp.GetPayload(), udp.GetPayload().Length);
 
-                    if (!hasRetryed)
+                    if (!hasRetried)
                     {
-                        Log_Error("Retryed send");
+                        Log_Error("Retried send");
                         Log_Error("Hiding further errors from this connection");
-                        hasRetryed = true;
+                        hasRetried = true;
                     }
                 }
             }
